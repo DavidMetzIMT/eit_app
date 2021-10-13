@@ -5,7 +5,7 @@ Thank you for the interest in `eit_app`!
 
 `eit_app` is **a python-based, open-source framework for Electrical Impedance Tomography (EIT) reconstruction.**
 
-using a Sciospec EIT_device from the compagny Sciospec
+using a Sciospec EIT32-device from the compagny Sciospec
 
 
 
@@ -40,9 +40,14 @@ Interested users can contribute **(create a PR! any type of improvement is welco
 [Anaconda from continuum](https://www.continuum.io/downloads) is highly recommended for this package. PyEIT is purely python and has minimal dependencies.
 
 ### 1.2 Features
- - [x] 2D forward and inverse computing of EIT
+ - [x] Serial communication with Sciospec EIT32-device for setting/reading meas. setups, and measurements aquisition
+ - [x] Impedance measurements aquisition
+ - [x] Saving of measurements
+ - [x] Replay of saved measurements
+ - [x] Live view from usb camera and saving of image for measuremnets 
+ -
 	
- - [x] 2D forward and inverse computing of EIT
+ - [x] inverse computing of EIT
  - [x] Reconstruction algorithms : Gauss-Newton solver (JAC), Back-projection (BP), 2D GREIT
  - [x] 2D/3D visualization!
  - [x] Add support for 3D forward and inverse computing
@@ -108,9 +113,9 @@ From the example folder, pick one demo and run!
  - 3D visualization plotted using `vispy` can be adjusted using mouse wheels interactively. Seeking a perfect visualization mode, transparency or opaque, is in fact an individual taste. User can also try `mayavi` and `vtk` for the visualization purpose using the unified 3D meshing structure.
  - Solving the inverse problem of 3D EIT, requires the electrodes to be placed at multiple altitude (z-axis) in order to have a (better) z-resolution. This should be done carefully, as adding extra z-belt introduces more stimulation patterns, which in turn adds to the computational loads.
 
-## 4. Contribute to pyEIT.
+## 4. Contribute to `eit_app`.
 
-Give `pyEIT` a **star**, **fork** this project and commit a pull request **(PR)** !
+
 
 ## 5. Cite our work.
 
