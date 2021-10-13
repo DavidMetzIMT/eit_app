@@ -1,21 +1,13 @@
-#eit_app: Electrical Impedance Tomography (EIT) application
-is a Python based application
+# eit_app: Electrical Impedance Tomography (EIT) application
+# ![eit_app](docs/icons/EIT.png)
+
+Thank you for the interest in `eit_app`!
+
+`eit_app` is **a python-based, open-source framework for Electrical Impedance Tomography (EIT) reconstruction.**
+
+using a Sciospec EIT_device from the compagny Sciospec
 
 
-
-
-
-
-
-
-
-# ![pyeit](doc/images/logo.png)
-
-Thank you for the interest in `pyEIT`!
-
-`pyEIT` is **a python-based, open-source framework for Electrical Impedance Tomography (EIT).**
-
-The design priciples of `pyEIT` are **modularity, minimalism, extensibility and OOP!**
 
 ## 1. Introduction
 
@@ -48,7 +40,8 @@ Interested users can contribute **(create a PR! any type of improvement is welco
 [Anaconda from continuum](https://www.continuum.io/downloads) is highly recommended for this package. PyEIT is purely python and has minimal dependencies.
 
 ### 1.2 Features
-
+ - [x] 2D forward and inverse computing of EIT
+	
  - [x] 2D forward and inverse computing of EIT
  - [x] Reconstruction algorithms : Gauss-Newton solver (JAC), Back-projection (BP), 2D GREIT
  - [x] 2D/3D visualization!
