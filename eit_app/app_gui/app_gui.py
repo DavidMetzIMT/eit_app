@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'app_gui.ui'
+# Form implementation generated from reading ui file 'eit_app/app_gui/app_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.3
 #
@@ -390,7 +390,7 @@ class Ui_MainWindow(object):
         self.pB_gotoend.setAutoFillBackground(False)
         self.pB_gotoend.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("icon_end.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("docs/icons/icon_end.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_gotoend.setIcon(icon)
         self.pB_gotoend.setAutoDefault(False)
         self.pB_gotoend.setFlat(True)
@@ -400,7 +400,7 @@ class Ui_MainWindow(object):
         self.pB_pause.setAutoFillBackground(False)
         self.pB_pause.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("icon_pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("docs/icons/icon_pause.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_pause.setIcon(icon1)
         self.pB_pause.setAutoDefault(False)
         self.pB_pause.setFlat(True)
@@ -410,7 +410,7 @@ class Ui_MainWindow(object):
         self.pB_play.setAutoFillBackground(False)
         self.pB_play.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("icon_play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap("docs/icons/icon_play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_play.setIcon(icon2)
         self.pB_play.setAutoDefault(False)
         self.pB_play.setFlat(True)
@@ -420,7 +420,7 @@ class Ui_MainWindow(object):
         self.pB_backbegin.setAutoFillBackground(False)
         self.pB_backbegin.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("icon_begin.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap("docs/icons/icon_begin.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_backbegin.setIcon(icon3)
         self.pB_backbegin.setAutoDefault(False)
         self.pB_backbegin.setFlat(True)
@@ -430,7 +430,7 @@ class Ui_MainWindow(object):
         self.pB_stop.setAutoFillBackground(False)
         self.pB_stop.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap("icon_stop.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(QtGui.QPixmap("docs/icons/icon_stop.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_stop.setIcon(icon4)
         self.pB_stop.setAutoDefault(False)
         self.pB_stop.setFlat(True)
@@ -605,6 +605,16 @@ class Ui_MainWindow(object):
         self.video_frame_miniature.setAutoFillBackground(False)
         self.video_frame_miniature.setAlignment(QtCore.Qt.AlignCenter)
         self.video_frame_miniature.setObjectName("video_frame_miniature")
+        self.pB_refresh_video_devices = QtWidgets.QPushButton(self.centralwidget)
+        self.pB_refresh_video_devices.setEnabled(True)
+        self.pB_refresh_video_devices.setGeometry(QtCore.QRect(1122, 30, 75, 23))
+        self.pB_refresh_video_devices.setAutoFillBackground(False)
+        self.pB_refresh_video_devices.setObjectName("pB_refresh_video_devices")
+        self.cB_video_devices = QtWidgets.QComboBox(self.centralwidget)
+        self.cB_video_devices.setGeometry(QtCore.QRect(1030, 30, 81, 22))
+        self.cB_video_devices.setToolTip("")
+        self.cB_video_devices.setEditable(False)
+        self.cB_video_devices.setObjectName("cB_video_devices")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1934, 21))
@@ -615,7 +625,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(0)
         self.tabWidget_3.setCurrentIndex(0)
         self.tabWidget_Z.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -744,6 +754,10 @@ class Ui_MainWindow(object):
         self.pB_Video.setText(_translate("MainWindow", "Video"))
         self.video_frame.setText(_translate("MainWindow", "Live Video"))
         self.video_frame_miniature.setText(_translate("MainWindow", "Live Video"))
+        self.pB_refresh_video_devices.setToolTip(_translate("MainWindow", "test"))
+        self.pB_refresh_video_devices.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
+        self.pB_refresh_video_devices.setText(_translate("MainWindow", "Refresh"))
+        self.cB_video_devices.setStatusTip(_translate("MainWindow", "Available serial port list"))
 
 
 if __name__ == "__main__":

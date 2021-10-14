@@ -1,8 +1,9 @@
 
-from utils.eit_reconstruction import ReconstructionPyEIT
-import numpy as np
 import matplotlib.figure
+import numpy as np
 from matplotlib.figure import Figure
+from eit_app.eit.reconstruction import ReconstructionPyEIT
+
 
 def plot_conductivity_map(fig, ax, rec:ReconstructionPyEIT, perm_ds=True, nb_plots=3):
         if rec.InitDone:
@@ -14,12 +15,14 @@ def plot_conductivity_map(fig, ax, rec:ReconstructionPyEIT, perm_ds=True, nb_plo
             if perm_ds:
                 im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(perm), shading="flat")
             else:
-                if rec.eit.solver_type=='GREIT':
-                    ds = rec.MeshObjMeas["ds_greit"]
-                    im = ax.imshow(np.real(ds), interpolation="none", origin='lower', vmin=rec.Scalevmin, vmax=rec.Scalevmax)
+                if hasattr(rec.eit, 'solver_type'):
+                    if rec.eit.solver_type=='GREIT':
+                        ds = rec.MeshObjMeas["ds_greit"]
+                        im = ax.imshow(np.real(ds), interpolation="none", origin='lower', vmin=rec.Scalevmin, vmax=rec.Scalevmax)
+                    else:
+                        im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(ds), shading="flat", vmin=rec.Scalevmin, vmax=rec.Scalevmax)
                 else:
                     im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(ds), shading="flat", vmin=rec.Scalevmin, vmax=rec.Scalevmax)
-                
             for i, e in enumerate(rec.ElecPos):
                 ax.annotate(str(i + 1), xy=(pts[e,0], pts[e,1]), color="r")   
             ax.axis("equal")

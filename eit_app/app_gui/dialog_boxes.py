@@ -4,8 +4,16 @@ from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox
 ##  DialogBoxes
 ## ======================================================================================================================================================
 
-def showDialog(Qwidget, text, title, attr):
+def showDialog(Qwidget, text, title, attr=None):
+
+    # NoIcon = ... # type: 'QMessageBox.Icon'
+    # Information = ... # type: 'QMessageBox.Icon'
+    # Warning = ... # type: 'QMessageBox.Icon'
+    # Critical = ... # type: 'QMessageBox.Icon'
+    # Question = ... # type: 'QMessageBox.Icon'
+
     msgBox = QMessageBox()
+    attr= attr if attr else 'NoIcon'
     msgBox.setIcon(getattr(QMessageBox, attr))
     msgBox.setText(text)
     msgBox.setWindowTitle(title)

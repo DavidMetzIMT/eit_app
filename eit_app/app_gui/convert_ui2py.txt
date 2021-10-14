@@ -1,0 +1,2 @@
+
+pyuic5 -x eit_app/app_gui/app_gui.ui -o eit_app/app_gui/app_gui.py

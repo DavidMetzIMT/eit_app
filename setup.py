@@ -10,12 +10,12 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name="EIT_acquisition_app",
+    name="eit_app",
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     version="0.0.1",
-    description="Python Electrical Impedance Tomography  ",
+    description="Python Electrical Impedance Tomography Aplication",
     url="https://github.com/DavidMetzIMT/eit_tf_workspace",
     # Author details
     author="David Metz",
@@ -26,7 +26,7 @@ setup(
     keywords="python tools for electrical impedance tomography ",
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=["test", "datasets", "outputs", "_test_scripts"]),
+    packages=find_packages(exclude=["test"]),
     zip_safe=False,
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's

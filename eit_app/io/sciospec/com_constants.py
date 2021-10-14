@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Notes
 -----
-- see documentation of the EIT device for mor details
+- see documentation of the EIT device for more details
 
 """
 

@@ -18,12 +18,15 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
-import time
 # from typing import ValuesView
 import os
+import time
+
 import cv2
 import numpy as np
-from utils.constants import EXT_IMG, DEFAULT_IMG_SIZES
+from eit_app.utils.constants import DEFAULT_IMG_SIZES, EXT_IMG
+from PyQt5.QtGui import QImage
+
 # from matplotlib.cbook import flatten
 # from matplotlib.pyplot import title
 
@@ -194,18 +197,11 @@ def convert_frame_to_Qt_format(frame):
 #     imwrite("filename.jpg",img) #save image
 
 
-
-
-
-
-
-
-
-import sys
-from PyQt5.QtGui import QImage
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-import cv2
+# import sys
+# from PyQt5.QtGui import QImage
+# from PyQt5.QtWidgets import *
+# from PyQt5.QtCore import *
+# import cv2
 
 # class MainWindow(QWidget):
 #     def __init__(self):
@@ -232,37 +228,37 @@ import cv2
 #     def CancelFeed(self):
 #         self.Worker1.stop()
 
-class WorkerCam(QThread):
+# class WorkerCam(QThread):
 
-    image_update = pyqtSignal(QImage)
+#     image_update = pyqtSignal(QImage)
 
-    def __init__(self, sleeptime=None):
-        super(WorkerCam,self).__init__()
-        self.thread_active = False
-        self.sleeptime= sleeptime if sleeptime else 0.1
+#     def __init__(self, sleeptime=None):
+#         super(WorkerCam,self).__init__()
+#         self.thread_active = False
+#         self.sleeptime= sleeptime if sleeptime else 0.1
 
-    def set_capture_device(self, device:MicroCam):
-        self.capture_device= device
+#     def set_capture_device(self, device:MicroCam):
+#         self.capture_device= device
 
-    def start_capture(self):
-        self.thread_active= True
+#     def start_capture(self):
+#         self.thread_active= True
 
-    def run(self):
-        while 1:
-            time.sleep(self.sleeptime)
-            while self.thread_active:
-                ret, frame = self.capture_device.capture_frame()
-                time.sleep(self.sleeptime)
-                if ret:
-                    # img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    # trans_img = cv2.flip(img, 1)
-                    # ConvertToQtFormat = QImage(trans_img.data, trans_img.shape[1], trans_img.shape[0], QImage.Format_RGB888)
-                    # picture = ConvertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
-                    self.image_update.emit(convert_frame_to_Qt_format(frame))
+#     def run(self):
+#         while 1:
+#             time.sleep(self.sleeptime)
+#             while self.thread_active:
+#                 ret, frame = self.capture_device.capture_frame()
+#                 time.sleep(self.sleeptime)
+#                 if ret:
+#                     # img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#                     # trans_img = cv2.flip(img, 1)
+#                     # ConvertToQtFormat = QImage(trans_img.data, trans_img.shape[1], trans_img.shape[0], QImage.Format_RGB888)
+#                     # picture = ConvertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
+#                     self.image_update.emit(convert_frame_to_Qt_format(frame))
 
-    def stop_capture(self):
-        self.thread_active = False
-        # self.quit()
+#     def stop_capture(self):
+#         self.thread_active = False
+#         # self.quit()
 
 if __name__ == '__main__':
     

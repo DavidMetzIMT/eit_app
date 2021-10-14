@@ -1,2 +1,0 @@
-
-pyuic5 -x app_gui.ui -o app_gui.py

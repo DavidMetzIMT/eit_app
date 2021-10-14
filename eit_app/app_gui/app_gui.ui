@@ -72,7 +72,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -1084,7 +1084,7 @@
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>icon_end.png</normaloff>icon_end.png</iconset>
+        <normaloff>docs/icons/icon_end.png</normaloff>docs/icons/icon_end.png</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -1113,7 +1113,7 @@
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>icon_pause.png</normaloff>icon_pause.png</iconset>
+        <normaloff>docs/icons/icon_pause.png</normaloff>docs/icons/icon_pause.png</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -1142,7 +1142,7 @@
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>icon_play.png</normaloff>icon_play.png</iconset>
+        <normaloff>docs/icons/icon_play.png</normaloff>docs/icons/icon_play.png</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -1171,7 +1171,7 @@
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>icon_begin.png</normaloff>icon_begin.png</iconset>
+        <normaloff>docs/icons/icon_begin.png</normaloff>docs/icons/icon_begin.png</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -1200,7 +1200,7 @@
       </property>
       <property name="icon">
        <iconset>
-        <normaloff>icon_stop.png</normaloff>icon_stop.png</iconset>
+        <normaloff>docs/icons/icon_stop.png</normaloff>docs/icons/icon_stop.png</iconset>
       </property>
       <property name="autoDefault">
        <bool>false</bool>
@@ -1732,6 +1732,50 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pB_refresh_video_devices">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>1122</x>
+      <y>30</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>test</string>
+    </property>
+    <property name="statusTip">
+     <string>Refresh the available serial port list</string>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="text">
+     <string>Refresh</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cB_video_devices">
+    <property name="geometry">
+     <rect>
+      <x>1030</x>
+      <y>30</y>
+      <width>81</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string/>
+    </property>
+    <property name="statusTip">
+     <string>Available serial port list</string>
+    </property>
+    <property name="editable">
+     <bool>false</bool>
     </property>
    </widget>
   </widget>

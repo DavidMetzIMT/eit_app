@@ -39,10 +39,10 @@ from __future__ import print_function
 import glob
 import sys
 import time
-from utils.Sciospec import SciospecDev
-from utils.SciospecCONSTANTS import *
 
 import serial  # get from http://pyserial.sourceforge.net/
+from eit_app.io.sciospec.com_constants import *
+from eit_app.io.sciospec.device import SciospecDev
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"

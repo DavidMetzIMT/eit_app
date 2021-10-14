@@ -13,6 +13,7 @@ from pickle import TRUE
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+from pyeit.eit.base import EitBase
 import pyeit.eit.bp as bp
 import pyeit.eit.greit as greit
 import pyeit.eit.jac as jac
@@ -30,14 +31,19 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QWidget
 
-from utils.eit_dataset import *
-from utils.eit_model import *
-from utils.Sciospec import *
-from utils.SciospecCONSTANTS import OP_LINEAR, OP_LOG
-from utils.SciospecSerialInterfaceClass import *
-from utils.VoltagesProcessing import *
 
+from eit_app.eit.model import *
+from eit_app.io.sciospec.device import *
+from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
+from eit_app.io.sciospec.interface.serial4sciospec import *
+from eit_app.eit.meas_preprocessing import *
 
+from eit_tf_workspace.path_utils import get_dir
+from eit_tf_workspace.train_models import ModelGenerator
+from eit_tf_workspace.train_utils import TrainInputs
+from eit_tf_workspace.constants import TRAIN_INPUT_FILENAME
+from eit_tf_workspace.dataset import get_XY_from_MalabDataSet, dataloader, extract_samples
+from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
 ## ======================================================================================================================================================
 ##  Class for EIT Reconstruction
 ## ======================================================================================================================================================
@@ -45,7 +51,7 @@ class ReconstructionPyEIT():
     """ Class for the EIT reconstruction with the package pyEIT """
     def __init__(self):
         self.EitModel = EITModelClass()
-        self.MeshObj = mesh.create(16, h0=0.1)
+        self.MeshObj,self.ElecPos = mesh.create(16, h0=0.1)
         self.ElecNb = 16
         self.ElecPos = []
         self.FEMRefinement = 0.1
@@ -58,52 +64,118 @@ class ReconstructionPyEIT():
         self.Scalevmax= None
         self.InitDone=False
         self.running= False
+        self.eit=None
         pass
 
     def initPyeit(self, eit_model:EITModelClass, plot2Gui:bool=False, verbose:int=0):
-        print('Initialisation of PyEIT')
-        # coding: utf-8
-        """ demo on dynamic eit using JAC method """
-        # Copyright (c) Benyuan Liu. All Rights Reserved.
-        # Distributed under the (new) BSD License. See LICENSE.txt for more info.
+        
+        
+        self.InitDone=False
         self.verbose=verbose
         # stimulation/excitation
         self.EitModel= eit_model
         self.plot2Gui=plot2Gui
         self.FEMRefinement = eit_model.FEMRefinement
-
-        # TODO here init the varaible to create the mesh and the solver
-
         el_dist= 1 # ad: 1  op: 8    for ElecNb=16
-        self.ex_mat = eit_scan_lines(16, el_dist) # or from self.EitModel.....
-        # print(self.ex_mat)
-        self._construct_mesh(self.ElecNb, self.FEMRefinement, self.ChamberLimit)
-        if verbose>0:
-            self._print_mesh_nodes_elemts(self.MeshObj)
-            self._plot_mesh()
-            self._plot_conductivity_map(self.MeshObj)
-    
-        """ 1. problem setup """
-        anomaly = [{"x": 0.5, "y": 0.5, "d": 0.1, "perm": 2}]
-        self.MeshObjSim = mesh.set_perm(self.MeshObj, anomaly=anomaly,background=0.01)
-        self.MeshObjSim= self._reconstruct_mesh_struct(self.MeshObjSim)
-        if verbose>0:
-            self._print_mesh_nodes_elemts(self.MeshObjSim)
-            self._plot_conductivity_map(self.MeshObjSim)
+        self.ex_mat = eit_scan_lines(16, el_dist)
+        
+        if  self.EitModel.SolverType=='NN':
+            print('Initialisation of Reccontruction with NN')
+            
+            title= 'Select directory of model to evaluate'
+            path_dir=get_dir(title=title)
+            if not path_dir:
+                return
+            # read train inputs instead
+            training_settings=TrainInputs()
+            training_settings.read(os.path.join(path_dir,TRAIN_INPUT_FILENAME))
+            #here pb with linux/win tranfers
+            path_pkl=training_settings.dataset_src_file[1]
+            data_sel= training_settings.data_select
+            # Data loading
+            raw_data=get_XY_from_MalabDataSet(path=path_pkl, data_sel= data_sel,verbose=verbose)#, type2load='.pkl')
+            eval_dataset = dataloader(raw_data, use_tf_dataset=True,verbose=verbose, train_inputs=training_settings)
+            
+            # if verbose:
+            #     print(eval_dataset.use_tf_dataset)
+            #     if eval_dataset.use_tf_dataset:
+            #         # extract data for verification?
+            #         for inputs, outputs in eval_dataset.test.as_numpy_iterator():
+            #             print('samples size:',inputs.shape, outputs.shape)
+            #             # Print the first element and the label
+            #             # print(inputs[0])
+            #             # print('label of this input is', outputs[0])
+            #             if eval_dataset.batch_size:
+            #                 plot_EIT_samples(eval_dataset.fwd_model, outputs[0], inputs[0])
+            #             else:
+            #                 plot_EIT_samples(eval_dataset.fwd_model, outputs, inputs)
+            #             break
+            
+            # _, perm_real=extract_samples(eval_dataset, dataset_part='test', idx_samples='all', elem_idx = 1)
+            _, perm_real=extract_samples(eval_dataset, dataset_part='test', idx_samples=0, elem_idx = 1)
 
-        """ 2. FEM simulation """
-        # # calculate simulated data
-        self.step_solver = 1
-        fwd = Forward(self.MeshObj, self.ElecPos)
-        f0 = fwd.solve_eit(self.ex_mat, step=self.step_solver, perm=self.MeshObj["perm"])
-        f1 = fwd.solve_eit(self.ex_mat, step=self.step_solver, perm=self.MeshObjSim["perm"])
+            print('\nperm_real',perm_real, perm_real.shape)
+            # print(self.MeshObj, type(self.MeshObj))
 
-        self.setEit(self.EitModel.p,self.EitModel.lamb,self.EitModel.n)
-        self._inv_solve_eit(f1.v, f0.v)
-        self._print_mesh_nodes_elemts(self.MeshObjMeas)
-        # self._plot_conductivity_map(self.MeshObjMeas, perm_ds=False)
-        # self._plot_conductivity_map(self.MeshObjMeas, perm_ds=False)
-        self.InitDone=True
+            # Load model
+            gen = ModelGenerator()
+            try: 
+                gen.load_model(training_settings.model_saving_path)
+                self.InitDone=True
+
+                perm=format_inputs(eval_dataset.fwd_model, perm_real)
+                tri, pts, data= get_elem_nodal_data(eval_dataset.fwd_model, perm)
+                
+                # self.MeshObj= self._reconstruct_mesh_struct(self.MeshObj)
+                self.MeshObj["node"]=pts
+                self.MeshObj["element"]= tri
+                self.MeshObj["perm"] = data['elems_data']
+                self.MeshObj["ds"]=data['elems_data']
+                self.MeshObj= self._reconstruct_mesh_struct(self.MeshObj)
+                self.MeshObjMeas = self.MeshObj
+
+            except:
+                print(f'{training_settings.model_saving_path} : model not loaded')
+            
+        else:
+            print('Initialisation of PyEIT')
+            # coding: utf-8
+            """ demo on dynamic eit using JAC method """
+            # Copyright (c) Benyuan Liu. All Rights Reserved.
+            # Distributed under the (new) BSD License. See LICENSE.txt for more info.
+            
+
+            # TODO here init the varaible to create the mesh and the solver
+
+            # or from self.EitModel.....
+            # print(self.ex_mat)
+            self._construct_mesh(self.ElecNb, self.FEMRefinement, self.ChamberLimit)
+            if verbose>0:
+                self._print_mesh_nodes_elemts(self.MeshObj)
+                self._plot_mesh()
+                self._plot_conductivity_map(self.MeshObj)
+        
+            """ 1. problem setup """
+            anomaly = [{"x": 0.5, "y": 0.5, "d": 0.1, "perm": 2}]
+            self.MeshObjSim = mesh.set_perm(self.MeshObj, anomaly=anomaly,background=0.01)
+            self.MeshObjSim= self._reconstruct_mesh_struct(self.MeshObjSim)
+            if verbose>0:
+                self._print_mesh_nodes_elemts(self.MeshObjSim)
+                self._plot_conductivity_map(self.MeshObjSim)
+
+            """ 2. FEM simulation """
+            # # calculate simulated data
+            self.step_solver = 1
+            fwd = Forward(self.MeshObj, self.ElecPos)
+            f0 = fwd.solve_eit(self.ex_mat, step=self.step_solver, perm=self.MeshObj["perm"])
+            f1 = fwd.solve_eit(self.ex_mat, step=self.step_solver, perm=self.MeshObjSim["perm"])
+
+            self.setEit(self.EitModel.p,self.EitModel.lamb,self.EitModel.n)
+            self._inv_solve_eit(f1.v, f0.v)
+            self._print_mesh_nodes_elemts(self.MeshObjMeas)
+            # self._plot_conductivity_map(self.MeshObjMeas, perm_ds=False)
+            # self._plot_conductivity_map(self.MeshObjMeas, perm_ds=False)
+            self.InitDone=True
 
     def setEit(self, p:int=0.5, lamb:int=0.01, n:int=64):
         """[summary]
@@ -115,13 +187,16 @@ class ReconstructionPyEIT():
         """
         if self.EitModel.SolverType=='BP':
             eit = bp.BP(self.MeshObj, self.ElecPos, ex_mat=self.ex_mat, step=1, parser="std")
-            eit.setup(weight="none")            
+            eit.setup(weight="none")         
         elif self.EitModel.SolverType=='JAC':
             eit = jac.JAC(self.MeshObj, self.ElecPos, ex_mat=self.ex_mat, step=self.step_solver, perm=1.0, parser="std")
             eit.setup(p=p, lamb=lamb, method="kotre")
         elif self.EitModel.SolverType=='GREIT':
             eit = greit.GREIT(self.MeshObj, self.ElecPos, ex_mat=self.ex_mat, step=self.step_solver, parser="std")
             eit.setup(p=p, lamb=lamb, n=n)
+        elif  self.EitModel.SolverType=='NN':
+            
+            pass
         else:
             eit = bp.BP(self.MeshObj, self.ElecPos, ex_mat=self.ex_mat, step=1, parser="std")
             eit.setup(weight="none") 

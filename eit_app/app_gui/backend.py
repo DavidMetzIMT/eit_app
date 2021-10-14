@@ -31,22 +31,24 @@ from PyQt5.QtGui import (QGuiApplication, QImage, QKeyEvent, QPainter, QPen,
 from PyQt5.QtWidgets import (QApplication, QComboBox, QFontComboBox,
                              QMessageBox, QSlider)
 
-from utils.microcamera import MicroCam, WorkerCam
-from app_gui import Ui_MainWindow as app_gui
-from utils.dialog_boxes import *
-from utils.eit_dataset import *
-from utils.eit_model import *
-from utils.eit_reconstruction import ReconstructionPyEIT
-from utils.new_queue import NewQueue
-from utils.newQlabel import MyLabel
-from utils.plots import plot_conductivity_map, plot_measurements
-from utils.Sciospec import *
-from utils.SciospecCONSTANTS import OP_LINEAR, OP_LOG
-from utils.SciospecSerialInterfaceClass import *
-from utils.utils_path import createPath
-from utils.VoltagesProcessing import *
-from utils.WorkerThread import Worker
-from utils.constants import EXT_TXT, MEAS_DIR, SETUPS_DIR, DEFAULT_IMG_SIZES,EXT_IMG
+
+
+
+from eit_app.io.video.microcamera import MicroCam
+from eit_app.app_gui.app_gui import Ui_MainWindow as app_gui
+from eit_app.app_gui.dialog_boxes import *
+from eit_app.eit.model import *
+from eit_app.eit.reconstruction import ReconstructionPyEIT
+from eit_app.threads_process.process_queue import NewQueue
+from eit_app.app_gui.newQlabel import MyLabel
+from eit_app.eit.plots import plot_conductivity_map, plot_measurements
+from eit_app.io.sciospec.device import *
+from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
+from eit_app.io.sciospec.interface.serial4sciospec import *
+from eit_app.utils.utils_path import createPath
+from eit_app.eit.meas_preprocessing import *
+from eit_app.threads_process.threads_worker import Worker, WorkerCam
+from eit_app.utils.constants import EXT_TXT, MEAS_DIR, SETUPS_DIR, DEFAULT_IMG_SIZES,EXT_IMG
 
 # Ensure using PyQt5 backend
 matplotlib.use('QT5Agg')
@@ -59,6 +61,8 @@ __version__ = "1.0.0"
 __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
+
+
 class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
     
     def __init__(
@@ -83,7 +87,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         # Set app title and logo
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("MainWindow","EIT aquisition for Sciospec device "+ __version__))
-        self.setWindowIcon(QtGui.QIcon('EIT.png'))
+        self.setWindowIcon(QtGui.QIcon('docs/icons/EIT.png'))
         self.cB_Scale.addItems([OP_LINEAR.name, OP_LOG.name])
         
         self.figure = plt.figure()
@@ -93,7 +97,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         self.PlotLayout.addWidget(self.canvas)
 
         self._init_objects()
-
 
         # define callbacks for each button
         # PushButtons
@@ -157,16 +160,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         self.scalePlot_vmin.valueChanged.connect(self._callback_ScalePlot)
         self.normalize.toggled.connect(self._callback_ScalePlot) 
 
+        self.cB_video_devices.activated.connect(self._callback_set_cam)
+        self.pB_refresh_video_devices.clicked.connect(self._callback_refresh_video_devices)
         self.cB_Image_format.activated.connect(self._callback_set_cam)
         self.cB_Image_fille_format.activated.connect(self._callback_set_cam)
         
-        self.setItems_comboBox(self.cB_ReconstructionAlgorithm, ['JAC', 'BP', 'GREIT'], handler=self._callback_initpyEIT)
+        self.setItems_comboBox(self.cB_ReconstructionAlgorithm, ['JAC', 'BP', 'GREIT','NN'], handler=self._callback_initpyEIT)
         self.setItems_comboBox(self.cB_Image_format, list(DEFAULT_IMG_SIZES.keys()), handler=self._callback_set_cam)
         self.setItems_comboBox(self.cB_Image_fille_format, list(EXT_IMG.keys()), handler=self._callback_set_cam)
 
         self._update_gui_data()
         self._update_freq_config()
+        self._callback_Refresh() # get actual comports
         self._get_imaging_parameters()
+        self._callback_refresh_video_devices()
 
 
     def _init_objects(self):
@@ -181,8 +188,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         createPath(SETUPS_DIR,append_datetime=False)
         # PATH_MEAS= os.getcwd() + "\Measurements"
         createPath(MEAS_DIR,append_datetime=False) 
-
-
 
         self._verbose=0
         self.LiveView=False
@@ -203,7 +208,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         self.replay_play=False
         # setting of the camera
         self.micro_cam=MicroCam()
-        self.micro_cam.selectCam(1)
+        self.micro_cam.selectCam(0)
         
     def _init_multithreading_workers(self):
         # to treat live view of measured data
@@ -297,8 +302,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
             #         self.div_10_cnt =0
             #         self.updade_video()
 
-            
-
     def _poll_update(self):
         """ Called by UpdateGuiWorker
 
@@ -348,8 +351,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
     def _callback_Refresh(self):
         '''Refresh the list of available COMports and update the list in the ComboBox '''
         self.SerialInterface.updateListSerialPorts()
+        ## Update the comBox
+        self.cB_comport.clear()
+        if not self.SerialInterface.AvailablePorts:
+            self.cB_comport.addItem('None COMport')
+        else:
+            self.cB_comport.addItems(self.SerialInterface.AvailablePorts)
         self.EITDev.add2Log('Available ports: ' + str(self.SerialInterface.AvailablePorts))
-        self._update_gui_data()
+        # self._update_gui_data()
         
     def _callback_Connect(self): 
         ''' Open the serial port with the name port'''
@@ -676,7 +685,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         
     def _callback_ReplayGotoEnd(self):
         self.setSliderReplay(self.Slider_replay_time, slider_pos=-1)
-        
+
     def _callback_ReplayPlay(self):
         self.replay_play= True
         self.replay_timeThreshold= self.replay_refresh_time.value()
@@ -693,12 +702,30 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
     def _callback_Replay(self):
         self.cB_Frame_indx.setCurrentIndex(self.Slider_replay_time.sliderPosition())
         self._callback_show_frame()
-        
+
+    def _callback_refresh_video_devices(self):
+
+        if self.pB_Video.isChecked():
+            showDialog(self,'Stop capture before changing capture device', 'Error', 'Warning' )
+        else:
+            devices_indx= self.micro_cam.returnCameraIndexes()
+            self.cB_video_devices.clear()
+            if not devices_indx:
+                items=['None video devices']
+            else:
+                items=[str(item) for item in devices_indx]
+
+            self.setItems_comboBox( self.cB_video_devices,items, handler=self._callback_set_cam)
+
     def _callback_set_cam(self):
-        self.micro_cam.setCamProp(size=self.cB_Image_format.currentText())
-        self.micro_cam.setImagefileFormat(file_ext=self.cB_Image_fille_format.currentText())
         
+        if self.pB_Video.isChecked():
             
+            showDialog(self,'Stop capture before changing capture device', 'Error', 'Warning' )
+        else:
+            self.micro_cam.selectCam(index=self.cB_video_devices.currentIndex())
+            self.micro_cam.setCamProp(size=self.cB_Image_format.currentText())
+            self.micro_cam.setImagefileFormat(file_ext=self.cB_Image_fille_format.currentText())
             
     ## ======================================================================================================================================================
     ##  Setter
@@ -887,12 +914,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
             else:
                 self.status_device.setStyleSheet("background-color: green")
 
-            ## Update the comBox
-            self.cB_comport.clear()
-            if not self.SerialInterface.AvailablePorts:
-                self.cB_comport.addItem('None COMport')
-            else:
-                self.cB_comport.addItems(self.SerialInterface.AvailablePorts)
+            # ## Update the comBox
+            # self.cB_comport.clear()
+            # if not self.SerialInterface.AvailablePorts:
+            #     self.cB_comport.addItem('None COMport')
+            # else:
+            #     self.cB_comport.addItems(self.SerialInterface.AvailablePorts)
                 
             ## Update SN
             self.SN.setText(self.EITDev.setup.SN_str)

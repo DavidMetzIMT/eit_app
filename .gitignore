@@ -5,3 +5,6 @@ measurements
 build
 dist
 exe
+_test_scripts
+outputs
+datasets

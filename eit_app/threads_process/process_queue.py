@@ -1,5 +1,6 @@
-from multiprocessing.queues import Queue
 import multiprocessing
+from multiprocessing.queues import Queue
+
 
 class NewQueue(Queue):
     def __init__(self,*args,**kwargs):

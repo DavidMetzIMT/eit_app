@@ -6,13 +6,17 @@ import os
 from numpy.core.shape_base import hstack
 from numpy.lib.arraysetops import ediff1d
 
-import utils.constants as const
+from eit_app.utils.constants import DEFAULT_DIR, \
+                                    DEFAULT_MEASUREMENTS,\
+                                    DEFAULT_INJECTIONS,\
+                                    DEFAULT_ELECTRODES_CHIP_RING
+
 ## ======================================================================================================================================================
 ##  
 ## ======================================================================================================================================================
 
 class EITModelClass(object):
-    ''' DeviceSetupClass regroup all Device relevant info, parameters
+    ''' 
     '''
     def __init__(self):
         self.Name = 'EITModel_defaultName'
@@ -25,10 +29,10 @@ class EITModelClass(object):
         self.n=64
 
         pattern='ad'
-        path= os.path.join(const.DEFAULT_DIR,const.DEFAULT_INJECTIONS[pattern])
+        path= os.path.join(DEFAULT_DIR,DEFAULT_INJECTIONS[pattern])
         self.InjPattern=np.loadtxt(path, dtype=int)
         # print(type(self.InjPattern))
-        path= os.path.join(const.DEFAULT_DIR,const.DEFAULT_MEASUREMENTS[pattern])
+        path= os.path.join(DEFAULT_DIR,DEFAULT_MEASUREMENTS[pattern])
         self.MeasPattern=np.loadtxt(path)
         # print(type(self.MeasPattern))
         # print(self.MeasPattern)
@@ -44,7 +48,7 @@ class EITModelClass(object):
         if path:
             self.ChipPins=np.loadtxt(path)
         else:
-            path= os.path.join(const.DEFAULT_DIR,const.DEFAULT_ELECTRODES_CHIP_RING)
+            path= os.path.join(DEFAULT_DIR,DEFAULT_ELECTRODES_CHIP_RING)
             self.ChipPins=np.loadtxt(path)
         
         # test if load data are compatible...

@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib.cbook import flatten
 from matplotlib.pyplot import title
 
-from utils.eit_dataset import EITDataSet
+from eit_app.io.sciospec.device import EITDataSet
 
 
 def _voltages_preparation(dataset:EITDataSet, frameIndx, imagingParameters, EITModel, liveView=False):
@@ -49,7 +49,6 @@ def _voltages_preparation(dataset:EITDataSet, frameIndx, imagingParameters, EITM
         imagingDataAbs= abs
     else:
         imagingDataAbs= identity
-
 
     if liveView==True:
         frame= dataset._last_frame
