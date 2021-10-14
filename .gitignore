@@ -8,3 +8,4 @@ exe
 _test_scripts
 outputs
 datasets
+*.svg

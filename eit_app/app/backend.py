@@ -35,12 +35,12 @@ from PyQt5.QtWidgets import (QApplication, QComboBox, QFontComboBox,
 
 
 from eit_app.io.video.microcamera import MicroCam
-from eit_app.app_gui.app_gui import Ui_MainWindow as app_gui
-from eit_app.app_gui.dialog_boxes import *
+from eit_app.app.gui import Ui_MainWindow as app_gui
+from eit_app.app.dialog_boxes import *
 from eit_app.eit.model import *
 from eit_app.eit.reconstruction import ReconstructionPyEIT
 from eit_app.threads_process.process_queue import NewQueue
-from eit_app.app_gui.newQlabel import MyLabel
+# from eit_app.app.newQlabel import MyLabel
 from eit_app.eit.plots import plot_conductivity_map, plot_measurements
 from eit_app.io.sciospec.device import *
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
@@ -561,7 +561,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         for key, item in self.workers.items():
             item.quit()
 
-            
     def _callback_Uplot(self):
         pass    
 
@@ -641,16 +640,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         self._callback_initpyEIT()
         
 
-    def _listener_queue_in(self):
-        
-        if not self.queue_in.empty():
-            #print(self.queue_in.to_list())
-            data=self.queue_in.get()
-            print('CMD on queue:',data['cmd'])
-            if data['cmd']=='updatePlot':
-                print('updatePlot')
-                self.image_reconst =data['rec']
-                self._plot_graphs()
                 
     
     def _callback_Reconstruct(self):
@@ -727,6 +716,12 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
             self.micro_cam.setCamProp(size=self.cB_Image_format.currentText())
             self.micro_cam.setImagefileFormat(file_ext=self.cB_Image_fille_format.currentText())
             
+    def testSerialisOpen(self):
+        if self.SerialInterface.Ser.is_open:
+            return 1
+        else:
+            showDialog(self,'Please connect a Device', 'Error: no Device connected', "Critical")
+            return 0
     ## ======================================================================================================================================================
     ##  Setter
     ## ======================================================================================================================================================
@@ -777,12 +772,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
             
         comboBox.activated.connect(handler)
 
-    def testSerialisOpen(self):
-        if self.SerialInterface.Ser.is_open:
-            return 1
-        else:
-            showDialog(self,'Please connect a Device', 'Error: no Device connected', "Critical")
-            return 0
 
     
 
@@ -817,6 +806,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         self.cB_Frequency4TD.setDisabled(not disableEntryField)
         self.pB_UpdateRef4TD.setDisabled(not disableEntryField)
 
+    def _listener_queue_in(self):
+        
+        if not self.queue_in.empty():
+            #print(self.queue_in.to_list())
+            data=self.queue_in.get()
+            print('CMD on queue:',data['cmd'])
+            if data['cmd']=='updatePlot':
+                print('updatePlot')
+                self.image_reconst =data['rec']
+                self._plot_graphs()
+                
     def _get_imaging_parameters(self):
 
         self.ImagingParameters= [   [self.rB_RawData.isChecked(),self.cB_Frequency.currentIndex(), 0],

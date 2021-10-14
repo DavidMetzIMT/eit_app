@@ -1,42 +1,30 @@
 
 
 
-import datetime
-import os
-import sys
-import time
-from multiprocessing.queues import Queue
-from os import listdir
-from os.path import isfile, join
-from pickle import TRUE
 
-import matplotlib
+import os
+from multiprocessing.queues import Queue
+
+
+
 import matplotlib.pyplot as plt
 import numpy as np
-from pyeit.eit.base import EitBase
+
 import pyeit.eit.bp as bp
 import pyeit.eit.greit as greit
 import pyeit.eit.jac as jac
 import pyeit.mesh as mesh
 import pyeit.mesh.plot as mplot
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import \
-    NavigationToolbar2QT as NavigationToolbar
+
 from pyeit.eit.fem import Forward
 from pyeit.eit.interp2d import pts2sim, sim2pts
 from pyeit.eit.utils import eit_scan_lines
-from pyeit.mesh import quality
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox, QWidget
 
 
-from eit_app.eit.model import *
-from eit_app.io.sciospec.device import *
-from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
-from eit_app.io.sciospec.interface.serial4sciospec import *
-from eit_app.eit.meas_preprocessing import *
+from eit_app.eit.model import EITModelClass
+# from eit_app.io.sciospec.device import *
+# from eit_app.io.sciospec.interface.serial4sciospec import 
+# from eit_app.eit.meas_preprocessing import *
 
 from eit_tf_workspace.path_utils import get_dir
 from eit_tf_workspace.train_models import ModelGenerator
@@ -68,7 +56,6 @@ class ReconstructionPyEIT():
         pass
 
     def initPyeit(self, eit_model:EITModelClass, plot2Gui:bool=False, verbose:int=0):
-        
         
         self.InitDone=False
         self.verbose=verbose
