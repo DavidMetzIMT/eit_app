@@ -258,7 +258,7 @@ class SerialInterface(Interface):
         while self.serial_port.in_waiting:
             self.serial_port.read(self.serial_port.in_waiting)
         self.listen_worker.start_polling()
-        
+
     def open_interface(self, port_name, baudrate=SERIAL_BAUD_RATE_DEFAULT, timeout=None, write_timeout=0):
         """ Open serial interface
 
@@ -272,7 +272,6 @@ class SerialInterface(Interface):
             serial.PortNotOpenError: [description]
         """
         try:
-            # open the serial port
             self.serial_port = serial.Serial(   port_name,
                                                 str(self.baudrate), 
                                                 timeout=timeout, 

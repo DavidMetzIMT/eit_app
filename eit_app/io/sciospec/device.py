@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
 import ast
 import struct
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -36,6 +37,8 @@ from eit_app.utils.log import main_log
 from eit_app.utils.utils_path import get_date_time
 import time
 import logging
+
+from dataclasses import dataclass
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
 __credits__ = ["David Metz"]
@@ -426,6 +429,9 @@ class SciospecDevice(object):
     
 
     def get_available_sciospec_devices(self):
+        """Lists serial port names on which Sciospec device is available
+
+        Device infos are ask and if an ack is get: it is a Sciospec device..."""
         
         ports=self.interface.get_ports_available()
         sciospec_devices_ports=[]
@@ -448,21 +454,25 @@ class SciospecDevice(object):
         self.get_available_sciospec_devices() # update the list of Sciospec devices available
         if port_name in self.sciospec_devices_ports:
                 self.treat_rx_frame_worker.start_polling()
-                self.interface.open_serial(port_name, baudrate)
+                self.interface.open_interface(port_name, baudrate)
                 self.stop_meas()
                 self.interface.clear_unwanted_rx_frames()
                 self.getSN()               
-                self.status=    f'Device (SN: {self.setup.SN_str}) on serial port "{self.interface.serial_port.name}" (b:{self.interface.serial_port.baudrate} d:8 s:1 p:None) - CONNECTED'
+                self.status= f'Device (SN: {self.setup.SN_str}) on serial port "{self.interface.serial_port.name}" (b:{self.interface.serial_port.baudrate} d:8 s:1 p:None) - CONNECTED'
                 logger.info(self.status)
-    
+        else:
+            msg= f'No Sciospec device on serial port "{port_name}" - NOT FOUND'
+            logger.warning(msg)
+
     def disconnect_device(self):
         """" Disconnect the device"""
         self.treat_rx_frame_worker.stop_polling()
         msg=f'Device (SN: {self.setup.SN_str}) connected on serial port "{self.interface.serial_port.name}" (b:{self.interface.serial_port.baudrate} d:8 s:1 p:None) - DISCONNECTED'
-        self.interface.close_serial()
+        self.interface.close_interface()
         logger.info(msg)
         self.init_dev()
         self.get_available_sciospec_devices() # update the list of Sciospec devices available ????
+
 
     def getSN(self):
         """Ask for the serial nummer of the Device """
@@ -641,11 +651,11 @@ class EthernetConfig(object):
     -----
     - see documentation of the EIT device"""
     def __init__(self):
-        self.IPAdress= [0,0,0,0]
-        self.MACAdress= [0,0,0,0,0,0]
-        self.IPAdress_str= '0.0.0.0'
-        self.MACAdress_str= '00:00:00:00:00:00'
-        self.DHCP_Activated=int(0)
+        self.IPAdress:List[int]= [0,0,0,0]
+        self.MACAdress:List[int]= [0,0,0,0,0,0]
+        self.IPAdress_str:str= '0.0.0.0'
+        self.MACAdress_str:str= '00:00:00:00:00:00'
+        self.DHCP_Activated:int=0
 
 class FrequencyConfig(object):
     """ Class regrouping all parameters for the frequency sweep configuration
