@@ -191,13 +191,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
 
         self._verbose=0
         self.LiveView=False
-        self.EITDev = SciospecDev([SETUPS_DIR, MEAS_DIR])# create object for serial communication
+        self.EITDev = SciospecDevice([SETUPS_DIR, MEAS_DIR])# create object for serial communication
 
         self.liveDS = EITDataSet(MEAS_DIR)
         self.loadedDS = EITDataSet(MEAS_DIR)
         
-        self.SerialInterface= SciospecSerialInterface()
-        self.SerialInterface.registerCallback(self.EITDev.treatNewRxFrame)
+        self.SerialInterface= SerialInterface()
+        # self.SerialInterface.registerCallback(self.EITDev.treatNewRxFrame)
         self.log_tmp= self.EITDev.log[:]
         self.EITDevDataUp= self.EITDev.dataUp
         self.Frame_cnt_old= -1 #self.liveDS.Frame_cnt
@@ -221,37 +221,37 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         #                 'video'         : [WorkerCam,0.1, self.ImageUpdateSlot]
         #         }
         
-        self.LiveViewWorkerSleeptime= 0.05
-        self.workers['live_view']= Worker(self.LiveViewWorkerSleeptime)
-        # self.LiveViewWorker = Worker(self.LiveViewWorkerSleeptime)
-        self.workers['live_view'].progress.connect(self._poll_live_view)
-        self.workers['live_view'].start()
-        self.div_10_cnt=0
+        # self.LiveViewWorkerSleeptime= 0.05
+        # self.workers['live_view']= Worker(self.LiveViewWorkerSleeptime)
+        # # self.LiveViewWorker = Worker(self.LiveViewWorkerSleeptime)
+        # self.workers['live_view'].progress.connect(self._poll_live_view)
+        # self.workers['live_view'].start()
+        # self.div_10_cnt=0
 
-        # to actualize the gui
-        self.UpdateGuiWorkerSleeptime= 0.1
-        self.workers['gui_update'] = Worker(self.UpdateGuiWorkerSleeptime)
-        self.workers['gui_update'].progress.connect(self._poll_update)
-        self.workers['gui_update'].start()
+        # # to actualize the gui
+        # self.UpdateGuiWorkerSleeptime= 0.1
+        # self.workers['gui_update'] = Worker(self.UpdateGuiWorkerSleeptime)
+        # self.workers['gui_update'].progress.connect(self._poll_update)
+        # self.workers['gui_update'].start()
 
-        # for the reading of the serial interface
-        self.SerialWorkerSleeptime= 0.01
-        self.workers['serial'] = Worker(self.SerialWorkerSleeptime)
-        self.workers['serial'].progress.connect(self._poll_read_serial)
-        self.workers['serial'].start()
+        # # for the reading of the serial interface
+        # self.SerialWorkerSleeptime= 0.01
+        # self.workers['serial'] = Worker(self.SerialWorkerSleeptime)
+        # self.workers['serial'].progress.connect(self._poll_read_serial)
+        # self.workers['serial'].start()
 
-        # Listen the Queue in
-        self.ListenQueueSleeptime= 0.1
-        self.workers['ListenQueue'] = Worker(self.ListenQueueSleeptime)
-        self.workers['ListenQueue'].progress.connect(self._listener_queue_in)
-        self.workers['ListenQueue'].start()
+        # # Listen the Queue in
+        # self.ListenQueueSleeptime= 0.1
+        # self.workers['ListenQueue'] = Worker(self.ListenQueueSleeptime)
+        # self.workers['ListenQueue'].progress.connect(self._listener_queue_in)
+        # self.workers['ListenQueue'].start()
 
 
-        self.ListenQueueSleeptime= 0.1
-        self.workers['video'] = WorkerCam()
-        self.workers['video'].image_update.connect(self.ImageUpdateSlot)
-        self.workers['video'].set_capture_device(self.micro_cam)
-        self.workers['video'].start()
+        # self.ListenQueueSleeptime= 0.1
+        # self.workers['video'] = WorkerCam()
+        # self.workers['video'].image_update.connect(self.ImageUpdateSlot)
+        # self.workers['video'].set_capture_device(self.micro_cam)
+        # self.workers['video'].start()
 
 
     ## ======================================================================================================================================================
@@ -353,11 +353,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         self.SerialInterface.updateListSerialPorts()
         ## Update the comBox
         self.cB_comport.clear()
-        if not self.SerialInterface.AvailablePorts:
+        if not self.SerialInterface.ports_available:
             self.cB_comport.addItem('None COMport')
         else:
-            self.cB_comport.addItems(self.SerialInterface.AvailablePorts)
-        self.EITDev.add2Log('Available ports: ' + str(self.SerialInterface.AvailablePorts))
+            self.cB_comport.addItems(self.SerialInterface.ports_available)
+        self.EITDev.add2Log('Available ports: ' + str(self.SerialInterface.ports_available))
         # self._update_gui_data()
         
     def _callback_Connect(self): 
@@ -382,7 +382,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow, app_gui):
         ''' close the serial port with the name port'''
         self.EITDev.add2Log('Disconnection of device!')
         self.SerialInterface.closeSerial()
-        self.EITDev=SciospecDev([MEAS_DIR, SETUPS_DIR]) # reinitialize device
+        self.EITDev=SciospecDevice([MEAS_DIR, SETUPS_DIR]) # reinitialize device
         self._callback_Refresh()
 
     ## Methods excecuting task on the device    

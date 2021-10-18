@@ -30,8 +30,12 @@ from os.path import isfile, join
 
 from eit_app.eit.model import *
 from eit_app.io.sciospec.com_constants import *
+from eit_app.io.sciospec.interface.serial4sciospec import SerialInterface, SERIAL_BAUD_RATE_DEFAULT
+from eit_app.threads_process.threads_worker import HardwarePoller
+from eit_app.utils.log import main_log
 from eit_app.utils.utils_path import get_date_time
-
+import time
+import logging
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
 __credits__ = ["David Metz"]
@@ -41,33 +45,48 @@ __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
 
+
+logger = logging.getLogger(__name__)
+
 ################################################################################
 ## Class for Sciopec Device ####################################################
 ################################################################################
 
-class SciospecDev(object):
+class SciospecDevice(object):
     """  Class to save infos about the Sciospec device and interact with it
     
     Regroup all informations, setup of the connected Sciospec EIT device
     and allow to interact with it according to is user guide.    """
-    def __init__(self, paths):
-        self.channel = 32
-        self.serialInterface= [] #SciospecSerialInterface() # the serial interface is set outside this class (e.g. in the app_backend)
-        self.setup= SciospecSetup(self.channel)
-        self.verbose=0 # for debugging
+    def __init__(self, paths, verbose=False):
+        
+        self.verbose=verbose # for debugging
         self.paths= paths
-        self.log=[]
-        self.add2Log('INIT: Device object created')
-        self.status = 'no Device connected'
-        self.dataset:EITDataSet=0
-        self.dataUp=0
-        self.flagMeasRunning= False
-        if self.verbose>0:
-            print('Start: __init__ Device')
+        self.init_dev()
+
+        self.treat_rx_frame_worker=HardwarePoller('treat_rx_frame',self.get_last_rx_frame)
+        self.treat_rx_frame_worker.start()
 
     ## =========================================================================
     ##  Setter methods 
     ## =========================================================================
+
+    def init_dev(self):
+        self.channel = 32
+        self.interface= SerialInterface(self.verbose) # the serial interface is set outside this class (e.g. in the app_backend)
+        self.interface.register_callback(self.treatNewRxFrame)
+        self.setup= SciospecSetup(self.channel)
+        self.log=[]
+        # self.add2Log('INIT: Device object created')
+        self.status = 'no Device connected'
+        self.dataset:EITDataSet=None
+        self.dataUp=0
+        self.flagMeasRunning= False
+        self.sciospec_devices_ports=[]
+        self.rx_buffer:list=[]
+        self.appending_rx_buffer=False
+
+        if self.verbose:
+            print('Start: __init__ Device')
 
     def setSerialInterface(self, serial_interface):
         """ link the serial interface for the device
@@ -114,13 +133,15 @@ class SciospecDev(object):
 
         Notes
         -----
-        - all cmd, op, and ack are defined as constant in SciospecCONSTANTS.py""" 
+        - all cmd, op, and ack are defined as constant in SciospecCONSTANTS.py"""
+
+        self.last_rx_ack= NONE_ACK # clear last recieved acknolegment
         cmd_frame = self.mkCmdFrame(cmd, op)
         msg_tmp= 'TX_msg: ' + str(cmd_frame)
         self.add2Log(msg_tmp)
-        if self.verbose>0:
+        if self.verbose:
             print(msg_tmp)
-        self.serialInterface.writeSerial(cmd_frame)
+        self.interface.write_serial(cmd_frame)
 
     def mkCmdFrame(self,cmd, op):
         """ Make the command frame to send
@@ -140,7 +161,7 @@ class SciospecDev(object):
         -----
         - all cmd, op, and ack are defined as constant in SciospecCONSTANTS.py
         - the errors were for the testing of that method and should never be raised"""
-        data= self._preparetData2Send(cmd, op)   
+        data= self._preparetData2Send(cmd, op)
         if cmd.type == 0: # send cmd without option
             cmd_frame = [cmd.tag_byte, 0x00, cmd.tag_byte]
         else:
@@ -149,14 +170,13 @@ class SciospecDev(object):
                 raise TypeError('not allowed option for the command')
             elif length_byte== 0x01: # send cmd with option
                 cmd_frame = [cmd.tag_byte, length_byte ,op.option_byte ,cmd.tag_byte]
+            elif 1 + len(data) == length_byte: # send cmd with option and data
+                cmd_frame = [cmd.tag_byte, length_byte,op.option_byte]
+                for data_i in data:
+                    cmd_frame.append(data_i)
+                cmd_frame.append(cmd.tag_byte)
             else:
-                if 1 + len(data) == length_byte: # send cmd with option and data
-                    cmd_frame = [cmd.tag_byte, length_byte,op.option_byte]
-                    for data_i in data:
-                        cmd_frame.append(data_i)
-                    cmd_frame.append(cmd.tag_byte)
-                else:
-                    raise TypeError('Data do not have right lenght')
+                raise TypeError('Data do not have right lenght')
         return cmd_frame
 
     def _preparetData2Send(self,cmd, op):
@@ -223,7 +243,7 @@ class SciospecDev(object):
                 data= [self.setup.EthernetConfig.DHCP_Activated]
             else:
                 raise TypeError("wrong option_byte for EthernetConfig")
-        if self.verbose>0:
+        if self.verbose:
             print('Data to send:' + str(data))
         return data
 
@@ -237,7 +257,18 @@ class SciospecDev(object):
         Parameters
         ----------
         rx_frame: list of int8 (byte)"""
-        self._sort_frame(rx_frame)
+        self.appending_rx_buffer=True
+        self.rx_buffer.append(rx_frame)
+        self.appending_rx_buffer=False
+        # self._sort_frame(rx_frame)
+
+    def get_last_rx_frame(self):
+        if self.rx_buffer:
+            rx_frame= self.rx_buffer[0]
+            while self.appending_rx_buffer: # wait until flag cleared
+                pass
+            self.rx_buffer.pop(0) 
+            self._sort_frame(rx_frame)
 
     def _sort_frame(self,rx_frame):
         """ Sort the recieved frame between Acknwoledgement and Messages
@@ -255,19 +286,18 @@ class SciospecDev(object):
         len_rx_frame= len(rx_frame) # first test if it is an ack
         if len_rx_frame<4:
             return 0
-            raise TypeError('error rx_frame "%s"' % rx_frame) # should never come to that a fram is at least 4 bytes
-        else:
-            tmp=rx_frame[:]
-            tmp[OPTION_BYTE_INDX]=0
-            if tmp==ACK_FRAME:  # if the rx_frame is an ACK_frame analize the ack!
-                rx_ack=self.checkAck(rx_frame[OPTION_BYTE_INDX])
-                # Todoe handling of NACk.... is missing (however is never happenning, and during data sending no ack is send with....)
-                self.add2Log(rx_ack.string_out)
-            else: # if the rx_frame is a msg treat it!
-                rx_msg= 'RX_msg: ' + str(bytearray(rx_frame))
-                self.add2Log(rx_msg)
-                self._extract_rx_data(rx_frame)
-            return 1
+            # raise TypeError('error rx_frame "%s"' % rx_frame) # should never come to that a fram is at least 4 bytes
+        tmp=rx_frame[:]
+        tmp[OPTION_BYTE_INDX]=0
+        if tmp==ACK_FRAME:  # if the rx_frame is an ACK_frame analize the ack!
+            rx_ack=self.checkAck(rx_frame[OPTION_BYTE_INDX])
+            # Todoe handling of NACk.... is missing (however is never happenning, and during data sending no ack is send with....)
+            self.add2Log(rx_ack.string_out)
+        else: # if the rx_frame is a msg treat it!
+            rx_msg= 'RX_msg: ' + str(bytearray(rx_frame))
+            self.add2Log(rx_msg)
+            self._extract_rx_data(rx_frame)
+        return 1
 
     def checkAck(self,rx_ack_byte):
         """ look for the Ack corresponding to the given rx_ack_byte  
@@ -285,7 +315,8 @@ class SciospecDev(object):
                 rx_ack= ack_i
                 break
             else:
-                rx_ack= SciospecAck('ACK_not_regonized', 0x00, 2, 'ack_byte_not_regonized')
+                rx_ack= NONE_ACK
+        self.last_rx_ack= rx_ack
         return rx_ack
 
     def _extract_rx_data(self, rx_frame):
@@ -373,58 +404,85 @@ class SciospecDev(object):
             self.setup.SN= rx_data[:length]
             ID= mkListOfHex(rx_data[:length], length)
             self.setup.SN_str= ID[0]+ '-' +ID[1] +ID[2] +'-' +ID[3] +ID[4]+ '-'+ID[5]+ ID[6]
-            if self.verbose>0:
+            if self.verbose:
                 print(self.setup.SN_str)
         elif type.upper() == 'IP':
             length= LENGTH_IP_ADRESS
             self.setup.EthernetConfig.IPAdress= rx_data[:length]
             self.setup.EthernetConfig.IPAdress_str= str(rx_data[0])+ '.' +str(rx_data[1])+ '.' +str(rx_data[2])+ '.' +str(rx_data[3])
-            if self.verbose>0:
+            if self.verbose:
                 print(self.setup.EthernetConfig.IPAdress_str)
         elif type.upper() == 'MAC':
             length= LENGTH_MAC_ADRESS
             self.setup.EthernetConfig.MACAdress= rx_data[:length]
             ID= mkListOfHex(rx_data, length)
             self.setup.EthernetConfig.MACAdress_str= ID[0]+ ':' +ID[1]+ ':' +ID[2] + ':' +ID[3]+ ':' +ID[4]+ ':'+ID[5]
-            if self.verbose>0:
+            if self.verbose:
                 print(self.setup.EthernetConfig.MACAdress_str)
 
     ## =========================================================================
     ##  Methods excecuting task on the device
     ## =========================================================================
     
-    def getSN(self):
-        ''' Ask for the serial nummer of the Device
 
-        Notes
-        -----
-        - the serial number is saved in "self.setup.SN"'''
+    def get_available_sciospec_devices(self):
+        
+        ports=self.interface.get_ports_available()
+        sciospec_devices_ports=[]
+        self.treat_rx_frame_worker.start_polling()
+        for port in ports:
+            self.interface.open_serial(port)
+            self.getSN()
+            if not self.last_rx_ack.error:
+                sciospec_devices_ports.append(port)
+        self.treat_rx_frame_worker.stop_polling()
+        self.sciospec_devices_ports = sciospec_devices_ports
+
+        msg=f'Sciospec devices available on serial ports : {sciospec_devices_ports}'
+        logger.info(msg)
+
+        return self.sciospec_devices_ports
+        
+    def connect_device(self, port_name:str, baudrate=SERIAL_BAUD_RATE_DEFAULT):
+
+        self.get_available_sciospec_devices() # update the list of Sciospec devices available
+        if port_name in self.sciospec_devices_ports:
+                self.treat_rx_frame_worker.start_polling()
+                self.interface.open_serial(port_name, baudrate)
+                self.stop_meas()
+                self.interface.clear_unwanted_rx_frames()
+                self.getSN()               
+                self.status=    f'Device (SN: {self.setup.SN_str}) on serial port "{self.interface.serial_port.name}" (b:{self.interface.serial_port.baudrate} d:8 s:1 p:None) - CONNECTED'
+                logger.info(self.status)
+    
+    def disconnect_device(self):
+        """" Disconnect the device"""
+        self.treat_rx_frame_worker.stop_polling()
+        msg=f'Device (SN: {self.setup.SN_str}) connected on serial port "{self.interface.serial_port.name}" (b:{self.interface.serial_port.baudrate} d:8 s:1 p:None) - DISCONNECTED'
+        self.interface.close_serial()
+        logger.info(msg)
+        self.init_dev()
+        self.get_available_sciospec_devices() # update the list of Sciospec devices available ????
+
+    def getSN(self):
+        """Ask for the serial nummer of the Device """
         self._send_cmd_frame(CMD_DEVICE_SERIAL_NUMBER, OP_NULL)
+        time.sleep(0.15)
 
 
     def start_meas(self, path=None):
-        """ Start measurements
-        
-        Parameters
-        ----------
-        path : str
-            filename_path where the data has to be saved"""
+        """ Start measurements """
         # self.dataset.initDataSet(self.setup, path) ## Prepare the Dataset
         self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
         self.flagMeasRunning= True
 
     def stop_meas(self):
-        """ Stop measurements
-        """
+        """ Stop measurements """
         self._send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS)
         self.flagMeasRunning = False
 
     def set_setup(self):
-        """ Send the setup to the device
-        
-        Notes
-        -----
-        - will set the device with the actula values of self.setup"""
+        """ Send the setup to the device """
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_TIME_STAMP)
@@ -438,11 +496,7 @@ class SciospecDev(object):
             self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_PATTERN)
 
     def get_setup(self):
-        """ Ask for the setup of the device
-        
-        Notes
-        -----
-        - self.setup properties will be updated with values from device"""
+        """ Get the setup of the device """
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_FRAME_RATE)
@@ -459,9 +513,7 @@ class SciospecDev(object):
     def software_reset(self):
         """ Sofware reset the device
         
-        Notes
-        -----
-        - a restart is needed after this method"""
+        Notes: a restart is needed after this method"""
         self._send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
 
     ## =========================================================================
@@ -480,7 +532,7 @@ class SciospecDev(object):
         -----
         - the excel file can be edited..."""
         data2save, name, types = getAllSubattributes(self.setup)
-        if self.verbose>0:
+        if self.verbose:
             print('data loaded : '+ str(data2save))
             print(name)
             print(types)
@@ -498,7 +550,7 @@ class SciospecDev(object):
         df= pd.read_excel(file_path,sheet_name=sheetname)
         data, name, types = getAllSubattributes(self.setup)
         for i in range(len(df.values)):
-            if self.verbose>0:
+            if self.verbose:
                 print(df.values[i][0])
                 print(df.values[i][1])
                 print(types[i])
@@ -517,7 +569,7 @@ class SciospecDev(object):
             else:
                 setattr(getattr(self.setup,attr_str[:indexPt]), attr_str[indexPt+1:], val)
         dataloaded, name, types = getAllSubattributes(self.setup)
-        if self.verbose>0:
+        if self.verbose:
             print('data loaded : '+ str(dataloaded))
         pass
 
@@ -1063,7 +1115,15 @@ class EITMeas(object):
 
 
 
-
-
 if __name__ == '__main__':
+
+    main_log()
+
+    dev= SciospecDevice(['', ''])
+    dev.connect_device('COM3')
+
+
+    time.sleep(2)
+    dev.disconnect_device()
+
     pass

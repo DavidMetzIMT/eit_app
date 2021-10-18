@@ -197,10 +197,10 @@ class SciospecAck(object):
             ack_byte: OB Byte
             self.error:  0 transmission succeed , >0 transmission error (return ack_byte)
             self.string_out: str (the string which is displaed e.g. ACK: Cmd executed) """
-    def __init__(self, name='', ack_byte= 0x00, error=0, string_out= ''):
+    def __init__(self, name:str='', ack_byte:bytes= 0x00, error:bool=False, string_out:str= ''):
         self.name: str = name
         self.ack_byte: bytes = ack_byte
-        self.error: int = error
+        self.error: bool = error
         self.string_out: str = string_out
 
 ################################################################################
@@ -208,13 +208,16 @@ class SciospecAck(object):
 ################################################################################  
 
 ## ACK
-ACK_INCORRECT_FRAME_SYNTAX  = SciospecAck('ACK_Incorrect_Frame_syntax ', 0x01, 0x01, 'NACK: Incorrect frame syntax')
-ACK_COMMUNICATION_TIMEOUT   = SciospecAck('ACK_Communication_timeout', 0x02, 0x02, 'Timeout: Communication-timeout (less data than expected)')
-ACK_SYSTEM_BOOT_READY       = SciospecAck('ACK_System_boot_ready', 0x04, 0, 'Wake-Up: System boot ready')
-ACK_NACK_CMD_NOT_EXCECUTED  = SciospecAck('ACK_NACK_Cmd_not_executed', 0x81, 0x81, 'NACK: Cmd not executed')
-ACK_NACK_CMD_NOT_REGONIZED  = SciospecAck('ACK_NACK_Cmd_not_recognized', 0x82, 0x82, 'NACK: Cmd not recognized')
-ACK_ACK_CMD_EXCECUTED       = SciospecAck('ACK_ACK_Cmd_executed', 0x83, 0, 'ACK: Cmd executed')
-ACK_SYSTEM_READY            = SciospecAck('ACK_System_Ready', 0x84, 0, 'System-Ready: System operational and ready')
+ACK_INCORRECT_FRAME_SYNTAX  = SciospecAck('NACK_Incorrect_Frame_syntax ', 0x01, True, 'NACK: Incorrect frame syntax')
+ACK_COMMUNICATION_TIMEOUT   = SciospecAck('NACK_Communication_timeout', 0x02, True, 'Timeout: Communication-timeout (less data than expected)')
+ACK_SYSTEM_BOOT_READY       = SciospecAck('ACK_System_boot_ready', 0x04, False, 'Wake-Up: System boot ready')
+ACK_NACK_CMD_NOT_EXCECUTED  = SciospecAck('NACK_Cmd_not_executed', 0x81, True, 'NACK: Cmd not executed')
+ACK_NACK_CMD_NOT_REGONIZED  = SciospecAck('NACK_Cmd_not_recognized', 0x82,True, 'NACK: Cmd not recognized')
+ACK_ACK_CMD_EXCECUTED       = SciospecAck('ACK_ACK_Cmd_executed', 0x83, False, 'ACK: Cmd executed')
+ACK_SYSTEM_READY            = SciospecAck('ACK_System_Ready', 0x84, False, 'System-Ready: System operational and ready')
+
+NONE_ACK                    = SciospecAck('NONE_ACK', 0x99, True, 'not recognized or not get')
+
 
 ACK                         =[  ACK_INCORRECT_FRAME_SYNTAX,
                                 ACK_COMMUNICATION_TIMEOUT,
@@ -222,7 +225,7 @@ ACK                         =[  ACK_INCORRECT_FRAME_SYNTAX,
                                 ACK_NACK_CMD_NOT_EXCECUTED,
                                 ACK_NACK_CMD_NOT_REGONIZED,
                                 ACK_ACK_CMD_EXCECUTED,
-                                ACK_SYSTEM_READY]
+                                ACK_SYSTEM_READY,]
 
 ACK_FRAME                   = [0x18, 0x01, 0x00, 0x18]
 
