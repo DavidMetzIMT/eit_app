@@ -8,7 +8,7 @@ import time
 from multiprocessing import Process
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
-from eit_app.app.backend import Ui_MainWindow
+from eit_app.app.backend import UiBackEnd
 from eit_app.eit.reconstruction import ReconstructionPyEIT
 from eit_app.threads_process.process_queue import NewQueue
 
@@ -25,7 +25,7 @@ def main():
     rec2ui_queue = NewQueue()
     app = QApplication(sys.argv)
     app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
-    ui = Ui_MainWindow(queue_in=rec2ui_queue, queue_out=ui2rec_queue, image_reconst=rec)
+    ui = UiBackEnd(queue_in=rec2ui_queue, queue_out=ui2rec_queue, image_reconst=rec)
     ui.show()
     p = Process(target=_poll_process4reconstruction, args=(ui2rec_queue,rec2ui_queue,rec))
     p.daemon=True

@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
 import ast
+from re import A
 import struct
 from typing import List
 
@@ -31,12 +32,16 @@ from os.path import isfile, join
 
 from eit_app.eit.model import *
 from eit_app.io.sciospec.com_constants import *
-from eit_app.io.sciospec.interface.serial4sciospec import SerialInterface, SERIAL_BAUD_RATE_DEFAULT
+from eit_app.io.sciospec.hw_serial_interface import SerialInterface, SERIAL_BAUD_RATE_DEFAULT, SerialInterfaceError
 from eit_app.threads_process.threads_worker import HardwarePoller
 from eit_app.utils.log import main_log
 from eit_app.utils.utils_path import get_date_time
+from eit_app.io.sciospec.utils import *
+import signal
 import time
 import logging
+import queue
+import enum
 
 from dataclasses import dataclass
 __author__ = "David Metz"
@@ -48,15 +53,45 @@ __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
 
-
 logger = logging.getLogger(__name__)
+
+
+NO_DEVICE_CONNECTED_PROMPT= 'No device connected'
+
+class StatusSWInterface(enum.Enum):
+    NOT_CONNECTED=enum.auto()
+    IDLE=enum.auto()
+    MEASURING=enum.auto()
+    WAIT_FOR_DEVICE_ANSWER=enum.auto()
+
+
+class SWInterfaceError(Exception):
+    """ Custom Error for SoftWare Interface of a Device"""
+
+class CouldNotWriteToDevice(Exception):
+    """ Custom Error """
+
+class CouldNotFindPortInAvailableDevices(Exception):
+    """ Custom Error e"""
+
+class NoListOfAvailableDevices(Exception):
+    """ Custom Error e"""
+
+class SWInterfaceTimeOutError(Exception):
+    """ Custom: error"""
+class SWInterfaceSWResetError(Exception):
+    """ Custom: error"""
+
 
 ################################################################################
 ## Class for Sciopec Device ####################################################
 ################################################################################
 
-class SciospecDevice(object):
-    """  Class to save infos about the Sciospec device and interact with it
+class SWInterface4SciospecDevice(object):
+    """  Class responsible of the SoftWare Interface of a Sciospec Device
+    functions
+    - save infos about the Sciospec device
+    - interact with it
     
     Regroup all informations, setup of the connected Sciospec EIT device
     and allow to interact with it according to is user guide.    """
@@ -64,70 +99,130 @@ class SciospecDevice(object):
         
         self.verbose=verbose # for debugging
         self.paths= paths
-        self.init_dev()
-
-        self.treat_rx_frame_worker=HardwarePoller('treat_rx_frame',self.get_last_rx_frame)
+        self.treat_rx_frame_worker=HardwarePoller('treat_rx_frame',self.get_last_rx_frame,0.01)
         self.treat_rx_frame_worker.start()
+        
 
-    ## =========================================================================
-    ##  Setter methods 
-    ## =========================================================================
+        self.init_device()
 
-    def init_dev(self):
+    def init_device(self):
+        """ init the """
         self.channel = 32
         self.interface= SerialInterface(self.verbose) # the serial interface is set outside this class (e.g. in the app_backend)
-        self.interface.register_callback(self.treatNewRxFrame)
+        self.interface.register_callback(self.append_to_rx_buffer)
         self.setup= SciospecSetup(self.channel)
         self.log=[]
         # self.add2Log('INIT: Device object created')
-        self.status = 'no Device connected'
-        self.dataset:EITDataSet=None
-        self.dataUp=0
-        self.flagMeasRunning= False
-        self.sciospec_devices_ports=[]
-        self.rx_buffer:list=[]
-        self.appending_rx_buffer=False
+        self.status=StatusSWInterface.NOT_CONNECTED
+        self.status_prompt = NO_DEVICE_CONNECTED_PROMPT
 
+        self.dataset:EITDataSet=None
+        self._init_dataset()
+        self.flag_new_data=False
+        self.flagMeasRunning= False
+        self.available_devices = {}
+        self.rx_buffer= queue.Queue(maxsize=256) # infine queue.... maybe handle only a certain number of data to reduce memory allocttions???
+        self.cmds_history= []
+        self.answer_buffer=queue.Queue(maxsize=16)
+        
+        self.make_callbacks_catalog()
+        # self.status_com_is_busy= False
         if self.verbose:
             print('Start: __init__ Device')
+    
+    def _init_dataset(self):
+        self.dataset=EITDataSet(self.paths[1])
 
-    def setSerialInterface(self, serial_interface):
-        """ link the serial interface for the device
-        
-        Parameters
-        ----------
-        serial_interface: "SerialInterface" object connected to the hardware
-        
-        Notes
-        -----
-        - it had been made sure that a Sciospec device is connected"""
-        self.serialInterface=serial_interface
 
-    def setDataSet(self,dataset):
-        """ Link the dataset to use during measurement
-        
-        Parameters
-        ----------
-        dataset: "EITDataSet" object connected to the hardware"""
-        self.dataset = dataset # actual dataset with one frame
+    def set_flag_new_data(self):
+        self.flag_new_data=True
+    def clear_flag_new_data(self):
+        self.flag_new_data=False
+    def is_flag_new_data(self):
+        return self.flag_new_data
 
-    def add2Log(self, new_text_entry):
-        """ Add in device log the "new_text_entry"
+
+    def make_callbacks_catalog(self):
+        """Link the CMD/OP to the pre/postprocess of the data"""
+        self.cllbcks={
+            CMD_SAVE_SETTINGS.tag:{
+                OP_NULL.tag: None
+                },
+            CMD_SOFT_RESET.tag:{
+                OP_NULL.tag: None
+                },
+            CMD_SET_MEAS_SETUP.tag:{
+                OP_RESET_SETUP.tag: None,
+                OP_BURST_COUNT.tag: self.setup.get_burst_for_tx,
+                OP_FRAME_RATE.tag: self.setup.get_frame_rate_for_tx,
+                OP_EXC_FREQUENCIES.tag: self.setup.get_freq_for_tx,
+                OP_EXC_AMPLITUDE.tag: self.setup.get_exc_amp_for_tx,
+                OP_EXC_PATTERN.tag: self.setup.get_exc_pattern_for_tx
+                },
+            CMD_GET_MEAS_SETUP.tag:{
+                # OP_RESET_SETUP.tag: None,
+                OP_BURST_COUNT.tag: self.setup.set_burst_from_rx,
+                OP_FRAME_RATE.tag: self.setup.set_frame_rate_from_rx,
+                OP_EXC_FREQUENCIES.tag: self.setup.set_freq_from_rx,
+                OP_EXC_AMPLITUDE.tag: self.setup.set_exc_amp_from_rx,
+                OP_EXC_PATTERN.tag: self.setup.set_exc_pattern_from_rx
+                },
+            CMD_SET_OUTPUT_CONFIG.tag:{
+                OP_EXC_STAMP.tag: self.setup.get_exc_stamp_for_tx,
+                OP_CURRENT_STAMP.tag: self.setup.get_current_stamp_for_tx,
+                OP_TIME_STAMP.tag: self.setup.get_time_stamp_for_tx
+                },
+            CMD_GET_OUTPUT_CONFIG.tag:{
+                OP_EXC_STAMP.tag: self.setup.set_exc_stamp_from_rx,
+                OP_CURRENT_STAMP.tag: self.setup.set_current_stamp_from_rx,
+                OP_TIME_STAMP.tag: self.setup.set_time_stamp_from_rx
+                },
+            CMD_START_STOP_MEAS.tag:{
+                OP_NULL.tag:self.dataset.addRxData2DataSet#,
+                # OP_STOP_MEAS.tag:None,
+                # OP_START_MEAS.tag: None
+                },
+            CMD_SET_ETHERNET_CONFIG.tag:{
+                OP_IP_ADRESS.tag: None,
+                OP_MAC_ADRESS.tag: None,
+                OP_DHCP.tag: self.setup.get_dhcp_for_tx
+                },
+            CMD_GET_ETHERNET_CONFIG.tag:{
+                OP_IP_ADRESS.tag: self.setup.set_ip_from_rx,
+                OP_MAC_ADRESS.tag: self.setup.set_mac_from_rx,
+                OP_DHCP.tag: self.setup.set_dhcp_from_rx
+                },
+            # CMD_SET_EXPORT_CHANNEL.tag:{:},
+            # CMD_GET_EXPORT_CHANNEL.tag:{:},
+            # CMD_GET_EXPORT_MODULE.tag:{:},
+            # CMD_SET_BATTERY_CONTROL.tag:{:},
+            # CMD_GET_BATTERY_CONTROL.tag:{:},
+            # CMD_SET_LED_CONTROL.tag:{:},
+            # CMD_GET_LED_CONTROL.tag:{:},
+            CMD_GET_DEVICE_INFOS.tag:{
+                OP_NULL.tag:self.setup.set_sn_from_rx
+                } #,
+            # CMD_SET_CURRENT_SETTING.tag:{:},
+            # CMD_GET_CURRENT_SETTING.tag:{:}
+        }
+    def wait_until_not_busy(self, time_out=None):
+    
+        while self.status==StatusSWInterface.WAIT_FOR_DEVICE_ANSWER:
+            pass
+    # def setDataSet(self,dataset):
+    #     """ Link the dataset to use during measurement
         
-        Parameters
-        ----------
-        new_text_entry: should be a str"""
-        self.log.append(str(new_text_entry))
-        if self.verbose >0: 
-            print(str(new_text_entry))
-            
+    #     Parameters
+    #     ----------
+    #     dataset: "EITDataSet" object connected to the hardware"""
+    #     self.dataset = dataset # actual dataset with one frame
+
     ## =========================================================================
     ##  Methods for sending data/commands
     ## =========================================================================
     
-    def _send_cmd_frame(self,cmd, op):
+    def _send_cmd_frame(self,cmd:SciospecCmd, op:SciospecOption, cmd_append=True):
         """ Send a command frame to the device
-        according to the cmd and op parameters
         
         Parameters
         ----------
@@ -137,16 +232,33 @@ class SciospecDevice(object):
         Notes
         -----
         - all cmd, op, and ack are defined as constant in SciospecCONSTANTS.py"""
+        # self.wait_until_not_busy()
+        self.rx_ack= NONE_ACK # clear last recieved acknolegment
+        if cmd_append:
+            self._append_last_sended_cmd(cmd)
+        cmd_frame = self._make_command_frame(cmd, op)
 
-        self.last_rx_ack= NONE_ACK # clear last recieved acknolegment
-        cmd_frame = self.mkCmdFrame(cmd, op)
-        msg_tmp= 'TX_msg: ' + str(cmd_frame)
-        self.add2Log(msg_tmp)
-        if self.verbose:
-            print(msg_tmp)
-        self.interface.write_serial(cmd_frame)
-
-    def mkCmdFrame(self,cmd, op):
+        try:
+            self.interface.write(cmd_frame)
+            logger.debug(f'Send cmd "{cmd.name}", op: "{op.name}", cmd_frame :{cmd_frame}')
+        except SerialInterfaceError as error:
+            self._clear_last_cmd_history()
+            raise CouldNotWriteToDevice(error)
+        
+    def _append_last_sended_cmd(self, cmd:SciospecCmd):
+        self.cmds_history.append(cmd)
+        self.status=StatusSWInterface.WAIT_FOR_DEVICE_ANSWER
+        
+    def _clear_oldest_cmd(self)-> SciospecCmd:
+        return self.cmds_history.pop(0)
+   
+    def _clear_cmd_history(self):
+        self.cmds_history.clear()
+    
+    def _clear_last_cmd_history(self)->SciospecCmd:
+        return self.cmds_history.pop(-1)
+        
+    def _make_command_frame(self,cmd:SciospecCmd, op:SciospecOption):
         """ Make the command frame to send
         according to the cmd and op parameters
         
@@ -164,145 +276,105 @@ class SciospecDevice(object):
         -----
         - all cmd, op, and ack are defined as constant in SciospecCONSTANTS.py
         - the errors were for the testing of that method and should never be raised"""
-        data= self._preparetData2Send(cmd, op)
-        if cmd.type == 0: # send cmd without option
-            cmd_frame = [cmd.tag_byte, 0x00, cmd.tag_byte]
+        
+        if op not in cmd.options:
+            raise SWInterfaceError(f'Command "{cmd.name}" ({cmd.tag}) not compatible with option "{op.name}"({op.tag})')
+
+        if cmd.type == CmdTypes.simple: # send simple cmd (without option)
+            cmd_frame = [cmd.tag, 0x00, cmd.tag]
         else:
-            length_byte= op.length_byte[cmd.type-1]
-            if length_byte == 0x00:
+            LL_byte= op.LL_bytes[0] if cmd.type == CmdTypes.set_w_option else op.LL_bytes[1]
+            if LL_byte == 0x00:
                 raise TypeError('not allowed option for the command')
-            elif length_byte== 0x01: # send cmd with option
-                cmd_frame = [cmd.tag_byte, length_byte ,op.option_byte ,cmd.tag_byte]
-            elif 1 + len(data) == length_byte: # send cmd with option and data
-                cmd_frame = [cmd.tag_byte, length_byte,op.option_byte]
-                for data_i in data:
-                    cmd_frame.append(data_i)
-                cmd_frame.append(cmd.tag_byte)
-            else:
-                raise TypeError('Data do not have right lenght')
+            elif LL_byte== 0x01: # send cmd with option
+                cmd_frame = [cmd.tag, LL_byte ,op.tag ,cmd.tag]
+            else: 
+                data= self._get_data_to_send(cmd, op)
+                if len(data)+1 == LL_byte: # send cmd with option and data
+                    cmd_frame = [cmd.tag, LL_byte, op.tag]
+                    for d in data:
+                        cmd_frame.append(d)
+                    cmd_frame.append(cmd.tag)
+                else:
+                    raise TypeError('Data do not have right lenght')
         return cmd_frame
 
-    def _preparetData2Send(self,cmd, op):
-        """ select the right data to send to the device
-        corresponding to the cmd and op parameters
+    def _get_data_to_send(self,cmd:SciospecCmd, op:SciospecOption) -> bytearray:
+        """Provide the data to send corresponding to the cmd and option
+            >> call the correspoding function from the cllbcks catalog
+
+        Args:
+            cmd (SciospecCmd): command
+            op (SciospecOption): option
+
+        Returns:
+            bytearray: data to send
+        """
+
+        try:
+            return self.cllbcks[cmd.tag][op.tag]() or [0x00]
+        except KeyError:
+            msg= f'Combination of Cmd:"{cmd.name}"({cmd.tag})/ Option:"{op.name}"({op.tag}) - NOT FOUND in callbacks catalog'
+            logger.error(msg)
+            raise  SWInterfaceError(msg)            
         
-        Parameters
-        ----------
-        cmd: SciospecCmd object
-        op: Sciospecoption object
-
-        Returns
-        -------
-        data: List of int8 (byte)
-            data to send to the device
-
-        Notes
-        -----
-        - all cmd, op, and ack are defined as constant in SciospecCONSTANTS.py
-        - the errors were for the testing of that method and should never be raised"""
-        cmd_tag= cmd.tag_byte
-        option_byte=op.option_byte
-        data= [0x00]
-        # that "switch" is not that optimal but works...'
-        if cmd_tag == CMD_SET_MEAS_SETUP.tag_byte:
-            # Treat the RX data for the CMD_Get_Meas_Setup
-            if option_byte==OP_EXC_AMPLITUDE.option_byte:
-                data= convertFloat2Bytes(self.setup.Excitation_Amplitude)
-            elif option_byte== OP_BURST_COUNT.option_byte:
-                data=convertInt2Bytes(self.setup.Burst, 2) # Burst is defined on 2 bytes
-            elif option_byte== OP_FRAME_RATE.option_byte:
-                data= convertFloat2Bytes(self.setup.Frame_rate)
-            elif option_byte== OP_EXC_FREQUENCIES.option_byte:
-                data=convertFloat2Bytes(self.setup.FrequencyConfig.Min_F_Hz)
-                data.extend(convertFloat2Bytes(self.setup.FrequencyConfig.Max_F_Hz))
-                data.extend(convertInt2Bytes(self.setup.FrequencyConfig.Steps, 2)) # Steps is defined on 2 bytes
-                if self.setup.FrequencyConfig.Scale== OP_LINEAR.name:
-                    data.append(OP_LINEAR.option_byte)
-                elif self.setup.FrequencyConfig.Scale== OP_LOG.name:
-                    data.append(OP_LOG.option_byte)
-                else:
-                   raise TypeError("wrong Scale Str")
-            elif option_byte== OP_EXC_PATTERN.option_byte:
-                data= self.setup.Excitation_Pattern[self.setup.Pattern_i]
-            elif option_byte== OP_RESET_SETUP.option_byte:
-                pass
-            else:
-                raise TypeError("wrong option_byte for Measurement_Setup")
-        elif cmd_tag == CMD_SET_OUTPUT_CONFIG.tag_byte:
-            # Treat the RX data for the CMD_Get_Output_Configuration
-            if option_byte==OP_EXC_STAMP.option_byte:
-                data= [self.setup.OutputConfig.Excitation_stamp]
-            elif option_byte== OP_CURRENT_STAMP.option_byte:
-                data= [self.setup.OutputConfig.Current_stamp]
-            elif option_byte== OP_TIME_STAMP.option_byte:
-                data= [self.setup.OutputConfig.Time_stamp]
-            else:
-                raise TypeError("wrong option_byte for OutputConfig")
-        elif cmd_tag == CMD_SET_ETHERNET_CONFIG.tag_byte:
-            # Treat the RX data for the CMD_Get_Ethernet_Configuration
-            if option_byte==OP_IP_ADRESS.option_byte:
-                data = self.setup.SN
-            elif option_byte== OP_DHCP.option_byte:
-                data= [self.setup.EthernetConfig.DHCP_Activated]
-            else:
-                raise TypeError("wrong option_byte for EthernetConfig")
-        if self.verbose:
-            print('Data to send:' + str(data))
-        return data
-
     ## =========================================================================
     ##  Methods for recieved data
     ## =========================================================================
 
-    def treatNewRxFrame(self,rx_frame):
+    def append_to_rx_buffer(self,rx_frame:List[bytes]):
         """ Called by the SerialInterface "PollreadSerial" to treat the recieved frame
 
         Parameters
         ----------
         rx_frame: list of int8 (byte)"""
-        self.appending_rx_buffer=True
-        self.rx_buffer.append(rx_frame)
-        self.appending_rx_buffer=False
-        # self._sort_frame(rx_frame)
+        # try:
+        # print(f'appending to queue {rx_frame}')
+        self.rx_buffer.put_nowait(rx_frame)
+        # except queue.Full:
+        #     self.rx_buffer.get_nowait() #delete oldest
+        #     self.rx_buffer.put_nowait(rx_frame) # add the newest...
 
     def get_last_rx_frame(self):
-        if self.rx_buffer:
-            rx_frame= self.rx_buffer[0]
-            while self.appending_rx_buffer: # wait until flag cleared
-                pass
-            self.rx_buffer.pop(0) 
-            self._sort_frame(rx_frame)
 
-    def _sort_frame(self,rx_frame):
-        """ Sort the recieved frame between Acknwoledgement and Messages
+        try:
+            rx_frame=self.rx_buffer.get_nowait()
+            # print(f'get from queue {rx_frame}')
+            rx_frame=self._verify_len_of_rx_frame(rx_frame)
+            self._sort_frame(rx_frame)
+        except queue.Empty:
+            pass # do nothing for the moment
+        except SWInterfaceError as e:
+            logger.error(e)
+
+    def _verify_len_of_rx_frame(self,rx_frame:List[bytes]):
+        """ refify the len of the rx frame, which should be >= 4"""
+        if len(rx_frame)>=4:
+            # print('rx_frame verified',rx_frame, type(rx_frame), type(rx_frame[0]))
+            return rx_frame
+        else:
+            raise  SWInterfaceError(f'The length of rx_frame: {rx_frame} is < 4')# should never be raised
+        
+    def _sort_frame(self,rx_frame:List[bytes]):
+        """ Sort the recieved frames between ACKNOWLEGMENT and ANSWERS
 
         in case of Ack, the option_byte of the RX_Ack is check and the rx_ack is save in the log
         in case of Messages, the rx_msg is save in the log and te rx_frame is further treated 
 
         Parameters
         ----------
-        rx_frame: list of int8 (byte)
-        
-        Returns
-        -------
-        should only return 1...."""
-        len_rx_frame= len(rx_frame) # first test if it is an ack
-        if len_rx_frame<4:
-            return 0
-            # raise TypeError('error rx_frame "%s"' % rx_frame) # should never come to that a fram is at least 4 bytes
-        tmp=rx_frame[:]
-        tmp[OPTION_BYTE_INDX]=0
-        if tmp==ACK_FRAME:  # if the rx_frame is an ACK_frame analize the ack!
-            rx_ack=self.checkAck(rx_frame[OPTION_BYTE_INDX])
-            # Todoe handling of NACk.... is missing (however is never happenning, and during data sending no ack is send with....)
-            self.add2Log(rx_ack.string_out)
-        else: # if the rx_frame is a msg treat it!
-            rx_msg= 'RX_msg: ' + str(bytearray(rx_frame))
-            self.add2Log(rx_msg)
-            self._extract_rx_data(rx_frame)
-        return 1
+        rx_frame: list of int8 (byte)"""
+        # print(f'sorting {rx_frame}')
+        answer, oldest_cmd= [], []
+        if self._check_is_ack(rx_frame): # if rx_frame is an ACKNOWLEGMENT decide to do sth             
+            answer, oldest_cmd= self.treat_rx_ack(rx_frame)
+        else: # # if rx_frame is a MSG decide dispatch data.
+            answer = self.treat_rx_answer(rx_frame)
 
-    def checkAck(self,rx_ack_byte):
+        self._extract_answer(answer)
+        self._update_status(oldest_cmd)
+
+    def _check_is_ack(self,rx_frame:List[bytes]):
         """ look for the Ack corresponding to the given rx_ack_byte  
         
         Parameters
@@ -313,17 +385,66 @@ class SciospecDevice(object):
         -------
         rx_ack : SciospecAck object
             recieved Acknoledgement     """
-        for ack_i in ACK:
-            if ack_i.ack_byte==rx_ack_byte:
-                rx_ack= ack_i
-                break
-            else:
-                rx_ack= NONE_ACK
-        self.last_rx_ack= rx_ack
-        return rx_ack
+       
+        tmp=rx_frame[:]
+        tmp[OPTION_BYTE_INDX]=0
+        # print(f'ack check {rx_frame}, {is_ack}')
 
-    def _extract_rx_data(self, rx_frame):
-        """ Extract the data from rx_frame and save them to the right properties of device 
+        return tmp==ACK_FRAME
+
+    def treat_rx_ack(self, rx_frame):
+        self.rx_ack= NONE_ACK
+        for ack_i in ACK:
+            if ack_i.ack_byte==rx_frame[OPTION_BYTE_INDX]:
+                self.rx_ack= ack_i
+                break
+
+        if self.rx_ack.is_error():
+            msg=f'NACK RX: {self.rx_ack.__dict__} - nothing implemented yet, to handle it!!!'
+            logger.error(msg)
+            # self._clear_oldest_cmd()
+            # todo >> determine what to do when is not sucesfull log? retry? 
+            raise  SWInterfaceError(msg)
+        else:
+            oldest_cmd= self._clear_oldest_cmd()
+            answer=self._get_odldest_msg_from_buffer()
+            if oldest_cmd.answer_type==Answer.WAIT_FOR_ANSWER_AND_ACK:
+                msg=f'ACK RX: {self.rx_ack.name} of ANSWER {answer} from CMD {oldest_cmd.name}- SUCCESS'
+            elif oldest_cmd.answer_type==Answer.WAIT_FOR_ACK:
+                msg= f'ACK RX: {self.rx_ack.name} for CMD {oldest_cmd.name} - SUCCESS'
+            logger.info(msg)
+            return answer, oldest_cmd
+
+    def treat_rx_answer(self, answer):
+        msg=f'ANSWER RX: {answer[:10]}, {self.status==StatusSWInterface.MEASURING}'
+        logger.info(msg)
+        return self.sort_answer(answer)
+        # answer= []
+        # if self.status==StatusSWInterface.MEASURING: 
+        #     answer=rx_frame # that should ne done if ack is true... maybe use a buffer???
+        # else:
+        #     self._put_last_answer_to_buffer(rx_frame)
+        # return answer
+
+    def sort_answer(self,answer):
+        meas= []
+        
+        if answer[CMD_BYTE_INDX] == CMD_START_STOP_MEAS.tag:# if a measurement self.status==StatusSWInterface.MEASURING: 
+            meas=answer # that should ne done if ack is true... maybe use a buffer???
+        else:
+            self._put_last_answer_to_buffer(answer)
+        return meas
+
+    def _update_status(self, oldest_cmd:SciospecCmd):
+            
+        if not self.cmds_history and oldest_cmd:
+            if oldest_cmd.tag == CMD_START_STOP_MEAS.tag:
+                self.status=StatusSWInterface.MEASURING
+            else:
+                self.status=StatusSWInterface.IDLE
+
+    def _extract_answer(self, rx_frame:List[bytes]):
+        """ Extract the data from rx_frame and save them to the right place regading the cllbcks catalog 
         
         Parameters
         ----------
@@ -332,167 +453,124 @@ class SciospecDevice(object):
         Notes
         -----
         - the errors were for the testing of that method and should never be raised"""
-        rx_tmp = rx_frame[:-1] # discard the last cmd_byte
-        cmd_tag= rx_tmp[CMD_BYTE_INDX]
-        length_data= rx_tmp[LENGTH_BYTE_INDX]
-        option_byte= rx_tmp[OPTION_BYTE_INDX]
-        data= rx_tmp[DATA_START_INDX:]
-        rx_op_data= rx_tmp[OPTION_BYTE_INDX:]
-        # that "switch" is not that optimal but works...'
-        if cmd_tag == CMD_DEVICE_SERIAL_NUMBER.tag_byte:
-            # Treat the RX data for the CMD_Device_Serial_Number
-            self._format_sn_ip_mac('SN', rx_op_data)
-        elif cmd_tag == CMD_GET_MEAS_SETUP.tag_byte:
-            # Treat the RX data for the CMD_Get_Meas_Setup
-            if option_byte==OP_EXC_AMPLITUDE.option_byte:
-                self.setup.Excitation_Amplitude =convert4Bytes2Float(data)
-            elif option_byte== OP_BURST_COUNT.option_byte:
-                self.setup.Burst =convertBytes2Int(data)
-            elif option_byte== OP_FRAME_RATE.option_byte:
-                self.setup.Frame_rate=convert4Bytes2Float(data)
-            elif option_byte== OP_EXC_FREQUENCIES.option_byte:
-                self.setup.FrequencyConfig.Min_F_Hz=convert4Bytes2Float(data[0:4])
-                self.setup.FrequencyConfig.Max_F_Hz=convert4Bytes2Float(data[4:8])
-                self.setup.FrequencyConfig.Steps=convertBytes2Int(data[8:10])
-                if data[10]== OP_LINEAR.option_byte:
-                    self.setup.FrequencyConfig.Scale=OP_LINEAR.name
-                elif data[10]== OP_LOG.option_byte:
-                    self.setup.FrequencyConfig.Scale=OP_LOG.name
-                else:
-                    raise TypeError("wrong scale byte")
-            elif option_byte== OP_EXC_PATTERN.option_byte:
-                self.setup.Excitation_Pattern=[]
-                for i in range(len(data)//2):
-                    self.setup.Excitation_Pattern.append(data[i*2:(i+1)*2])
-            else:
-                raise TypeError("wrong option_byte for Measurement_Setup")
-        elif cmd_tag == CMD_GET_OUTPUT_CONFIG.tag_byte:
-            # Treat the RX data for the CMD_Get_Output_Configuration
-            if option_byte==OP_EXC_STAMP.option_byte:
-                self.setup.OutputConfig.Excitation_stamp= data[0]==1 # convert to bool
-            elif option_byte== OP_CURRENT_STAMP.option_byte:
-                self.setup.OutputConfig.Current_stamp= data[0]==1 # convert to bool
-            elif option_byte== OP_TIME_STAMP.option_byte:
-                self.setup.OutputConfig.Time_stamp= data[0]==1 # convert to bool
-            else:
-                raise TypeError("wrong option_byte for OutputConfig")
-        elif cmd_tag == CMD_START_STOP_MEAS.tag_byte:
-            # Treat the measurements data
-            self.dataset.addRxData2DataSet(rx_op_data)
-        elif cmd_tag == CMD_GET_ETHERNET_CONFIG.tag_byte:
-            # Treat the RX data for the CMD_Get_Ethernet_Configuration
-            if option_byte==OP_IP_ADRESS.option_byte:
-                self._format_sn_ip_mac('IP', data)
-            elif option_byte== OP_MAC_ADRESS.option_byte:
-                self._format_sn_ip_mac('MAC', data)
-            elif option_byte== OP_DHCP.option_byte:
-                self.setup.EthernetConfig.DHCP_Activated= data[0]==1 # convert to bool
-            else:
-                raise TypeError("wrong option_byte for EthernetConfig")
-        else:
-            raise TypeError("Command not recognized")
-        self.dataUp = 1 # for GUI update
-
-    def _format_sn_ip_mac(self, type, rx_data):
-        """ Save and make the corresponding str format for display
-        for serial number (SN), IP Adress(IP), and MAC-Adress(MAC)
         
-        Parameters
-        ----------
-        rx_data: list of int8 (byte)
-        type: str 
-            type of data to save and formate: SN, IP, MAC"""
-        if type.upper() == 'SN':
-            length = LENGTH_SERIAL_NUMBER
-            self.setup.SN= rx_data[:length]
-            ID= mkListOfHex(rx_data[:length], length)
-            self.setup.SN_str= ID[0]+ '-' +ID[1] +ID[2] +'-' +ID[3] +ID[4]+ '-'+ID[5]+ ID[6]
-            if self.verbose:
-                print(self.setup.SN_str)
-        elif type.upper() == 'IP':
-            length= LENGTH_IP_ADRESS
-            self.setup.EthernetConfig.IPAdress= rx_data[:length]
-            self.setup.EthernetConfig.IPAdress_str= str(rx_data[0])+ '.' +str(rx_data[1])+ '.' +str(rx_data[2])+ '.' +str(rx_data[3])
-            if self.verbose:
-                print(self.setup.EthernetConfig.IPAdress_str)
-        elif type.upper() == 'MAC':
-            length= LENGTH_MAC_ADRESS
-            self.setup.EthernetConfig.MACAdress= rx_data[:length]
-            ID= mkListOfHex(rx_data, length)
-            self.setup.EthernetConfig.MACAdress_str= ID[0]+ ':' +ID[1]+ ':' +ID[2] + ':' +ID[3]+ ':' +ID[4]+ ':'+ID[5]
-            if self.verbose:
-                print(self.setup.EthernetConfig.MACAdress_str)
+        if not rx_frame:
+            return
+        
+        self.flag_new_data = False
+        cmd_tag= rx_frame[CMD_BYTE_INDX]
+       
+        if OP_NULL.tag in self.cllbcks[cmd_tag].keys(): # some answer do not have options (meas, sn)
+            op_tag=OP_NULL.tag
+        else:
+            op_tag= rx_frame[OPTION_BYTE_INDX]
+
+        try:
+            if self.cllbcks[cmd_tag][op_tag]:
+                self.cllbcks[cmd_tag][op_tag](rx_frame)
+                self.flag_new_data = True
+                msg=f'ANSWER RX: {rx_frame} -  TREATED'
+                logger.debug(msg)
+        except KeyError:
+            cmd=get_cmd(cmd_tag)
+            op=get_op(cmd.options, op_tag)
+            msg= f'Combination of Cmd:"{cmd.name}"({cmd.tag})/ Option:"{op.name}"({op.tag}) - NOT FOUND in callbacks catalog'
+            logger.error(msg)
+            raise  SWInterfaceError(msg)
+            
+        except TypeError as error:
+            logger.error(error)    
+    def _put_last_answer_to_buffer(self, msg):
+        self.answer_buffer.put(msg)
+
+    def _get_odldest_msg_from_buffer(self):
+        try:
+            return self.answer_buffer.get_nowait()
+        except queue.Empty: # if empty then return empty ....
+            return []
+
+
 
     ## =========================================================================
     ##  Methods excecuting task on the device
     ## =========================================================================
     
-
     def get_available_sciospec_devices(self):
-        """Lists serial port names on which Sciospec device is available
+        """Lists the available Sciospec device is available
 
         Device infos are ask and if an ack is get: it is a Sciospec device..."""
         
         ports=self.interface.get_ports_available()
-        sciospec_devices_ports=[]
+        self.available_devices = {}
         self.treat_rx_frame_worker.start_polling()
         for port in ports:
-            self.interface.open_serial(port)
-            self.getSN()
-            if not self.last_rx_ack.error:
-                sciospec_devices_ports.append(port)
+            self.interface.open(port)
+            self.get_device_infos()
+            if not self.rx_ack.is_error():
+                # available_sciospec_devices.append(port)
+                device_name = f'Device (SN: {self.setup.get_sn()}) on serial port "{port}"'
+                self.available_devices[device_name]=port
+            self.interface.close()
         self.treat_rx_frame_worker.stop_polling()
-        self.sciospec_devices_ports = sciospec_devices_ports
+        # print('refresh NOT_CONNECTED')
+        self.status=StatusSWInterface.NOT_CONNECTED
 
-        msg=f'Sciospec devices available on serial ports : {sciospec_devices_ports}'
+        msg = f'Sciospec devices available: {[k for k in self.available_devices]}'
         logger.info(msg)
 
-        return self.sciospec_devices_ports
+        return self.available_devices
         
-    def connect_device(self, port_name:str, baudrate=SERIAL_BAUD_RATE_DEFAULT):
+    def connect_device(self, device_name:str, baudrate=SERIAL_BAUD_RATE_DEFAULT):
 
-        self.get_available_sciospec_devices() # update the list of Sciospec devices available
-        if port_name in self.sciospec_devices_ports:
-                self.treat_rx_frame_worker.start_polling()
-                self.interface.open_interface(port_name, baudrate)
-                self.stop_meas()
-                self.interface.clear_unwanted_rx_frames()
-                self.getSN()               
-                self.status= f'Device (SN: {self.setup.SN_str}) on serial port "{self.interface.serial_port.name}" (b:{self.interface.serial_port.baudrate} d:8 s:1 p:None) - CONNECTED'
-                logger.info(self.status)
-        else:
-            msg= f'No Sciospec device on serial port "{port_name}" - NOT FOUND'
+        if not self.available_devices:
+            raise NoListOfAvailableDevices(
+                'Please refresh the list of availables device first, and retry to connect')
+
+        if device_name not in self.available_devices.keys():
+            msg= f'Sciospec device "{device_name}" - NOT FOUND'
             logger.warning(msg)
+            raise CouldNotFindPortInAvailableDevices(
+                f'Please reconnect your device, and retry ({msg})')
+        
+        self.treat_rx_frame_worker.start_polling()
+        port= self.available_devices[device_name]
+        self.interface.open(port, baudrate)
+        self.stop_meas(append=False)
+        self.interface.clear_unwanted_rx_frames()
+        self.get_device_infos()               
+        self.status_prompt= f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" (b:{self.interface.get_actual_baudrate()} d:8 s:1 p:None) - CONNECTED'
+        logger.info(self.status_prompt)
 
     def disconnect_device(self):
         """" Disconnect the device"""
         self.treat_rx_frame_worker.stop_polling()
-        msg=f'Device (SN: {self.setup.SN_str}) connected on serial port "{self.interface.serial_port.name}" (b:{self.interface.serial_port.baudrate} d:8 s:1 p:None) - DISCONNECTED'
-        self.interface.close_interface()
+        msg=f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" - DISCONNECTED'
+        self.interface.close()
         logger.info(msg)
-        self.init_dev()
+        self.init_device()
         self.get_available_sciospec_devices() # update the list of Sciospec devices available ????
 
-
-    def getSN(self):
+    def get_device_infos(self):
         """Ask for the serial nummer of the Device """
-        self._send_cmd_frame(CMD_DEVICE_SERIAL_NUMBER, OP_NULL)
-        time.sleep(0.15)
+        self._send_cmd_frame(CMD_GET_DEVICE_INFOS, OP_NULL)
+        self.wait_until_not_busy()
 
-
-    def start_meas(self, path=None):
+    def start_meas(self):
         """ Start measurements """
         # self.dataset.initDataSet(self.setup, path) ## Prepare the Dataset
         self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
+        self.wait_until_not_busy()
         self.flagMeasRunning= True
 
-    def stop_meas(self):
+    def stop_meas(self, append=True):
         """ Stop measurements """
-        self._send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS)
+        self._send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS, cmd_append=append)
+        self.wait_until_not_busy()
         self.flagMeasRunning = False
 
     def set_setup(self):
         """ Send the setup to the device """
+        logger.info('### SET SETUP FROM DEVICE ####')
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_TIME_STAMP)
@@ -502,11 +580,13 @@ class SciospecDevice(object):
         self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_BURST_COUNT)
         self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_FRAME_RATE)
         self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_FREQUENCIES)
-        for self.setup.Pattern_i in range(len(self.setup.Excitation_Pattern)):
+        for self.setup.exc_pattern_idx in range(len(self.setup.exc_pattern)):
             self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_PATTERN)
+        self.wait_until_not_busy()
 
     def get_setup(self):
         """ Get the setup of the device """
+        logger.info('### GET SETUP FROM DEVICE ####')
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_FRAME_RATE)
@@ -518,6 +598,7 @@ class SciospecDevice(object):
         self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_IP_ADRESS)
         self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_MAC_ADRESS)
         self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_DHCP)
+        self.wait_until_not_busy()
 
 
     def software_reset(self):
@@ -525,330 +606,25 @@ class SciospecDevice(object):
         
         Notes: a restart is needed after this method"""
         self._send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
+        self.wait_until_not_busy()
+        raise SWInterfaceSWResetError('please reconnect')
 
-    ## =========================================================================
-    ##  Methods relative to loading and saving setups of the device
-    ## =========================================================================
-    def saveSetupDevice(self, file_path, sheetname):
-        """ Save the setup of the device in an excel file
-        all attributes and subattributes will be saved
-
-        Parameters
-        ----------
-        file_path: str
-        sheetname: str
-
-        Notes
-        -----
-        - the excel file can be edited..."""
-        data2save, name, types = getAllSubattributes(self.setup)
-        if self.verbose:
-            print('data loaded : '+ str(data2save))
-            print(name)
-            print(types)
-        dataframe = pd.DataFrame(data2save, name)
-        dataframe.to_excel(file_path,sheet_name= sheetname)
+    # ## =========================================================================
+    # ##  Methods relative to loading and saving setups of the device
+    # ## =========================================================================
+    def saveSetupDevice(self, file):
+        self.setup.saveSetupDevice(file)
         
-    def loadSetupDevice(self, file_path, sheetname):
-        """ Load the setup of the device from an excel file
-        all attributes and subattributes will be loaded
+    def loadSetupDevice(self, file):
+        self.setup.loadSetupDevice(file)
 
-        Parameters
-        ----------
-        file_path: str
-        sheetname: str"""
-        df= pd.read_excel(file_path,sheet_name=sheetname)
-        data, name, types = getAllSubattributes(self.setup)
-        for i in range(len(df.values)):
-            if self.verbose:
-                print(df.values[i][0])
-                print(df.values[i][1])
-                print(types[i])
-            ## the obtain data are not the same type as needed (e.g. we  get str for list of int)            
-            if  types[i]==type(df.values[i][1]):
-                val=df.values[i][1]
-            elif types[i]== type(float('0')) and  type(df.values[i][1])== type(int('0')):
-                val=float(df.values[i][1])
-            else:
-                val=ast.literal_eval(df.values[i][1])
-            ## set the attributes and sub attributes of the setup
-            attr_str= str(df.values[i][0])    
-            indexPt= attr_str.find('.')
-            if indexPt<0:
-                setattr(self.setup, df.values[i][0], val)
-            else:
-                setattr(getattr(self.setup,attr_str[:indexPt]), attr_str[indexPt+1:], val)
-        dataloaded, name, types = getAllSubattributes(self.setup)
-        if self.verbose:
-            print('data loaded : '+ str(dataloaded))
-        pass
-
-################################################################################
-##  Setup class Sciospec EIT Device ############################################
-################################################################################
-
-class SciospecSetup(object):
-    """ Class regrouping all info (serial number, Ethernet config, etc.),
-    meas. parameters (excitation pattern, amplitude, etc.), etc. of the device.
-    
-    Notes
-    -----
-    - see documentation of the EIT device    """
-    def __init__(self, ch):
-        self.Channel = ch
-        self.Excitation_Amplitude= float(10.0)
-        self.Excitation_Pattern = [[ 1, 2], [2, 3]]
-        self.Pattern_i= int(0)
-        self.Frame_rate=float(1.0)
-        self.MaxFrameRate=float(1.0)
-        self.Burst= int(0)
-        self.SN_str= '00-0000-0000-0000'
-        self.SN= [0,0,0,0,0,0,0]
-        self.OutputConfig= OutputConfig()
-        self.EthernetConfig= EthernetConfig()
-        self.FrequencyConfig= FrequencyConfig()
-
-    def computeMaxFrameRate(self):
-        """ Compute the maximum frame rate corresponding to the actual frequencies sweep 
-
-        Notes
-        -----
-        - see documentation of the EIT device"""
-        f_i = self.FrequencyConfig.mkFrequencyList() #ndarray
-
-        n_freq = float(self.FrequencyConfig.Steps)
-        t_freq = float(DELAY_BTW_2FREQ) # in s
- 
-        n_inject= float(len(self.Excitation_Pattern))
-        t_inject= float(DELAY_BTW_2INJ) # in s
-
-        T_fi = np.reciprocal(f_i) # in s
-        T_ms= np.ones_like(f_i)*MIN_SAMPLING_TIME # in s
-        max_Tms_fi= np.maximum(T_ms,T_fi)
-        sum_max_Tms_fi = float(max_Tms_fi.sum())
-        t_min= n_inject*(t_inject+t_freq*(n_freq-1)+ sum_max_Tms_fi)
-
-        if t_min != 0.0:
-            self.MaxFrameRate= float(1/t_min)
-        
-class OutputConfig(object):
-    """ Class regrouping all info about the ouput configuration of the device,
-    what for stamp are given out with meas. data
-
-    Notes
-    -----
-    - see documentation of the EIT device"""
-    def __init__(self):
-        self.Excitation_stamp= int(1)
-        self.Current_stamp= int(1)
-        self.Time_stamp=int(1)
-
-class EthernetConfig(object):
-    """ Class regrouping all info about the ethernet configuration of the device:
-    IPAdress, MAC Adress, etc.
-
-    Notes
-    -----
-    - see documentation of the EIT device"""
-    def __init__(self):
-        self.IPAdress:List[int]= [0,0,0,0]
-        self.MACAdress:List[int]= [0,0,0,0,0,0]
-        self.IPAdress_str:str= '0.0.0.0'
-        self.MACAdress_str:str= '00:00:00:00:00:00'
-        self.DHCP_Activated:int=0
-
-class FrequencyConfig(object):
-    """ Class regrouping all parameters for the frequency sweep configuration
-    of the device used during the measurement
-
-    Notes
-    -----
-    - see documentation of the EIT device"""
-    def __init__(self):
-        self.Min_F_Hz= float(1000.0)
-        self.Max_F_Hz= float(1000.0)
-        self.Steps= int(1)
-        self.Scale= OP_LINEAR.name
-        self.frequencyList=[]
-        
-        self.mkFrequencyList()
-        
-        
-    def mkFrequencyList(self):
-        """ Make the Frequencies list of frequencies accoreding to the 
-        frequency sweep configuration
-
-        Notes
-        -----
-        - see documentation of the EIT device"""
-        if self.Scale==OP_LINEAR.name:
-            self.frequencyList= np.linspace(self.Min_F_Hz,self.Max_F_Hz, self.Steps)
-        elif self.Scale==OP_LOG.name:
-            self.frequencyList= np.logspace(self.Min_F_Hz,self.Max_F_Hz, self.Steps)
-        else:
-            TypeError('incorrect scale')
-        return self.frequencyList
-
-################################################################################
-##  Functions for Sciopec Device ###############################################
-################################################################################
-
-def mkListOfHex(rx_data, length):
-    """ return a list of str of the Hex-representatiopn of the list of int8
-
-    Parameters
-    ----------
-    rx_data: list of int8 (e.g. [0xD1, 0x00, 0xD1])
-    length: int
-        set the ouput list length
-
-    Returns
-    -------
-    ID: list of str
-        which are the Hex representatiopn of the list of int8 (RX_data)  
-        (e.g. [0xD1, 0x00, 0xD1] >> ['D1', '00', 'D1'])
-
-    Notes
-    -----
-    - used to generate the str of the serial number and Mac adress"""
-    list_hex= []
-    for i in range(length):
-        tmp=hex(rx_data[i]).replace('0x','')
-        if len(tmp)==1:
-            list_hex.append('0'+tmp.capitalize())
-        else:
-            list_hex.append(tmp.capitalize())
-    return list_hex
-
-def convert4Bytes2Float(data_4bytes):
-    """ Convert the represention of a single float format (a list of 4 int8 (4 Bytes)) of a number 
-    to its float value 
-
-    Parameters
-    ----------
-    data_4bytes: list of 4 int8 representing a float value according the single float format
-    
-    Returns
-    -------
-    out_float: corresponding float
-
-    Notes
-    -----
-    - see documentation of the EIT device"""
-    if len(data_4bytes)==4:
-        out_float=struct.unpack('>f', bytearray(data_4bytes))[0]
-    else:
-        raise TypeError(f"Only 4Bytes allowed: {data_4bytes} transmitted") 
-    return out_float
-
-def convertFloat2Bytes(float_val):
-    """ Convert a float value to its single float format (a list of 4 int8 (4 Bytes))
-    representation
-
-    Parameters
-    ----------
-    float_val: float
-    
-    Returns
-    -------
-    list of 4 int8 representing float_val according thesingle float format
-
-    Notes
-    -----
-    - see documentation of the EIT device"""
-    return list(struct.pack(">f", float_val))
-
-def convertBytes2Int(data_Bytes):
-    """ Convert a list of int8 to an integer
-
-    Parameters
-    ----------
-    data_Bytes: list of int8 representing an integer (e.g. [0x00, 0x01] >> int(1))
-    
-    Returns
-    -------
-    out_int: corresponding integer
-
-    Notes
-    -----
-    - see documentation of the EIT device"""
-    '''return a list of 4 int (4 Bytes)'''
-    if len(data_Bytes)>1:
-        out_int=int.from_bytes(bytearray(data_Bytes),"big")
-    else:
-        out_int=int.from_bytes(bytes(data_Bytes),"big")
-    return out_int
-
-def convertInt2Bytes(int_val, n_bytes):
-    """ Convert an integer to its representaion as a list of int8 with n_bytes
-
-    Parameters
-    ----------
-    int_val: int
-        value to convert in list of int8
-    n_bytes: int
-        length of the output list
-    
-    Returns
-    -------
-    list of n_bytes int8
-
-    Notes
-    -----
-    - see documentation of the EIT device"""
-    return list((int(int_val)).to_bytes(n_bytes, byteorder='big'))
-
-def getAllSubattributes(obj_):
-    """ List all attributes  and subattributes of an object 
-
-    Parameters
-    ----------
-    obj_: object
-        value to convert in list of int8
-    
-    Returns
-    -------
-    data: misc
-        values of the attributes  and subattributes of obj_ 
-    name:  str
-        of the attributes  and subattributes of obj_ 
-    types: str
-        types of the attributes  and subattributes of obj_
-    
-    Notes
-    -----
-    - use to load/save the setup of EIT device from/in an excel-file """
-
-    import inspect
-    attributes = inspect.getmembers(obj_, lambda a:not(inspect.isroutine(a)))
-    attr=[a for a in attributes if not(a[0].startswith('__') and a[0].endswith('__'))]
-    name= []
-    data= []
-    types= []
-    for i in range(len(attr)):
-        if sum([str(type(attr[i][1])).find(t) for t in ['list', 'float', 'int', 'str']])> 0:
-            name.append(attr[i][0])
-            data.append(attr[i][1])
-        else:
-            data_tmp, name_tmp, types_tmp = getAllSubattributes(getattr(obj_, attr[i][0]))
-            name_tmp2=[]
-            for name_i in name_tmp:
-                name_tmp2.append(attr[i][0] + '.' +name_i)
-            if len(data_tmp)>1:
-                name.extend(name_tmp2)
-                data.extend(data_tmp)
-            else:
-                name.append(name_tmp2)
-                data.append(data_tmp)
-    types = [type(item) for item in data]        
-    return data, name , types
 
 ## ======================================================================================================================================================
 ##  Class for the DataSet obtained from the EIT Device
 ## ======================================================================================================================================================
 
 class EITDataSet(object):
-    """ Class EITDataSet: regroup Infos and frames of measurements """
+    """ Class EITDataSet: regroups infos and frames of measurements """
     def __init__(self, path):
         self.initDataSet(SciospecSetup(32), path)
         
@@ -860,7 +636,7 @@ class EITDataSet(object):
         self.Frame_cnt=0
         self.Frame=[EITFrame(dev_setup)]
         self._last_frame=[EITFrame(dev_setup)]
-        self.frequencyList= dev_setup.FrequencyConfig.mkFrequencyList()
+        self.frequencyList= dev_setup.freq_config.mkFrequencyList()
         self._FrameRef4TD=[EITFrame(dev_setup)]
     
     def addRxData2DataSet(self, rx_data):
@@ -908,7 +684,7 @@ class EITDataSet(object):
             print(self.Frame.Meas[freq_indx].frequency)
             print(self.Frame.Meas[freq_indx].voltage_real)
 
-        if freq_indx == self.dev_setup.FrequencyConfig.Steps - 1: 
+        if freq_indx == self.dev_setup.freq_config.steps - 1: 
             self.Frame[0].Meas_frame_cnt += 1 # will be increment 2*excitation_nb times at same freq_indx
         
         # if frame complete Frame_cnt++ and append new Frame      
@@ -925,14 +701,11 @@ class EITDataSet(object):
     def setFrameRef4TD(self, indx=0, path=None):
         """ Latch Frame[indx] as reference for time difference mode
         """
-        if path != None:
-             dataset_tmp=self.loadSingleFrame(path)
-             self._FrameRef4TD[0]=dataset_tmp.Frame[0]
+        if path is None:
+            self._FrameRef4TD[0] = self._last_frame[0] if indx==0 else self.Frame[indx]
         else:
-            if indx==0:
-                self._FrameRef4TD[0]=self._last_frame[0]
-            else:
-                self._FrameRef4TD[0]=self.Frame[indx]
+            dataset_tmp=self.loadSingleFrame(path)
+            self._FrameRef4TD[0]=dataset_tmp.Frame[0]
 
     def saveSingleFrame(self,file_path):
         """ Save single Frame to a .dat-file
@@ -953,8 +726,7 @@ class EITDataSet(object):
 
         Parameters
         ----------
-        file_path: str
-            path of file
+        file_path: str  path of file
 
         Returns
         -------
@@ -965,8 +737,7 @@ class EITDataSet(object):
         - such files can not be read..."""
         ## maybe create a text_format of the dataset to load it as a txt-file
         with open(file_path, "rb") as fp:   # Unpickling
-            dataset= pickle.load(fp)
-            return dataset
+            return pickle.load(fp)
     
     def search4FileWithExtension(self,dirpath, ext='.dat'):
 
@@ -1061,7 +832,7 @@ class EITDataSet(object):
         indx: int
             index of the given excitation in self.dev_setup.excitation_Pattern """
         indx = 0
-        for Exc_i in self.dev_setup.Excitation_Pattern:
+        for Exc_i in self.dev_setup.exc_pattern:
             if Exc_i== excitation:
                 break
             indx= indx+1
@@ -1086,10 +857,10 @@ class EITDataSet(object):
         frame.infoText= [ f"Dataset name:\t{self.name}",
                     f"Frame#:\t{frame.Frame_indx}",
                     f"TimeStamps:\t{self.dateTime}",
-                    f"Sweepconfig:\tFmin = {self.dev_setup.FrequencyConfig.Min_F_Hz/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.FrequencyConfig.Max_F_Hz/1000:.3f} kHz",
-                    f"\tFSteps = {self.dev_setup.FrequencyConfig.Steps:.0f},\r\n\tFScale = {self.dev_setup.FrequencyConfig.Scale}",
-                    f"\tAmp = {self.dev_setup.Excitation_Amplitude:.5f} A,\r\n\tFrameRate = {self.dev_setup.Frame_rate:.3f} fps",
-                    f"excitation:\t{self.dev_setup.Excitation_Pattern}"]
+                    f"Sweepconfig:\tFmin = {self.dev_setup.freq_config.min_freq_Hz/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.freq_config.max_freq_Hz/1000:.3f} kHz",
+                    f"\tFSteps = {self.dev_setup.freq_config.steps:.0f},\r\n\tFScale = {self.dev_setup.freq_config.scale}",
+                    f"\tAmp = {self.dev_setup.exc_amp:.5f} A,\r\n\tFrameRate = {self.dev_setup.frame_rate:.3f} fps",
+                    f"excitation:\t{self.dev_setup.exc_pattern}"]
         
 
 class EITFrame(object):
@@ -1100,12 +871,12 @@ class EITFrame(object):
     -----
     e.g. Meas[2] the measured voltages on each channel (VS a commmon GROUND) for the frequency_nb 2
             for the frequency = frequency_val"""
-    def __init__(self, setup):
+    def __init__(self, setup:SciospecSetup):
         self.Frame_timestamps=0
         self.Frame_indx= 0
-        self.Meas_frame_num=len(setup.Excitation_Pattern)*2 # for x excitation x*2 meas are send
+        self.Meas_frame_num=len(setup.exc_pattern)*2 # for x excitation x*2 meas are send
         self.Meas_frame_cnt=0 # cnt 
-        self.Meas=[EITMeas(setup) for i in range(setup.FrequencyConfig.Steps)] # Meas[Frequency_indx]
+        self.Meas=[EITMeas(setup) for i in range(setup.freq_config.steps)] # Meas[Frequency_indx]
         self.infoText=''
         self.loaded_frame_path=''
     
@@ -1118,22 +889,30 @@ class EITMeas(object):
     -----
     e.g. voltage_Z[1][:] the measured voltages on each channel (VS a commmon GROUND) for excitation 1
             for the frequency = frequency_val"""
-    def __init__(self, setup):
-        ch=setup.Channel
-        self.voltage_Z=[[0 for i in range(ch)] for j in range(len(setup.Excitation_Pattern))]
+    def __init__(self, setup:SciospecSetup):
+        ch=setup.device_infos.channel
+        self.voltage_Z=[[0 for i in range(ch)] for j in range(len(setup.exc_pattern))]
         self.frequency=0 # corresponding excitation frequency
-
 
 
 if __name__ == '__main__':
 
     main_log()
 
-    dev= SciospecDevice(['', ''])
-    dev.connect_device('COM3')
+    dev= SWInterface4SciospecDevice(['', ''])
+    dev.get_available_sciospec_devices()
+    dev.connect_device('Device (SN: 01-0019-0132-0A0C) on serial port "COM3"')
+    dev.get_setup()
+    dev.start_meas()
+    time.sleep(5)
+    dev.stop_meas()
 
+    # print(dev.setup.get_exc_stamp(),dev.setup.get_current_stamp(), dev.setup.get_time_stamp())
+    # dev.set_setup()
 
-    time.sleep(2)
+    # dev.software_reset()
+    # time.sleep(10)
+    # dev.get_setup()
     dev.disconnect_device()
 
     pass

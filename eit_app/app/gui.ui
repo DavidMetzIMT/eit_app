@@ -100,7 +100,7 @@
      <widget class="QPushButton" name="pB_connect">
       <property name="geometry">
        <rect>
-        <x>182</x>
+        <x>90</x>
         <y>20</y>
         <width>75</width>
         <height>23</height>
@@ -120,7 +120,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>57</y>
+        <y>80</y>
         <width>401</width>
         <height>16</height>
        </rect>
@@ -158,8 +158,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>20</y>
-        <width>81</width>
+        <y>50</y>
+        <width>401</width>
         <height>22</height>
        </rect>
       </property>
@@ -176,7 +176,7 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>102</x>
+        <x>10</x>
         <y>20</y>
         <width>75</width>
         <height>23</height>
@@ -380,7 +380,7 @@
      <widget class="QPushButton" name="pB_disconnect">
       <property name="geometry">
        <rect>
-        <x>262</x>
+        <x>170</x>
         <y>20</y>
         <width>75</width>
         <height>23</height>

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'eit_app/app_gui/app_gui.ui'
+# Form implementation generated from reading ui file 'eit_app/app/gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.12.3
 #
@@ -37,11 +37,11 @@ class Ui_MainWindow(object):
         self.pB_SaveSetup.setAutoFillBackground(False)
         self.pB_SaveSetup.setObjectName("pB_SaveSetup")
         self.pB_connect = QtWidgets.QPushButton(self.tab)
-        self.pB_connect.setGeometry(QtCore.QRect(182, 20, 75, 23))
+        self.pB_connect.setGeometry(QtCore.QRect(90, 20, 75, 23))
         self.pB_connect.setAutoFillBackground(False)
         self.pB_connect.setObjectName("pB_connect")
         self.status_device = QtWidgets.QLabel(self.tab)
-        self.status_device.setGeometry(QtCore.QRect(10, 57, 401, 16))
+        self.status_device.setGeometry(QtCore.QRect(10, 80, 401, 16))
         self.status_device.setStatusTip("")
         self.status_device.setAutoFillBackground(True)
         self.status_device.setObjectName("status_device")
@@ -50,12 +50,12 @@ class Ui_MainWindow(object):
         self.pB_LoadSetup.setAutoFillBackground(False)
         self.pB_LoadSetup.setObjectName("pB_LoadSetup")
         self.cB_comport = QtWidgets.QComboBox(self.tab)
-        self.cB_comport.setGeometry(QtCore.QRect(10, 20, 81, 22))
+        self.cB_comport.setGeometry(QtCore.QRect(10, 50, 401, 22))
         self.cB_comport.setToolTip("")
         self.cB_comport.setObjectName("cB_comport")
         self.pB_refresh = QtWidgets.QPushButton(self.tab)
         self.pB_refresh.setEnabled(True)
-        self.pB_refresh.setGeometry(QtCore.QRect(102, 20, 75, 23))
+        self.pB_refresh.setGeometry(QtCore.QRect(10, 20, 75, 23))
         self.pB_refresh.setAutoFillBackground(False)
         self.pB_refresh.setObjectName("pB_refresh")
         self.pB_Set_Setup = QtWidgets.QPushButton(self.tab)
@@ -138,7 +138,7 @@ class Ui_MainWindow(object):
         self.label_maxFrameRate.setObjectName("label_maxFrameRate")
         self.LayoutParameters.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.label_maxFrameRate)
         self.pB_disconnect = QtWidgets.QPushButton(self.tab)
-        self.pB_disconnect.setGeometry(QtCore.QRect(262, 20, 75, 23))
+        self.pB_disconnect.setGeometry(QtCore.QRect(170, 20, 75, 23))
         self.pB_disconnect.setToolTip("")
         self.pB_disconnect.setAutoFillBackground(False)
         self.pB_disconnect.setObjectName("pB_disconnect")
