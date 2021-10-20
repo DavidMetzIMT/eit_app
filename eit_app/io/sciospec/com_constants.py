@@ -288,7 +288,7 @@ class SciospecAck(object):
         self.ack_byte: bytes = ack_byte
         self.error: bool = error
         self.string_out: str = string_out
-    def is_error(self):
+    def is_nack(self):
         return self.error
 
 ################################################################################
@@ -306,7 +306,7 @@ ACK_SYSTEM_READY            = SciospecAck('ACK_System_Ready', 0x84, False, 'Syst
 
 NONE_ACK                    = SciospecAck('ACK not recieved/not recognized', 0x99, True, 'ACK not recieved/not recognized')
 
-ACK                         =[  ACK_INCORRECT_FRAME_SYNTAX,
+ACKs                         =[  ACK_INCORRECT_FRAME_SYNTAX,
                                 ACK_COMMUNICATION_TIMEOUT,
                                 ACK_SYSTEM_BOOT_READY,
                                 ACK_NACK_CMD_NOT_EXCECUTED,
@@ -347,7 +347,7 @@ class SciospecSetup(object):
         Notes
         -----
         - see documentation of the EIT device"""
-        f_i = self.freq_config.mkFrequencyList() #ndarray
+        f_i = self.freq_config.make_freqs_list() #ndarray
 
         n_freq = float(self.freq_config.steps)
         t_freq = float(DELAY_BTW_2FREQ) # in s
@@ -452,11 +452,11 @@ class SciospecSetup(object):
     # def get_log(self):
     #     return []
     def get_exc_stamp_for_tx(self):
-        return [int(self.output_config.exc_stamp)]
+        return [1]#[int(self.output_config.exc_stamp)]
     def get_current_stamp_for_tx(self):
-        return [int(self.output_config.current_stamp)]
+        return [1]#[int(self.output_config.current_stamp)]
     def get_time_stamp_for_tx(self):
-        return [int(self.output_config.time_stamp)]
+        return [1]#[int(self.output_config.time_stamp)]
     def get_ip_for_tx(self):
         return []
     def get_mac_for_tx(self):
@@ -542,15 +542,22 @@ class SciospecSetup(object):
         ID= mkListOfHex(rx_op_data[:length])
         self.device_infos.sn_formated= ID[0]+ '-' +ID[1] +ID[2] +'-' +ID[3] +ID[4]+ '-'+ID[5]+ ID[6]
     
-
+    def get_channel(self):
+        """ Get burst val"""
+        return self.device_infos.channel
     def get_burst(self):
         """ Get burst val"""
         return self.burst
-    def get_frame_rate_for_tx(self):
+    def get_frame_rate(self):
         """ Get frame rate data to send to the device"""
-        return convertFloat2Bytes(self.frame_rate)
+        return self.frame_rate
+    def get_freq_min(self): 
+        return self.freq_config.min_freq_Hz
+    def get_freq_max(self):
+        return self.freq_config.max_freq_Hz
+    def get_freq_scale(self):
+        return self.freq_config.scale
     def get_freq(self):
-        
         data =[]
         data=convertFloat2Bytes(self.freq_config.min_freq_Hz)
         data.extend(convertFloat2Bytes(self.freq_config.max_freq_Hz))
@@ -585,8 +592,11 @@ class SciospecSetup(object):
     def get_sn(self):
         return self.device_infos.sn_formated
 
+    def set_exc_pattern_idx(self, idx:int):
+        self.exc_pattern_idx=idx
 
-
+    def make_freqs_list(self):
+        return self.freq_config.make_freqs_list()
 
 
 
@@ -642,11 +652,10 @@ class FrequencyConfig(object):
         self.steps= int(1)
         self.scale= OP_LINEAR.name
         self.freqs=[]
+        self.make_freqs_list()
         
-        self.mkFrequencyList()
         
-        
-    def mkFrequencyList(self):
+    def make_freqs_list(self):
         """ Make the Frequencies list of frequencies accoreding to the 
         frequency sweep configuration
 

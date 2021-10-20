@@ -148,11 +148,13 @@ class SerialInterface(HWInterface):
         - Typically used after the opening a serial port and
         a stop-meas cmd, in case that the device was still sending meas. data"""
 
-        self.listen_worker.stop_polling()
+        
         time.sleep(0.5)  # wait a while
         while self.serial_port.in_waiting:
             self.serial_port.read(self.serial_port.in_waiting)
-        self.listen_worker.start_polling()
+        
+    def stop_measurements(self):
+        self.write([CMD_START_STOP_MEAS.tag, 0x01,0x00 ,CMD_START_STOP_MEAS.tag])
 
     def open(self, port_name, baudrate=SERIAL_BAUD_RATE_DEFAULT, timeout=None, write_timeout=0):
         """ Open serial interface
@@ -175,8 +177,11 @@ class SerialInterface(HWInterface):
             self.serial_port.reset_output_buffer()
             self.serial_port.reset_input_buffer()
             self.serial_port.flush()
+            self.listen_worker.stop_polling()
+            self.stop_measurements()
             self.clear_unwanted_rx_frames()
 
+            self.listen_worker.start_polling()
             msg=f'Connection to serial port {port_name} - OPENED'
             logger.debug(msg)
 

@@ -5,6 +5,8 @@ from tkinter.filedialog import askdirectory, askopenfilename, askopenfilenames
 import pickle
 import json
 import datetime
+from os import listdir
+from os.path import isfile, join
 from eit_app.utils.constants import FORMAT_DATE_TIME,\
                                     DEFAULT_OUTPUTS_DIR,\
                                     EXT_TXT,\
@@ -12,16 +14,22 @@ from eit_app.utils.constants import FORMAT_DATE_TIME,\
                                     EXT_PKL
 def get_date_time():
     _now = datetime.datetime.now()
-    date_time = _now.strftime(FORMAT_DATE_TIME)
-    return date_time
+    return _now.strftime(FORMAT_DATE_TIME)
+
+def append_date_time(s:str, datetime:str=None):
+    if datetime:
+        return f'{s}_{datetime}'
+    else:
+        return f'{s}_{get_date_time()}'
+
 
 def get_POSIX_path(path:str):
 
     return path.replace('\\','/')
 
 
-def mk_ouput_dir(name, verbose= True, default_out_dir= DEFAULT_OUTPUTS_DIR ):
-    """[summary]
+def mk_ouput_dir(name, default_out_dir= DEFAULT_OUTPUTS_DIR, verbose= False ):
+    """create and return the path of a folder "name" in the default_out_directory
 
     Args:
         name ([type]): [description]
@@ -102,7 +110,21 @@ def verify_file(path, extension, debug=False):
                 path_out= path
     return path_out
 
-def save_as_pickle(filename, class2save, verbose=True, add_ext=True):
+def search4FileWithExtension(dir, ext='.dat'):
+    """ return list of files in dir with a specific extension"""
+
+    only_files=[]
+    error = 0
+    try:
+        only_files = [f for f in os.listdir(dir) if os.path.isfile(os.path.join(dir, f)) and os.path.splitext()[1]==ext]
+        if not only_files: # if no files are contains
+            error = 1
+    except (FileNotFoundError, TypeError): #cancel loading
+        pass
+
+    return only_files, error
+
+def save_as_pickle(filename, class2save, verbose=False, add_ext=True):
     """[summary]
 
     Args:
@@ -116,6 +138,28 @@ def save_as_pickle(filename, class2save, verbose=True, add_ext=True):
     with open(filename, 'wb') as file:
         pickle.dump(class2save, file, pickle.HIGHEST_PROTOCOL)
     print_saving_verbose(filename, class2save, verbose)
+
+def load_pickle(filename, class2upload=None, verbose=True):
+    """[summary]
+
+    Args:
+        filename ([type]): [description]
+        class2upload ([type], optional): [description]. Defaults to None.
+        verbose (bool, optional): [description]. Defaults to True.
+
+    Returns:
+        [type]: [description]
+    """
+
+    with open(filename, 'rb') as file:
+                loaded_class = pickle.load(file)
+    print_loading_verbose(filename, loaded_class, verbose)
+    if not class2upload:
+        return loaded_class
+
+    for key in loaded_class.__dict__.keys():
+            setattr(class2upload, key, getattr(loaded_class,key))
+    return class2upload
 
 def save_as_txt(filepath, class2save, verbose=True, add_ext=True):
     """[summary]
@@ -168,28 +212,6 @@ def print_saving_verbose(filename, class2save= None, verbose=True):
             print('\n{} saved in : ...{}'.format(class2save.type, filename[-50:]))
         else:
             print('\n Some data were saved in : ...{}'.format(filename[-50:]))
-
-def load_pickle(filename, class2upload=None, verbose=True):
-    """[summary]
-
-    Args:
-        filename ([type]): [description]
-        class2upload ([type], optional): [description]. Defaults to None.
-        verbose (bool, optional): [description]. Defaults to True.
-
-    Returns:
-        [type]: [description]
-    """
-
-    with open(filename, 'rb') as file:
-                loaded_class = pickle.load(file)
-    print_loading_verbose(filename, loaded_class, verbose)
-    if class2upload:
-        for key in loaded_class.__dict__.keys():
-                setattr(class2upload, key, getattr(loaded_class,key))
-        return class2upload
-    else:
-        return loaded_class
 
 def print_loading_verbose(filename, classloaded= None, verbose=True):
     """[summary]

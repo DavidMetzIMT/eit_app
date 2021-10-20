@@ -26,12 +26,12 @@ from eit_app.eit.model import EITModelClass
 # from eit_app.io.sciospec.interface.serial4sciospec import 
 # from eit_app.eit.meas_preprocessing import *
 
-from eit_tf_workspace.path_utils import get_dir
-from eit_tf_workspace.train_models import ModelGenerator
-from eit_tf_workspace.train_utils import TrainInputs
-from eit_tf_workspace.constants import TRAIN_INPUT_FILENAME
-from eit_tf_workspace.dataset import get_XY_from_MalabDataSet, dataloader, extract_samples
-from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
+# from eit_tf_workspace.path_utils import get_dir
+# from eit_tf_workspace.train_models import ModelGenerator
+# from eit_tf_workspace.train_utils import TrainInputs
+# from eit_tf_workspace.constants import TRAIN_INPUT_FILENAME
+# from eit_tf_workspace.dataset import get_XY_from_MalabDataSet, dataloader, extract_samples
+# from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
 ## ======================================================================================================================================================
 ##  Class for EIT Reconstruction
 ## ======================================================================================================================================================
@@ -69,60 +69,60 @@ class ReconstructionPyEIT():
         if  self.EitModel.SolverType=='NN':
             print('Initialisation of Reccontruction with NN')
             
-            title= 'Select directory of model to evaluate'
-            path_dir=get_dir(title=title)
-            if not path_dir:
-                return
-            # read train inputs instead
-            training_settings=TrainInputs()
-            training_settings.read(os.path.join(path_dir,TRAIN_INPUT_FILENAME))
-            #here pb with linux/win tranfers
-            path_pkl=training_settings.dataset_src_file[1]
-            data_sel= training_settings.data_select
-            # Data loading
-            raw_data=get_XY_from_MalabDataSet(path=path_pkl, data_sel= data_sel,verbose=verbose)#, type2load='.pkl')
-            eval_dataset = dataloader(raw_data, use_tf_dataset=True,verbose=verbose, train_inputs=training_settings)
+            # title= 'Select directory of model to evaluate'
+            # path_dir=get_dir(title=title)
+            # if not path_dir:
+            #     return
+            # # read train inputs instead
+            # training_settings=TrainInputs()
+            # training_settings.read(os.path.join(path_dir,TRAIN_INPUT_FILENAME))
+            # #here pb with linux/win tranfers
+            # path_pkl=training_settings.dataset_src_file[1]
+            # data_sel= training_settings.data_select
+            # # Data loading
+            # raw_data=get_XY_from_MalabDataSet(path=path_pkl, data_sel= data_sel,verbose=verbose)#, type2load='.pkl')
+            # eval_dataset = dataloader(raw_data, use_tf_dataset=True,verbose=verbose, train_inputs=training_settings)
             
-            # if verbose:
-            #     print(eval_dataset.use_tf_dataset)
-            #     if eval_dataset.use_tf_dataset:
-            #         # extract data for verification?
-            #         for inputs, outputs in eval_dataset.test.as_numpy_iterator():
-            #             print('samples size:',inputs.shape, outputs.shape)
-            #             # Print the first element and the label
-            #             # print(inputs[0])
-            #             # print('label of this input is', outputs[0])
-            #             if eval_dataset.batch_size:
-            #                 plot_EIT_samples(eval_dataset.fwd_model, outputs[0], inputs[0])
-            #             else:
-            #                 plot_EIT_samples(eval_dataset.fwd_model, outputs, inputs)
-            #             break
+            # # if verbose:
+            # #     print(eval_dataset.use_tf_dataset)
+            # #     if eval_dataset.use_tf_dataset:
+            # #         # extract data for verification?
+            # #         for inputs, outputs in eval_dataset.test.as_numpy_iterator():
+            # #             print('samples size:',inputs.shape, outputs.shape)
+            # #             # Print the first element and the label
+            # #             # print(inputs[0])
+            # #             # print('label of this input is', outputs[0])
+            # #             if eval_dataset.batch_size:
+            # #                 plot_EIT_samples(eval_dataset.fwd_model, outputs[0], inputs[0])
+            # #             else:
+            # #                 plot_EIT_samples(eval_dataset.fwd_model, outputs, inputs)
+            # #             break
             
-            # _, perm_real=extract_samples(eval_dataset, dataset_part='test', idx_samples='all', elem_idx = 1)
-            _, perm_real=extract_samples(eval_dataset, dataset_part='test', idx_samples=0, elem_idx = 1)
+            # # _, perm_real=extract_samples(eval_dataset, dataset_part='test', idx_samples='all', elem_idx = 1)
+            # _, perm_real=extract_samples(eval_dataset, dataset_part='test', idx_samples=0, elem_idx = 1)
 
-            print('\nperm_real',perm_real, perm_real.shape)
-            # print(self.MeshObj, type(self.MeshObj))
+            # print('\nperm_real',perm_real, perm_real.shape)
+            # # print(self.MeshObj, type(self.MeshObj))
 
-            # Load model
-            gen = ModelGenerator()
-            try: 
-                gen.load_model(training_settings.model_saving_path)
-                self.InitDone=True
+            # # Load model
+            # gen = ModelGenerator()
+            # try: 
+            #     gen.load_model(training_settings.model_saving_path)
+            #     self.InitDone=True
 
-                perm=format_inputs(eval_dataset.fwd_model, perm_real)
-                tri, pts, data= get_elem_nodal_data(eval_dataset.fwd_model, perm)
+            #     perm=format_inputs(eval_dataset.fwd_model, perm_real)
+            #     tri, pts, data= get_elem_nodal_data(eval_dataset.fwd_model, perm)
                 
-                # self.MeshObj= self._reconstruct_mesh_struct(self.MeshObj)
-                self.MeshObj["node"]=pts
-                self.MeshObj["element"]= tri
-                self.MeshObj["perm"] = data['elems_data']
-                self.MeshObj["ds"]=data['elems_data']
-                self.MeshObj= self._reconstruct_mesh_struct(self.MeshObj)
-                self.MeshObjMeas = self.MeshObj
+            #     # self.MeshObj= self._reconstruct_mesh_struct(self.MeshObj)
+            #     self.MeshObj["node"]=pts
+            #     self.MeshObj["element"]= tri
+            #     self.MeshObj["perm"] = data['elems_data']
+            #     self.MeshObj["ds"]=data['elems_data']
+            #     self.MeshObj= self._reconstruct_mesh_struct(self.MeshObj)
+            #     self.MeshObjMeas = self.MeshObj
 
-            except:
-                print(f'{training_settings.model_saving_path} : model not loaded')
+            # except:
+            #     print(f'{training_settings.model_saving_path} : model not loaded')
             
         else:
             print('Initialisation of PyEIT')

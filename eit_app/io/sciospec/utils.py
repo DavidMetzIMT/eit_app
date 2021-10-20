@@ -1,5 +1,7 @@
 
 import struct
+
+import numpy as np
 ################################################################################
 ##  Functions for Sciopec Device ###############################################
 ################################################################################
@@ -167,13 +169,54 @@ def convertByteToBool(byte:bytes):
 
 
 if __name__=="__main__":
-    print(convertBoolToByte(True))
-    print(convertBoolToByte(False))
-    print(convertByteToBool(convertBoolToByte(True)))
-    print(convertByteToBool(convertBoolToByte(False)))
-    print([bytearray(True)])
-    print([bytes(True)])
+    # print(convertBoolToByte(True))
+    # print(convertBoolToByte(False))
+    # print(convertByteToBool(convertBoolToByte(True)))
+    # print(convertByteToBool(convertBoolToByte(False)))
+    # print([bytearray(True)])
+    # print([bytes(True)])
+    meas_data= [ 
+       0x3F,0x80,0,0, # 1
+       0x40,0x00,0,0, # 2
+       0x40,0x40,0,0, # 3
+       0x40,0x80,0,0, # 4
+       0x40,0xA0,0,0, # 5
+    0x40,0xC0,0,0, # 6
+    0x40,0xE0,0,0, # 7 
+       0x41,0x00,0,0] # 8
+    meas=np.array(meas_data)
+    meas=np.reshape(meas, (-1,4))
+    meas=meas.tolist()
+    meas_f=[convert4Bytes2Float(m)for m in meas]
+    meas_f=np.array(meas_f)
+    meas_r_i=np.reshape(meas_f, (-1,2))
+    voltage=meas_r_i[:,0]+1j*meas_r_i[:,1]
 
+    print(meas_data)
+    print(meas)
+    print(meas_f)
+    print(meas_r_i)
+    print(voltage, voltage.shape)
+
+
+
+
+    print(meas)
+
+    meas= [ 
+       [0x3F,0x80,0,0], # 1
+       [0x40,0x00,0,0], # 2
+       [0x40,0x40,0,0], # 3
+       [0x40,0x80,0,0], # 4
+       [0x40,0xA0,0,0], # 5
+       [0x40,0xC0,0,0], # 6
+       [0x40,0xE0,0,0], # 7 
+       [0x41,0x00,0,0]] # 8
+    # meas =[bytearray(m) for m in meas]
+    print(meas)
+    print(convert4Bytes2Float(meas[2]))
+    print([convert4Bytes2Float(m)for m in meas])
+    
 
 
 

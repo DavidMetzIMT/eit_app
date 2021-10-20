@@ -4,10 +4,10 @@ import numpy as np
 from matplotlib.cbook import flatten
 from matplotlib.pyplot import title
 
-from eit_app.io.sciospec.device import EITDataSet
+from eit_app.io.sciospec.device import EitMeasurementDataset
 
 
-def _voltages_preparation(dataset:EITDataSet, frameIndx, imagingParameters, EITModel, liveView=False):
+def _voltages_preparation(dataset:EitMeasurementDataset, frameIndx, imagingParameters, EITModel, liveView=False):
     """
     Extract from the given dataset the corresponding voltages Values and 
     process them for plot/recontruction according to the required immagingData and imagingMode
@@ -53,15 +53,15 @@ def _voltages_preparation(dataset:EITDataSet, frameIndx, imagingParameters, EITM
     if liveView==True:
         frame= dataset._last_frame
     else:
-        frame= dataset.Frame
+        frame= dataset.frame
         
     ouput_labels=[]
         
     if imagingParameters[0][0]  == True : # raw data/ single measurements
         freqIndx= imagingParameters[0][1]
         voltages_4_plot=_get_meas_voltage_vector(frame,frameIndx, freqIndx, imagingDataAbs,imagingDataFunc, EITModel)*np.ones((1,2))
-        frm_indx=frame[frameIndx].Frame_indx
-        freq_val= frame[frameIndx].Meas[freqIndx].frequency
+        frm_indx=frame[frameIndx].idx
+        freq_val= frame[frameIndx].meas[freqIndx].frequency
         ouput_labels.append(current_label)#
         ouput_labels.append(current_label)#
         title_plot= 'Measurements of '+ f'Frm: {frm_indx}, frq_0: {freq_val} Hz'
@@ -72,13 +72,13 @@ def _voltages_preparation(dataset:EITDataSet, frameIndx, imagingParameters, EITM
 
     if imagingParameters[1][0]==True: # time Diff
         freqIndx= imagingParameters[1][1]
-        u_t0=_get_meas_voltage_vector(dataset._FrameRef4TD,0, freqIndx, imagingDataAbs,imagingDataFunc, EITModel)
+        u_t0=_get_meas_voltage_vector(dataset._frame_TD_ref,0, freqIndx, imagingDataAbs,imagingDataFunc, EITModel)
         u_t1=_get_meas_voltage_vector(frame,frameIndx, freqIndx, imagingDataAbs,imagingDataFunc, EITModel)
         voltages_4_rec=np.hstack((u_t0,u_t1))
         voltages_4_plot = voltages_4_rec[:,1]- voltages_4_rec[:,0]
-        frmref_indx=dataset._FrameRef4TD[0].Frame_indx
-        frm_indx=frame[frameIndx].Frame_indx
-        freq_val= frame[frameIndx].Meas[freqIndx].frequency
+        frmref_indx=dataset._frame_TD_ref[0].idx
+        frm_indx=frame[frameIndx].idx
+        freq_val= frame[frameIndx].meas[freqIndx].frequency
         
         ouput_labels.append(current_label + f' ref. frame: {frmref_indx}; {freq_val} Hz')#
         ouput_labels.append(current_label + f' Frm: {frm_indx}; {freq_val} Hz')#
@@ -94,9 +94,9 @@ def _voltages_preparation(dataset:EITDataSet, frameIndx, imagingParameters, EITM
         u_f1=_get_meas_voltage_vector(frame,frameIndx, freqIndx1, imagingDataAbs,imagingDataFunc, EITModel)
         voltages_4_rec=np.hstack((u_f0,u_f1))
         voltages_4_plot = voltages_4_rec[:,1]- voltages_4_rec[:,0]
-        freq_val_1= frame[frameIndx].Meas[freqIndx0].frequency
-        freq_val_0= frame[frameIndx].Meas[freqIndx1].frequency
-        frm_indx=frame[frameIndx].Frame_indx
+        freq_val_1= frame[frameIndx].meas[freqIndx0].frequency
+        freq_val_0= frame[frameIndx].meas[freqIndx1].frequency
+        frm_indx=frame[frameIndx].idx
         ouput_labels.append(current_label+ f' Frame: {frm_indx}; {freq_val_0} Hz' )#
         ouput_labels.append(current_label+ f' Frame: {frm_indx}; {freq_val_1} Hz' )#
         title_plot= 'Freq diff: Measurements of '+ f'Frame #{frm_indx} ' 
