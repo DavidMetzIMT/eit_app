@@ -5,7 +5,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
+import traceback
 import datetime
 import multiprocessing
 import os
@@ -30,8 +30,8 @@ from PyQt5.QtGui import (QGuiApplication, QImage, QKeyEvent, QPainter, QPen,
                          QPixmap)
 from PyQt5.QtWidgets import (QApplication, QComboBox, QFontComboBox,
                              QMessageBox, QSlider)
-from eit_app.app.event import post_event
-
+from eit_app.app.event import CustomEvents
+from pathlib import Path
 
 
 
@@ -108,6 +108,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self._callback_refresh_device_list() # get actual comports
         self._get_imaging_parameters()
         self._callback_refresh_video_devices()
+        self.up_events.post(UpdateDeviceEvents.device_status,self, self.device)
+        
 
         self._init_multithreading_workers() # init the multithreadings workers
 
@@ -118,18 +120,18 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
         # self._verbose=0
         self.live_view=Flag()
-        self.eit_device = SWInterface4SciospecDevice()# create object for serial communication
+        self.device = SWInterface4SciospecDevice()# create object for serial communication
 
         self.liveDS = EitMeasurementDataset()
         self.liveDS.init_for_gui()
         self.loadedDS = EitMeasurementDataset()
         self.loadedDS.init_for_gui()
 
-        self.EITDevDataUp= self.eit_device.flag_new_data
+        self.EITDevDataUp= self.device.flag_new_data
         self.frame_cnt_old= -1 #self.liveDS.Frame_cnt
 
         self.eit_model= EITModelClass()
-        self.eit_device.setup.exc_pattern= self.eit_model.InjPattern
+        self.device.setup.exc_pattern= self.eit_model.InjPattern
 
         self.replay_play=Flag()
         # setting of the camera
@@ -140,8 +142,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         # self.video_frame = MyLabel(self)
         # self.video_frame.setCursor(Qt.CrossCursor)
         # self.video_frame.setGeometry(tmp_geo)
-
-        setup_update_event_handlers()
+        self.up_events=CustomEvents()
+        setup_update_event_handlers(self.up_events)
 
     def link_callbacks_for_interaction_on_device_tab(self):
         """ """
@@ -159,7 +161,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self.sB_freq_steps.valueChanged.connect(self._update_device_setup_from_gui)
         self.cB_scale.activated.connect(self._update_device_setup_from_gui)
         self.sBd_frame_rate.valueChanged.connect(self._update_device_setup_from_gui)
-        set_comboBox_items(self.cB_scale, [OP_LINEAR.name, OP_LOG.name], handler=self._update_device_setup_from_gui)
+        set_comboBox_items(self.cB_scale, [OP_LINEAR.name, OP_LOG.name])
 
 
     def link_callbacks_for_interaction_on_measurement_tab(self):
@@ -182,7 +184,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self.chB_diff.toggled.connect(self._callback_update_plot)
         self.chB_plot_image_rec.toggled.connect(self._callback_update_plot)
         self.cB_rec_method.activated.connect(self._callback_initpyEIT)
-        set_comboBox_items(self.cB_rec_method, ['JAC', 'BP', 'GREIT','NN'], handler=self._callback_initpyEIT)
+        set_comboBox_items(self.cB_rec_method, ['JAC', 'BP', 'GREIT','NN'])
 
         self.rB_abs_meas.setChecked(True)# init one at least!!!
         self.rB_abs_meas.toggled.connect(self._callback_update_plot)
@@ -221,8 +223,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self.pB_refresh_video_devices.clicked.connect(self._callback_refresh_video_devices)
         self.cB_img_size.activated.connect(self._callback_set_cam)
         self.cB_img_file_ext.activated.connect(self._callback_set_cam)
-        set_comboBox_items(self.cB_img_size, list(DEFAULT_IMG_SIZES.keys()), handler=self._callback_set_cam)
-        set_comboBox_items(self.cB_img_file_ext, list(EXT_IMG.keys()), handler=self._callback_set_cam)
+        set_comboBox_items(self.cB_img_size, list(DEFAULT_IMG_SIZES.keys()))
+        set_comboBox_items(self.cB_img_file_ext, list(EXT_IMG.keys()))
 
     
         
@@ -230,12 +232,12 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         # to treat live view of measured data
         self.workers = {}
 
-        # workers= {     'live_view'      : [Worker, 0.05, self._poll_live_view ], 
-        #                 'gui_update'    : [Worker,0.1, self._poll_update],
-        #                 'serial'        : [Worker,0.01, self._poll_read_serial],
-        #                 'ListenQueue'   : [Worker,0.1, self._listener_queue_in],
-        #                 'video'         : [WorkerCam,0.1, self.ImageUpdateSlot]
-        #         }
+        workers= {     'live_view'      : [Worker, 0.05, self._poll_live_view ], 
+                        'gui_update'    : [Worker,0.1, self._poll_update],
+                        # 'serial'        : [Worker,0.01, self._poll_read_serial],
+                        'ListenQueue'   : [Worker,0.1, self._listener_queue_in],
+                        'video'         : [WorkerCam,0.1, self.ImageUpdateSlot]
+                }
         
         # self.LiveViewWorkerSleeptime= 0.05
         # self.workers['live_view']= Worker(self.LiveViewWorkerSleeptime)
@@ -244,11 +246,11 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         # self.workers['live_view'].start()
         # self.div_10_cnt=0
 
-        # # to actualize the gui
-        # self.UpdateGuiWorkerSleeptime= 0.1
-        # self.workers['gui_update'] = Worker(self.UpdateGuiWorkerSleeptime)
-        # self.workers['gui_update'].progress.connect(self._poll_update)
-        # self.workers['gui_update'].start()
+        # to actualize the gui
+        self.UpdateGuiWorkerSleeptime= 0.1
+        self.workers['gui_update'] = Worker(self.UpdateGuiWorkerSleeptime)
+        self.workers['gui_update'].progress.connect(self._poll_update)
+        self.workers['gui_update'].start()
 
         # # for the reading of the serial interface
         # self.SerialWorkerSleeptime= 0.01
@@ -304,7 +306,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
                 #     self.updade_video()
                 #     self.micro_cam.save_image_path=''
                 # self._plot_graphs()
-            if self.eit_device.setup.burst>0 and self.liveDS.frame_cnt == self.eit_device.setup.burst:
+            if self.device.setup.burst>0 and self.liveDS.frame_cnt == self.device.setup.burst:
                 self._callback_stop_measurement() # >> self.LiveView = False 
                 self._LoadDataSet(self.liveDS.output_dir)
         else:
@@ -326,11 +328,13 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         Also this poll report of device disconnection to the user  """ 
         # self.updade_video()
 
-        # testlive Uplot
-        if self.EITDevDataUp != self.eit_device.flag_new_data:
-            self.EITDevDataUp, self.eit_device.flag_new_data = 0,0
-            self._update_gui_data()
+        # # testlive Uplot
+        # if self.EITDevDataUp != self.device.flag_new_data:
+        #     self.EITDevDataUp, self.device.flag_new_data = 0,0
+        #     self._update_gui_data()
 
+        self.is_device_unplugged()
+            
         # # Automatic detection of device disconnection
         # if self.SerialInterface.Ser.is_open:
         #     if self.SerialInterface.ErrorSerialInterface:
@@ -340,10 +344,10 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         #         self._update_gui_data()
         #         showDialog('Error: ' + self.SerialInterface.ErrorSerialInterface + str(datetime.datetime.now()), 'Please reconnect device',  "Critical")
 
-        if self.pB_start_video.isChecked() and not self.workers['video'].thread_active:
-            self.workers['video'].start_capture()
-        elif not self.pB_start_video.isChecked() and self.workers['video'].thread_active:
-            self.workers['video'].stop_capture()
+        # if self.pB_start_video.isChecked() and not self.workers['video'].thread_active:
+        #     self.workers['video'].start_capture()
+        # elif not self.pB_start_video.isChecked() and self.workers['video'].thread_active:
+        #     self.workers['video'].stop_capture()
 
         # look if the recontruction is done
         # self._listener_queue_in() 
@@ -360,72 +364,75 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     #             self.replay_timeBuffer=0.0
     #             setSliderReplay(self.Slider_replay_time, next=True, loop=True)
 
+    def is_device_unplugged(self):
+        # test if device has been unplugged of turned off
+        if self.device.not_connected() and self.device.status_prompt!=self.lab_device_status.text():
+            self.up_events.post(UpdateDeviceEvents.device_status,self, self.device)
+            show_msgBox('The device has been disconnected!', 'Error: Device disconnected', "Critical")
+            self._callback_refresh_device_list()
+
     ## ======================================================================================================================================================
     ##  Callbacks 
     ## ======================================================================================================================================================
     def _callback_refresh_device_list(self):
         """Refresh the list of available sciospec devices"""
-        self.eit_device.get_available_sciospec_devices()
-        post_event(UpdateDeviceEvents.device_list_refreshed,self, self.eit_device)
+        self.device.get_available_sciospec_devices()
+        self.up_events.post(UpdateDeviceEvents.device_list_refreshed,self, self.device)
     
     def _callback_connect_device(self):
         """ Connect with selected sciospec device"""
         device_name= str(self.cB_ports.currentText()) # get actual ComPort
-        self.eit_device.connect_device(device_name, baudrate=115200)
-        post_event(UpdateDeviceEvents.device_connected,self, self.eit_device)
+        self.device.connect_device(device_name, baudrate=115200)
+        self.up_events.post(UpdateDeviceEvents.device_status,self, self.device)
                     
     def _callback_disconnect_device(self):
         """ Disconnect the sciospec device"""
-        self.eit_device.disconnect_device()
-        post_event(UpdateDeviceEvents.device_disconnected,self, self.eit_device)
+        self.device.disconnect_device()
+        self.up_events.post(UpdateDeviceEvents.device_status,self, self.device)
 
     def _callback_get_device_setup(self):
         """ Get setup of the sciospec device and display it"""
-        self.eit_device.get_setup()
-        post_event(UpdateDeviceEvents.device_setup,self, self.eit_device)
-
+        self.device.get_setup()
+        self.up_events.post(UpdateDeviceEvents.device_setup,self, self.device)
 
     def _callback_set_device_setup(self):
         """ Set the displayed setup of the sciospec device"""
         self._update_device_setup_from_gui()
-        self.eit_device.set_setup()
+        self.device.set_setup()
         self._callback_get_device_setup()
 
-
     def _callback_softreset_device(self):
-        """ """
-        self.eit_device.software_reset()
-        # self._update_gui_data()
+        """ Reset the sciopec device"""
+        self.device.software_reset()
+        self.up_events.post(UpdateDeviceEvents.device_status,self, self.device)
     
     def _callback_start_measurement(self):
-        try: 
-            self._update_device_setup_from_gui()
-            p,a= createPath(MEAS_DIR + os.path.sep + self.meas_dataset_name.text(),append_datetime=True)
-            self.meas_dataset_name.setText(p[p.rfind(os.path.sep)+1:])
-            
-            # self.liveDS.initDataSet(self.EITDev.setup, p)
-            # self.EITDev.setDataSet(self.liveDS)
-            self.eit_device.start_meas()
-            self.live_view.set()
-            self.initLiveView()
-            self._update_gui_data()
-        except MeasurementsRunningError as error:
-            show_msgBox(error.__str__(), 'Measurements running', "Information")
+
+        self._update_device_setup_from_gui()
+        p,a= createPath(MEAS_DIR + os.path.sep + self.meas_dataset_name.text(),append_datetime=True)
+        self.meas_dataset_name.setText(p[p.rfind(os.path.sep)+1:])
         
-        
+        # self.liveDS.initDataSet(self.EITDev.setup, p)
+        # self.EITDev.setDataSet(self.liveDS)
+        self.device.start_meas(self.meas_dataset_name.text())
+        self.live_view.set()
+        self.initLiveView()
+        self._update_gui_data()
+
     def _callback_stop_measurement(self):
 
         self.live_view.clear()
-        self.eit_device.stop_meas()
+        self.device.stop_meas()
         self.frame_cnt_old =-1 # reset
         self._update_gui_data()
 
+    
     def _callback_SaveSetup(self):
         fileName, _= openFileNameDialog(self,path=SETUPS_DIR)
         if fileName:
             try: 
                 sheetName= "Setup Device"
-                self.eit_device.saveSetupDevice(fileName, sheetName)
+                self.device.saveSetupDevice(fileName, sheetName)
             except PermissionError:
                 show_msgBox('please close the setup file \r\nor select an other one', 'Error: no write permision', "Critical")
             self._update_gui_data()
@@ -434,7 +441,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         fileName, _= openFileNameDialog(self,path=SETUPS_DIR)
         if fileName:
             sheetName= "Setup Device"
-            self.eit_device.loadSetupDevice(fileName,sheetName)
+            self.device.loadSetupDevice(fileName,sheetName)
             self._update_gui_data()
         
     def _callback_LoadDataSet(self): # the call back has to be  witouh arguments!!!
@@ -504,7 +511,6 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             path_image= path_image[:-4]+self.micro_cam.image_file_ext
             self.updade_video(path=path_image)
 
-
     def _display_infotext_meas(self):
         # select right parameter depending on liveview
         if self.live_view==True:
@@ -535,16 +541,16 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         Reimplement the closeEvent() event handler to include a 'Question'
         dialog with options on how to proceed - Save, Close, Cancel buttons
         """
-        reply = QMessageBox.question(
-            self, "Message",
-            "Are you sure you want to quit? Any unsaved work will be lost.",
-            QMessageBox.Save | QMessageBox.Close | QMessageBox.Cancel,
-            QMessageBox.Save)
-        if reply in [QMessageBox.Save, QMessageBox.Close]:
-            # dosometthing to save work???
-            event.accept()
-        elif reply == QMessageBox.Cancel:
-            event.ignore()
+        # reply = QMessageBox.question(
+        #     self, "Message",
+        #     "Are you sure you want to quit? Any unsaved work will be lost.",
+        #     QMessageBox.Save | QMessageBox.Close | QMessageBox.Cancel,
+        #     QMessageBox.Save)
+        # if reply in [QMessageBox.Save, QMessageBox.Close]:
+        #     # dosometthing to save work???
+        #     event.accept()
+        # elif reply == QMessageBox.Cancel:
+        #     event.ignore()
 
         self.kill_workers()
         
@@ -642,22 +648,21 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _callback_update_plot(self):
         """"""
+        # self._update_device_setup_from_gui()
 
-        self._update_device_setup_from_gui()
-
-        tmp1=[]
-        tmp1.extend(self.ImagingParameters)
-        self._get_imaging_parameters()
+        # tmp1=[]
+        # tmp1.extend(self.ImagingParameters)
+        # self._get_imaging_parameters()
         
         
-        cmp1= all(elem1 ==elem for elem1, elem in zip(tmp1, self.ImagingParameters))
-        # logger
-        # if self._verbose>0:
-        #     print(tmp1)
-        #     print(self.ImagingParameters, cmp1, self.Graphs2Plot)
-        if self.live_view==False:
-            self.compute_measurement()
-        self._update_gui_data()
+        # cmp1= all(elem1 ==elem for elem1, elem in zip(tmp1, self.ImagingParameters))
+        # # logger
+        # # if self._verbose>0:
+        # #     print(tmp1)
+        # #     print(self.ImagingParameters, cmp1, self.Graphs2Plot)
+        # if self.live_view==False:
+        #     self.compute_measurement()
+        # self._update_gui_data()
 
     def _callback_ReplayBackBegin(self):
         set_slider(self.slider_replay_meas, slider_pos=0)
@@ -694,7 +699,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             else:
                 items=[str(item) for item in devices_indx]
 
-            set_comboBox_items( self.cB_video_devices,items, handler=self._callback_set_cam)
+            set_comboBox_items( self.cB_video_devices,items)
 
     def _callback_set_cam(self):
         
@@ -715,30 +720,26 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     ##  Setter
     ## ======================================================================================================================================================
     
-    
-
     def _update_device_setup_from_gui(self):
         ''' Save user entry from Gui in setup of dev'''
-
         ## Update Measurement Setups
-        self.eit_device.setup.set_frame_rate(self.sBd_frame_rate.value())
-        self.eit_device.setup.set_burst(self.sB_burst.value())
-        self.eit_device.setup.set_exc_amp(self.sBd_exc_amp.value()/1000) # from mA -> A
+        self.device.setup.set_frame_rate(self.sBd_frame_rate.value())
+        self.device.setup.set_burst(self.sB_burst.value())
+        self.device.setup.set_exc_amp(self.sBd_exc_amp.value()/1000) # from mA -> A
 
-        freq_max_enable, error=self.eit_device.setup.set_freq_config(
+        freq_max_enable, error=self.device.setup.set_freq_config(
             freq_min=self.sBd_freq_min.value(),
             freq_max=self.sBd_freq_max.value(),
             freq_steps=self.sB_freq_steps.value(),
             freq_scale=self.cB_scale.currentText()
         )
         ## OutputConfig Stamps all to one 
-        self.eit_device.setup.set_dhcp(self.chB_dhcp.isChecked() or True)
-        self.eit_device.setup.set_exc_stamp(self.chB_exc_stamp.isChecked() or True)
-        self.eit_device.setup.set_current_stamp(self.chB_current_stamp.isChecked() or True)
-        self.eit_device.setup.set_time_stamp(self.chB_time_stamp.isChecked() or True)
-        
-
-        post_event(UpdateDeviceEvents.device_setup,self, self.eit_device, freq_max_enable, error)
+        self.device.setup.set_dhcp(self.chB_dhcp.isChecked() or True)
+        self.device.setup.set_exc_stamp(self.chB_exc_stamp.isChecked() or True)
+        self.device.setup.set_current_stamp(self.chB_current_stamp.isChecked() or True)
+        self.device.setup.set_time_stamp(self.chB_time_stamp.isChecked() or True)
+    
+        self.up_events.post(UpdateDeviceEvents.device_setup,self, self.device, freq_max_enable, error)
         
 
         # disableEntryField = self.rB_TimeDiff.isChecked()

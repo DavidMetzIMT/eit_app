@@ -34,14 +34,14 @@ from eit_app.eit.model import *
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
 from eit_app.io.sciospec.device_setup import SciospecSetup
 from eit_app.io.sciospec.com_constants import *
-from eit_app.io.sciospec.hw_serial_interface import SerialInterface, SERIAL_BAUD_RATE_DEFAULT, SerialInterfaceError
+from eit_app.io.sciospec.hw_serial_interface import HARDWARE_NOT_DETECTED, SerialInterface, SERIAL_BAUD_RATE_DEFAULT, SerialInterfaceError
 from eit_app.threads_process.threads_worker import HardwarePoller
 from eit_app.utils.constants import EXT_PKL, MEAS_DIR
 from eit_app.utils.log import main_log
 from eit_app.utils.utils_path import get_date_time, mk_ouput_dir, append_date_time, save_as_pickle, search4FileWithExtension
 from eit_app.io.sciospec.utils import *
 from eit_app.utils.flag import Flag
-from eit_app.app.dialog_boxes import show_msgBox
+from eit_app.app.dialog_boxes import show_dialog, show_msgBox
 import signal
 import time
 import logging
@@ -261,13 +261,9 @@ class SWInterface4SciospecDevice(object):
         except SerialInterfaceError as error:
             self.cmds_history.rm_last()
             self.update_status(oldest_cmd=(CMD_GET_DEVICE_INFOS, OP_NULL))
-            show_msgBox(error.__str__(), 'Error: no Device connected', "Critical")
+            show_msgBox(error.__str__(), 'Communication with device -FAILED', "Critical")
             # raise CouldNotWriteToDevice(error)
             
-            
-
-
-        
     def _make_command_frame(self,cmd:SciospecCmd, op:SciospecOption):
         """ Make the command frame to send
         according to the cmd and op parameters
@@ -345,9 +341,8 @@ class SWInterface4SciospecDevice(object):
     def get_last_rx_frame(self):
         try:
             rx_frame=self.rx_buffer.get_nowait()
-            if rx_frame==[0xFF for _ in range(4)]:
+            if rx_frame==[HARDWARE_NOT_DETECTED]:
                 self.disconnect_device()
-                show_msgBox('device disconnected', 'Error: no Device connected', "Critical")
             else:
                 rx_frame=self._verify_len_of_rx_frame(rx_frame)
                 self.treat_rx_frame(rx_frame)
@@ -491,29 +486,24 @@ class SWInterface4SciospecDevice(object):
     
     def is_measuring(self):
         return self.status==StatusSWInterface.MEASURING
+    def not_connected(self):
+        return self.status==StatusSWInterface.NOT_CONNECTED
     
     def if_measuring_stop(self, force:bool=False)->None:
 
         if self.is_measuring():
             if force:
                 self.stop_meas()
-                show_msgBox('Measurements stopped', 'Measurements running', "Information")
+                show_msgBox('Measurements have been stopped', 'Measurements still running!', "Information")
             else:
-                show_msgBox('Please stop measurements first', 'Measurements running', "Information")
+                show_msgBox('Please stop measurements first', 'Measurements still running!', "Information")
 
     
 
     ## =========================================================================
     ##  Methods excecuting task on the device
     ## =========================================================================
-    
 
-    def buffering_device_infos(self):
-        return copy.deepcopy(self.setup.device_infos)
-
-    def retitute_device_infos(self,tmp):
-        for k in tmp.__dict__.keys():
-            setattr(self.setup.device_infos, k, getattr(tmp,k))
 
 
     def get_available_sciospec_devices(self):
@@ -522,7 +512,7 @@ class SWInterface4SciospecDevice(object):
         ports=self.interface.get_ports_available()
         self.available_devices = {}
         self.treat_rx_frame_worker.start_polling()
-        tmp_device_infos = self.buffering_device_infos()
+        tmp=TmpBuffer(self.setup.device_infos)
         for port in ports:
             self.interface.open(port)
             self.get_device_infos()
@@ -532,7 +522,7 @@ class SWInterface4SciospecDevice(object):
             self.interface.close()
         self.treat_rx_frame_worker.stop_polling()
         self.status=StatusSWInterface.NOT_CONNECTED
-        self.retitute_device_infos(tmp_device_infos)
+        tmp.restitute_object_from_buffer(self.setup.device_infos)
         msg = f'Sciospec devices available: {[k for k in self.available_devices]}'
         logger.info(msg)
 
@@ -541,14 +531,19 @@ class SWInterface4SciospecDevice(object):
     def connect_device(self, device_name:str, baudrate=SERIAL_BAUD_RATE_DEFAULT):
         """" Connect a sciopec device"""
         if not self.available_devices:
-            show_msgBox('Please refresh the list of availables device first, and retry to connect', 'Refresh first', "Critical")
+            show_msgBox(
+                'Please refresh the list of availables device first and retry!',
+                'no devices available', "Warning")
+            return
         if device_name not in self.available_devices.keys():
             msg= f'Sciospec device "{device_name}" - NOT FOUND'
             logger.warning(msg)
-            show_msgBox(f'Please reconnect your device, and retry ({msg})', 'no Device connected', "Critical") 
+            show_msgBox(
+                f'Please reconnect your device "{device_name}" and retry ({msg})',
+                'Device - NOT FOUND ', "Critical") 
+            return
         self.treat_rx_frame_worker.start_polling()
-        port= self.available_devices[device_name]
-        self.interface.open(port, baudrate)
+        self.interface.open(self.available_devices[device_name], baudrate)
         self.get_device_infos()               
         self.status_prompt= f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" (b:{self.interface.get_actual_baudrate()} d:8 s:1 p:None) - CONNECTED'
         logger.info(self.status_prompt)
@@ -623,8 +618,12 @@ class SWInterface4SciospecDevice(object):
         self.if_measuring_stop(force=False)
         self._send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
         self.wait_until_not_busy()
+        time.sleep(10)
         self.disconnect_device()
-        show_msgBox('please reconnect', 'Device disconnected', "Warning") # to test
+        show_msgBox(
+                'Reset done',
+                'Device reset ', "Information")
+        
 
 
 
@@ -636,6 +635,20 @@ class SWInterface4SciospecDevice(object):
         
     def loadSetupDevice(self, file):
         self.setup.loadSetupDevice(file)
+
+        
+class TmpBuffer:
+    tmp:Any=None
+    
+    def __init__(self, obj:Any) -> None:
+        self.buffering_object(obj)
+
+    def buffering_object(self, obj:Any):
+        self.tmp=copy.deepcopy(obj)
+
+    def restitute_object_from_buffer(self,original_obj):
+        for k in self.tmp.__dict__.keys():
+            setattr(original_obj, k, getattr(self.tmp,k))
 
 
 if __name__ == '__main__':

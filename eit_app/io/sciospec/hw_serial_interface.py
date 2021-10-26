@@ -65,6 +65,7 @@ logger = logging.getLogger(__name__)
 
 SER_TIMEOUT = 0.1
 SERIAL_BAUD_RATE_DEFAULT= 115200
+HARDWARE_NOT_DETECTED=0xFF
 
 class SerialInterfaceError(Exception):
     """ Custom Error for serial interface """
@@ -192,12 +193,10 @@ class SerialInterface(object):
         
     def close(self):
         """ Close serial interface """
-
         self.listen_worker.stop_polling() # stop  the automatic polling on the hardware 
         msg=f'Connection to serial port {self.serial_port.name} - CLOSED'
         logger.debug(msg)
         self.serial_port.close() # close the serial interface
-
 
     def register_callback(self, func=None):
         """Register function (external function) to call 
@@ -231,7 +230,7 @@ class SerialInterface(object):
             logger.debug(msg)
         except (serial.SerialException, serial.PortNotOpenError) as error:
             initial_error_message= error.__str__()
-            msg=f'Writing CMD: {command} to serial device "{self.serial_port.name}" - FAILED\
+            msg=f'Write CMD: {get_cmd(command).name}({command}) to serial port "{self.serial_port.name}" - FAILED\
                 \n   ({initial_error_message})'
             logger.error(msg)
             raise SerialInterfaceError(self.serial_port, msg)
@@ -249,18 +248,11 @@ class SerialInterface(object):
         Notes
         -----
         - the reading is active after running "sefl.clearObtained()"
-        - if a SerialException is raised >> "ErrorSerialInterface" will be set to identify: disconnection of the device, etc."""
+        - if a SerialException is raised >>  will be set to identify: disconnection of the device, etc."""
         try:
             self.last_rx_frame= self.get_sciospec_complete_frame()
         except serial.SerialException as error:
-            # self.close()# disconnection .......
-            # initial_error_message= error.__str__()
-            # msg=f'get nb Bytes waiting on serial port "{self.serial_port.name}" - FAILED\
-            #     \n   ({initial_error_message})'
-            # logger.error(msg)
-            # show_msgBox(msg, 'Error: no Device connected', "Critical")
-            # raise SerialInterfaceError(self.serial_port, msg)
-            self.last_rx_frame=[0xFF, 0xFF,0xFF,0xFF]
+            self.last_rx_frame=[HARDWARE_NOT_DETECTED] # for detction of unplugging and truning off or sofreset
         if self.last_rx_frame:
             self.callback(self.last_rx_frame)
 
@@ -280,7 +272,6 @@ class SerialInterface(object):
             msg=f'RX: {rx_frame[:10]}'
             logger.debug(msg)
         return rx_frame
-
 
     def read_availables_bytes(self):
         return self.serial_port.in_waiting

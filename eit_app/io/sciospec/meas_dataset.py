@@ -69,6 +69,7 @@ class EitMeasurementDataset(object):
         self.freqs_list= dev_setup.make_freqs_list()
         self._frame_TD_ref=[EITFrame(dev_setup)]
         return self.name, self.output_dir
+        
     def prepare_for_aquisition(self,dev_setup:SciospecSetup, name_measurement:str=None):
         self.date_time= get_date_time()
         self.name= append_date_time(name_measurement, self.date_time)

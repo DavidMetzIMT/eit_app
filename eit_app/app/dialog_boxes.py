@@ -1,5 +1,6 @@
 
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMessageBox,QDialog
+from PyQt5.QtCore import Qt
 ## ======================================================================================================================================================
 ##  DialogBoxes
 ## ======================================================================================================================================================
@@ -12,12 +13,12 @@ def show_dialog(text, title, attr=None): #non blocking
     # Question = ... # type: 'QMessageBox.Icon'
 
     msgBox = QDialog()
-    attr= attr if attr else 'NoIcon'
-    msgBox.setIcon(getattr(QMessageBox, attr))
-    msgBox.setText(text)
+    # attr= attr if attr else 'NoIcon'
+    # msgBox.setIcon(getattr(QMessageBox, attr))
+    # msgBox.setText(text)
     msgBox.setWindowTitle(title)
     msgBox.adjustSize()
-    return msgBox.exec()
+    return msgBox.show()
 
 def show_msgBox(text, title, attr=None):
 
@@ -28,12 +29,11 @@ def show_msgBox(text, title, attr=None):
     # Question = ... # type: 'QMessageBox.Icon'
 
     msgBox = QMessageBox()
-    attr= attr if attr else 'NoIcon'
+    attr = attr or 'NoIcon'
     msgBox.setIcon(getattr(QMessageBox, attr))
     msgBox.setText(text)
     msgBox.setWindowTitle(title)
     msgBox.adjustSize()
-    msgBox.setStandardButtons(QMessageBox.Ok)
     return msgBox.exec()
 
 def openFileNameDialog(Qwidget, path, fileExtensionFilter="*"):
@@ -53,7 +53,6 @@ def openDirDialog(Qwidget, path):
         return fileName, 0
     else:
         return fileName, 1
-
 
 def openFileNamesDialog(Qwidget,path, fileExtensionFilter="*"):
     options = QFileDialog.Options()

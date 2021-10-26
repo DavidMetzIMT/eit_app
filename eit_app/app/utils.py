@@ -1,14 +1,15 @@
 
 
-from typing import List
+from typing import Callable, List
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QComboBox, QTableWidgetItem, QTableWidget, QSlider
 import numpy as np
 
-
-def set_comboBox_items(comboBox:QComboBox, items=None, handler=None, reset_box = True, set_index=0):
-    if handler:
-        #handler =self._callback_show_frame
-        comboBox.activated.disconnect()
+def set_comboBox_items(comboBox:QComboBox, items=None, reset_box = True, set_index=0):
+    # if handler:
+    #     #handler =self._callback_show_frame
+    #     comboBox.activated.disconnect()
+    comboBox.blockSignals(True)
     if reset_box:
         comboBox.clear()
     if items is not None:
@@ -24,8 +25,9 @@ def set_comboBox_items(comboBox:QComboBox, items=None, handler=None, reset_box =
     else:
         comboBox.setCurrentIndex(comboBox.count()-1) #last item
 
-    if handler:
-        comboBox.activated.connect(handler)
+    comboBox.blockSignals(False)
+    # if handler:
+    #     comboBox.activated.connect(handler)
 
 def set_table_widget(tableWidget:QTableWidget,list2display:List[List[float]], decimal=4):
 
@@ -60,4 +62,10 @@ def set_slider(self, slider:QSlider,  slider_pos=0, pos_min=0, pos_max=None, sin
         slider.setPageStep(page_step)
 
     return slider.sliderPosition(), slider.maximum()
+
+def change_value_withblockSignal(method:Callable, val):
+        obj= method.__self__
+        obj.blockSignals(True)
+        method(val)
+        obj.blockSignals(False)
     
