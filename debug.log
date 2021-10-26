@@ -13335,3 +13335,221 @@
 2021-10-20 18:16:34,603 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
 2021-10-20 18:16:34,715 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
 2021-10-20 18:16:34,761 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:32,764 DEBUG [MainThread] [hw_serial_interface]: __init__ SerialInterface - done
+2021-10-26 09:52:32,898 DEBUG [MainThread] [hw_serial_interface]: Available serial ports : ['COM3']
+2021-10-26 09:52:32,902 DEBUG [MainThread] [hw_serial_interface]: TX: [180, 1, 0, 180]
+2021-10-26 09:52:33,411 DEBUG [MainThread] [hw_serial_interface]: Connection to serial port COM3 - OPENED
+2021-10-26 09:52:33,412 DEBUG [MainThread] [hw_serial_interface]: TX: [209, 0, 209]
+2021-10-26 09:52:33,412 DEBUG [MainThread] [device]: Send cmd "CMD_Device_Serial_Number", op: "OP_Null", cmd_frame :[209, 0, 209]
+2021-10-26 09:52:33,549 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [209, 20, 1, 0, 25, 1, 50, 10, 12, 3]
+2021-10-26 09:52:33,596 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [209, 20, 1, 0, 25, 1, 50, 10, 12, 3, 0, 0, 0, 141, 0, 143, 0, 144, 0, 143, 0, 144, 209]
+2021-10-26 09:52:33,659 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:33,704 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [209, 20, 1, 0, 25, 1, 50, 10, 12, 3, 0, 0, 0, 141, 0, 143, 0, 144, 0, 143, 0, 144, 209] from CMD CMD_Device_Serial_Number- SUCCESS
+2021-10-26 09:52:33,719 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [209, 20, 1, 0, 25, 1, 50, 10, 12, 3, 0, 0, 0, 141, 0, 143, 0, 144, 0, 143, 0, 144, 209] -  TREATED
+2021-10-26 09:52:33,734 DEBUG [MainThread] [hw_serial_interface]: Connection to serial port COM3 - CLOSED
+2021-10-26 09:52:33,740 INFO [MainThread] [device]: Sciospec devices available: ['Device (SN: 01-0019-0132-0A0C) on serial port "COM3"']
+2021-10-26 09:52:33,745 DEBUG [MainThread] [hw_serial_interface]: TX: [180, 1, 0, 180]
+2021-10-26 09:52:34,261 DEBUG [MainThread] [hw_serial_interface]: Connection to serial port COM3 - OPENED
+2021-10-26 09:52:34,264 DEBUG [MainThread] [hw_serial_interface]: TX: [209, 0, 209]
+2021-10-26 09:52:34,266 DEBUG [MainThread] [device]: Send cmd "CMD_Device_Serial_Number", op: "OP_Null", cmd_frame :[209, 0, 209]
+2021-10-26 09:52:34,337 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [209, 20, 1, 0, 25, 1, 50, 10, 12, 3]
+2021-10-26 09:52:34,367 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [209, 20, 1, 0, 25, 1, 50, 10, 12, 3, 0, 0, 0, 141, 0, 143, 0, 144, 0, 143, 0, 144, 209]
+2021-10-26 09:52:34,461 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:34,477 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [209, 20, 1, 0, 25, 1, 50, 10, 12, 3, 0, 0, 0, 141, 0, 143, 0, 144, 0, 143, 0, 144, 209] from CMD CMD_Device_Serial_Number- SUCCESS
+2021-10-26 09:52:34,508 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [209, 20, 1, 0, 25, 1, 50, 10, 12, 3, 0, 0, 0, 141, 0, 143, 0, 144, 0, 143, 0, 144, 209] -  TREATED
+2021-10-26 09:52:34,541 INFO [MainThread] [device]: Device (SN: 01-0019-0132-0A0C) on serial port "COM3" (b:115200 d:8 s:1 p:None) - CONNECTED
+2021-10-26 09:52:34,543 INFO [MainThread] [device]: ### GET SETUP FROM DEVICE ####
+2021-10-26 09:52:34,544 DEBUG [MainThread] [hw_serial_interface]: TX: [177, 1, 5, 177]
+2021-10-26 09:52:34,545 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Measurement_Setup", op: "OP_Excitation_Amplitude", cmd_frame :[177, 1, 5, 177]
+2021-10-26 09:52:34,546 DEBUG [MainThread] [hw_serial_interface]: TX: [177, 1, 2, 177]
+2021-10-26 09:52:34,547 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Measurement_Setup", op: "OP_Burst_Count", cmd_frame :[177, 1, 2, 177]
+2021-10-26 09:52:34,548 DEBUG [MainThread] [hw_serial_interface]: TX: [177, 1, 3, 177]
+2021-10-26 09:52:34,549 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Measurement_Setup", op: "OP_Frame_Rate", cmd_frame :[177, 1, 3, 177]
+2021-10-26 09:52:34,549 DEBUG [MainThread] [hw_serial_interface]: TX: [177, 1, 4, 177]
+2021-10-26 09:52:34,550 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Measurement_Setup", op: "OP_Excitation_Frequencies", cmd_frame :[177, 1, 4, 177]
+2021-10-26 09:52:34,550 DEBUG [MainThread] [hw_serial_interface]: TX: [177, 1, 6, 177]
+2021-10-26 09:52:34,551 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[177, 1, 6, 177]
+2021-10-26 09:52:34,551 DEBUG [MainThread] [hw_serial_interface]: TX: [179, 1, 1, 179]
+2021-10-26 09:52:34,552 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Output_Configuration", op: "OP_Excitation_Setting", cmd_frame :[179, 1, 1, 179]
+2021-10-26 09:52:34,553 DEBUG [MainThread] [hw_serial_interface]: TX: [179, 1, 2, 179]
+2021-10-26 09:52:34,553 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Output_Configuration", op: "OP_Current_Row", cmd_frame :[179, 1, 2, 179]
+2021-10-26 09:52:34,554 DEBUG [MainThread] [hw_serial_interface]: TX: [179, 1, 3, 179]
+2021-10-26 09:52:34,554 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Output_Configuration", op: "OP_Timestamp", cmd_frame :[179, 1, 3, 179]
+2021-10-26 09:52:34,555 DEBUG [MainThread] [hw_serial_interface]: TX: [190, 1, 1, 190]
+2021-10-26 09:52:34,555 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Ethernet_Configuration", op: "OP_IP_adress", cmd_frame :[190, 1, 1, 190]
+2021-10-26 09:52:34,557 DEBUG [MainThread] [hw_serial_interface]: TX: [190, 1, 2, 190]
+2021-10-26 09:52:34,558 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [177, 5, 5, 60, 35, 215, 10, 177]
+2021-10-26 09:52:34,558 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Ethernet_Configuration", op: "OP_MAC_adress", cmd_frame :[190, 1, 2, 190]
+2021-10-26 09:52:34,560 DEBUG [MainThread] [hw_serial_interface]: TX: [190, 1, 3, 190]
+2021-10-26 09:52:34,561 DEBUG [MainThread] [device]: Send cmd "CMD_Get_Ethernet_Configuration", op: "OP_DHCP", cmd_frame :[190, 1, 3, 190]
+2021-10-26 09:52:34,586 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [177, 5, 5, 60, 35, 215, 10, 177]
+2021-10-26 09:52:34,726 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:34,790 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [177, 5, 5, 60, 35, 215, 10, 177] from CMD CMD_Get_Measurement_Setup- SUCCESS
+2021-10-26 09:52:34,807 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [177, 5, 5, 60, 35, 215, 10, 177] -  TREATED
+2021-10-26 09:52:34,822 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [177, 3, 2, 0, 1, 177]
+2021-10-26 09:52:34,882 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [177, 3, 2, 0, 1, 177]
+2021-10-26 09:52:34,960 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:35,039 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [177, 3, 2, 0, 1, 177] from CMD CMD_Get_Measurement_Setup- SUCCESS
+2021-10-26 09:52:35,055 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [177, 3, 2, 0, 1, 177] -  TREATED
+2021-10-26 09:52:35,162 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [177, 5, 3, 63, 128, 0, 0, 177]
+2021-10-26 09:52:35,178 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [177, 5, 3, 63, 128, 0, 0, 177]
+2021-10-26 09:52:35,224 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:35,289 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [177, 5, 3, 63, 128, 0, 0, 177] from CMD CMD_Get_Measurement_Setup- SUCCESS
+2021-10-26 09:52:35,318 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [177, 12, 4, 71, 195, 80, 0, 71, 195, 80]
+2021-10-26 09:52:35,348 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [177, 5, 3, 63, 128, 0, 0, 177] -  TREATED
+2021-10-26 09:52:35,503 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [177, 12, 4, 71, 195, 80, 0, 71, 195, 80, 0, 0, 1, 0, 177]
+2021-10-26 09:52:35,579 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:35,610 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [177, 12, 4, 71, 195, 80, 0, 71, 195, 80, 0, 0, 1, 0, 177] from CMD CMD_Get_Measurement_Setup- SUCCESS
+2021-10-26 09:52:35,642 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [177, 12, 4, 71, 195, 80, 0, 71, 195, 80, 0, 0, 1, 0, 177] -  TREATED
+2021-10-26 09:52:35,703 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [177, 33, 6, 1, 2, 2, 3, 3, 4, 4]
+2021-10-26 09:52:35,781 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:35,826 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [177, 33, 6, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 1, 177]
+2021-10-26 09:52:35,890 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [177, 33, 6, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 1, 177] from CMD CMD_Get_Measurement_Setup- SUCCESS
+2021-10-26 09:52:35,921 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [179, 2, 1, 1, 179]
+2021-10-26 09:52:35,921 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [177, 33, 6, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 1, 177] -  TREATED
+2021-10-26 09:52:36,030 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [179, 2, 1, 1, 179]
+2021-10-26 09:52:36,045 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:36,076 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [179, 2, 1, 1, 179] from CMD CMD_Get_Output_Configuration- SUCCESS
+2021-10-26 09:52:36,091 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [179, 2, 1, 1, 179] -  TREATED
+2021-10-26 09:52:36,170 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [179, 2, 2, 1, 179]
+2021-10-26 09:52:36,218 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [179, 2, 2, 1, 179]
+2021-10-26 09:52:36,325 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:36,402 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [179, 2, 2, 1, 179] from CMD CMD_Get_Output_Configuration- SUCCESS
+2021-10-26 09:52:36,433 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [179, 2, 2, 1, 179] -  TREATED
+2021-10-26 09:52:36,540 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [179, 2, 3, 1, 179]
+2021-10-26 09:52:36,587 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [179, 2, 3, 1, 179]
+2021-10-26 09:52:36,726 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:36,773 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [179, 2, 3, 1, 179] from CMD CMD_Get_Output_Configuration- SUCCESS
+2021-10-26 09:52:36,803 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [179, 2, 3, 1, 179] -  TREATED
+2021-10-26 09:52:36,804 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [190, 5, 1, 0, 0, 0, 0, 190]
+2021-10-26 09:52:36,958 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [190, 5, 1, 0, 0, 0, 0, 190]
+2021-10-26 09:52:37,036 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,084 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [190, 5, 1, 0, 0, 0, 0, 190] from CMD CMD_Get_Ethernet_Configuration- SUCCESS
+2021-10-26 09:52:37,100 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [190, 5, 1, 0, 0, 0, 0, 190] -  TREATED
+2021-10-26 09:52:37,147 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [190, 7, 2, 0, 80, 194, 156, 97, 152, 190]
+2021-10-26 09:52:37,192 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [190, 7, 2, 0, 80, 194, 156, 97, 152, 190]
+2021-10-26 09:52:37,240 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,286 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [190, 7, 2, 0, 80, 194, 156, 97, 152, 190] from CMD CMD_Get_Ethernet_Configuration- SUCCESS
+2021-10-26 09:52:37,302 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [190, 7, 2, 0, 80, 194, 156, 97, 152, 190] -  TREATED
+2021-10-26 09:52:37,381 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [190, 2, 3, 1, 190]
+2021-10-26 09:52:37,427 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_RESP: [190, 2, 3, 1, 190]
+2021-10-26 09:52:37,533 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,627 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed of ANSWER [190, 2, 3, 1, 190] from CMD CMD_Get_Ethernet_Configuration- SUCCESS
+2021-10-26 09:52:37,657 DEBUG [Hardware Poller "treat_rx_frame"] [device]: RX_ANSWER: [190, 2, 3, 1, 190] -  TREATED
+2021-10-26 09:52:37,688 INFO [MainThread] [device]: ### SET SETUP FROM DEVICE ####
+2021-10-26 09:52:37,691 DEBUG [MainThread] [hw_serial_interface]: TX: [178, 2, 1, 1, 178]
+2021-10-26 09:52:37,692 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Output_Configuration", op: "OP_Excitation_Setting", cmd_frame :[178, 2, 1, 1, 178]
+2021-10-26 09:52:37,694 DEBUG [MainThread] [hw_serial_interface]: TX: [178, 2, 2, 1, 178]
+2021-10-26 09:52:37,695 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Output_Configuration", op: "OP_Current_Row", cmd_frame :[178, 2, 2, 1, 178]
+2021-10-26 09:52:37,697 DEBUG [MainThread] [hw_serial_interface]: TX: [178, 2, 3, 1, 178]
+2021-10-26 09:52:37,697 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Output_Configuration", op: "OP_Timestamp", cmd_frame :[178, 2, 3, 1, 178]
+2021-10-26 09:52:37,699 DEBUG [MainThread] [hw_serial_interface]: TX: [189, 2, 3, 1, 189]
+2021-10-26 09:52:37,699 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Ethernet_Configuration", op: "OP_DHCP", cmd_frame :[189, 2, 3, 1, 189]
+2021-10-26 09:52:37,700 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 1, 1, 176]
+2021-10-26 09:52:37,701 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Reset_Setup", cmd_frame :[176, 1, 1, 176]
+2021-10-26 09:52:37,703 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 5, 5, 60, 35, 215, 10, 176]
+2021-10-26 09:52:37,704 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Amplitude", cmd_frame :[176, 5, 5, 60, 35, 215, 10, 176]
+2021-10-26 09:52:37,706 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,708 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 2, 0, 1, 176]
+2021-10-26 09:52:37,709 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Burst_Count", cmd_frame :[176, 3, 2, 0, 1, 176]
+2021-10-26 09:52:37,711 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 5, 3, 63, 128, 0, 0, 176]
+2021-10-26 09:52:37,712 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Frame_Rate", cmd_frame :[176, 5, 3, 63, 128, 0, 0, 176]
+2021-10-26 09:52:37,713 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 12, 4, 71, 195, 80, 0, 71, 195, 80, 0, 0, 1, 0, 176]
+2021-10-26 09:52:37,714 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Frequencies", cmd_frame :[176, 12, 4, 71, 195, 80, 0, 71, 195, 80, 0, 0, 1, 0, 176]
+2021-10-26 09:52:37,715 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 1, 2, 176]
+2021-10-26 09:52:37,716 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 1, 2, 176]
+2021-10-26 09:52:37,717 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 2, 3, 176]
+2021-10-26 09:52:37,717 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 2, 3, 176]
+2021-10-26 09:52:37,718 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 3, 4, 176]
+2021-10-26 09:52:37,719 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 3, 4, 176]
+2021-10-26 09:52:37,720 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 4, 5, 176]
+2021-10-26 09:52:37,720 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Output_Configuration - SUCCESS
+2021-10-26 09:52:37,720 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 4, 5, 176]
+2021-10-26 09:52:37,721 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,723 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 5, 6, 176]
+2021-10-26 09:52:37,724 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 5, 6, 176]
+2021-10-26 09:52:37,726 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 6, 7, 176]
+2021-10-26 09:52:37,727 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 6, 7, 176]
+2021-10-26 09:52:37,729 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 7, 8, 176]
+2021-10-26 09:52:37,730 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 7, 8, 176]
+2021-10-26 09:52:37,732 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 8, 9, 176]
+2021-10-26 09:52:37,732 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 8, 9, 176]
+2021-10-26 09:52:37,735 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Output_Configuration - SUCCESS
+2021-10-26 09:52:37,736 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 9, 10, 176]
+2021-10-26 09:52:37,736 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,737 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 9, 10, 176]
+2021-10-26 09:52:37,751 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Output_Configuration - SUCCESS
+2021-10-26 09:52:37,752 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,752 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 10, 11, 176]
+2021-10-26 09:52:37,753 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 10, 11, 176]
+2021-10-26 09:52:37,766 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Ethernet_Configuration - SUCCESS
+2021-10-26 09:52:37,766 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 11, 12, 176]
+2021-10-26 09:52:37,766 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,767 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 11, 12, 176]
+2021-10-26 09:52:37,781 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:37,782 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 12, 13, 176]
+2021-10-26 09:52:37,782 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,783 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 12, 13, 176]
+2021-10-26 09:52:37,796 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:37,796 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 13, 14, 176]
+2021-10-26 09:52:37,797 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,798 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 13, 14, 176]
+2021-10-26 09:52:37,812 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:37,813 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 14, 15, 176]
+2021-10-26 09:52:37,814 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,814 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 14, 15, 176]
+2021-10-26 09:52:37,829 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:37,829 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 15, 16, 176]
+2021-10-26 09:52:37,829 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,830 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 15, 16, 176]
+2021-10-26 09:52:37,845 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:37,845 DEBUG [MainThread] [hw_serial_interface]: TX: [176, 3, 6, 16, 1, 176]
+2021-10-26 09:52:37,846 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,847 DEBUG [MainThread] [device]: Send cmd "CMD_Set_Measurement_Setup", op: "OP_Excitation_Sequence", cmd_frame :[176, 3, 6, 16, 1, 176]
+2021-10-26 09:52:37,874 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:37,919 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:37,997 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:38,182 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:38,337 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:38,338 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:38,431 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:38,509 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:38,616 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:38,632 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:38,678 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:38,679 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:38,775 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:38,851 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:38,898 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,025 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:39,101 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,243 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:39,288 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,350 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:39,366 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,397 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:39,444 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,553 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:39,631 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,647 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:39,723 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,785 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:39,832 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:39,957 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:40,033 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Set_Measurement_Setup - SUCCESS
+2021-10-26 09:52:40,082 DEBUG [MainThread] [hw_serial_interface]: TX: [180, 1, 1, 180]
+2021-10-26 09:52:40,083 DEBUG [MainThread] [device]: Send cmd "CMD_Start_Stop_Measurement", op: "OP_Start_Measurement", cmd_frame :[180, 1, 1, 180]
+2021-10-26 09:52:40,219 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [24, 1, 131, 24]
+2021-10-26 09:52:40,250 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_ACK: ACK_ACK_Cmd_executed for CMD CMD_Start_Stop_Measurement - SUCCESS
+2021-10-26 09:52:40,282 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [180, 137, 1, 1, 2, 0, 0, 0, 0, 0]
+2021-10-26 09:52:40,297 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_MEAS: [180, 137, 1, 1, 2, 0, 0, 0, 0, 0, 64, 63, 215, 9, 166, 191, 5, 73, 202, 191]
+2021-10-26 09:52:40,298 ERROR [Hardware Poller "treat_rx_frame"] [device]: add_rx_frame_to_dataset() takes 2 positional arguments but 3 were given
+2021-10-26 09:52:40,297 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [180, 137, 2, 1, 2, 0, 0, 0, 0, 0]
+2021-10-26 09:52:40,313 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_MEAS: [180, 137, 2, 1, 2, 0, 0, 0, 0, 0, 64, 188, 146, 168, 96, 60, 57, 157, 81, 188]
+2021-10-26 09:52:40,314 ERROR [Hardware Poller "treat_rx_frame"] [device]: add_rx_frame_to_dataset() takes 2 positional arguments but 3 were given
+2021-10-26 09:52:40,314 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [180, 137, 1, 2, 3, 0, 0, 0, 0, 0]
+2021-10-26 09:52:40,329 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_MEAS: [180, 137, 1, 2, 3, 0, 0, 0, 0, 0, 189, 62, 231, 31, 56, 189, 89, 187, 186, 63]
+2021-10-26 09:52:40,330 ERROR [Hardware Poller "treat_rx_frame"] [device]: add_rx_frame_to_dataset() takes 2 positional arguments but 3 were given
+2021-10-26 09:52:40,331 DEBUG [Hardware Poller "Serial"] [hw_serial_interface]: RX: [180, 137, 2, 2, 3, 0, 0, 0, 0, 0]
+2021-10-26 09:52:40,344 INFO [Hardware Poller "treat_rx_frame"] [device]: RX_MEAS: [180, 137, 2, 2, 3, 0, 0, 0, 0, 0, 189, 188, 191, 109, 105, 60, 88, 232, 195, 59]
+2021-10-26 09:52:40,345 ERROR [Hardware Poller "treat_rx_frame"] [device]: add_rx_frame_to_dataset() takes 2 positional arguments but 3 were given

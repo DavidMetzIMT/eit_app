@@ -45,9 +45,10 @@ from typing import List
 
 import serial  # get from http://pyserial.sourceforge.net/
 from eit_app.io.sciospec.com_constants import *
-from eit_app.io.sciospec.hw_interfaces import HWInterface
-from eit_app.threads_process.threads_worker import HardwarePoller, Worker
+# from eit_app.io.sciospec.hw_interfaces import HWInterface
+from eit_app.threads_process.threads_worker import HardwarePoller
 from eit_app.utils.log import main_log
+from eit_app.app.dialog_boxes import show_msgBox
 
 from abc import ABC, abstractmethod
 
@@ -71,36 +72,36 @@ class SerialInterfaceError(Exception):
         super().__init__(msg)
         self.port=port
 
-class SerialInterface(HWInterface):
+class SerialInterface(object):
     """Class to interface with the serial port of Sciospec Device.
 
     Repeatedly polls hardware, unless we are sending a command
     "Ser" is a serial port class from the pyserial pacakge """
 
-    def __init__(self, verbose=False)-> None:
+    def __init__(self)-> None:
+        """Constructor responsible of attrs init and starting the HW Poller(thread)"""
         self.last_rx_frame = None  # last response retrieved by polling
         self.callback = None
         self.register_callback()
-        self._verbose = verbose  # for debugging
         self.ErrorSerialInterface = ''
         self.serial_port = serial.Serial()
         self.ports_available = []
-        self._initializated = False
-        self.listen_worker = HardwarePoller(name='Serial',
-                                            sleeptime=0.01,
-                                            pollfunc=self.poll_read,
-                                            verbose=verbose)
+        self.listen_worker = HardwarePoller(name='Serial',sleeptime= 0.01,pollfunc=self.poll_read)
         self.listen_worker.start()
-
-        if self._verbose: # print for debuging
-            print('__init__ SerialInterface - done')
+        logger.debug('__init__ SerialInterface - done')
 
     def get_actual_port_name(self):
         return self.serial_port.name or 'None'
 
     def get_actual_baudrate(self):
         return self.serial_port.baudrate or 'None'
+    
+    def set_actual_port_name(self, port_name:str=None):
+        self.serial_port.name = port_name
 
+    def set_actual_baudrate(self, baudrate:int= SERIAL_BAUD_RATE_DEFAULT):
+        self.serial_port.baudrate = baudrate
+    
     def get_ports_available(self)->List[str]:
         """ Lists serial port names on which Sciospec device is available
 
@@ -110,9 +111,7 @@ class SerialInterface(HWInterface):
         -------
         A list of the serial ports available on the system
         
-        raises EnvironmentError
-        ------------------------
-        On unsupported or unknown platforms"""
+        raises EnvironmentError On unsupported or unknown platforms"""
         
         if sys.platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
@@ -146,9 +145,8 @@ class SerialInterface(HWInterface):
         Notes
         -----
         - Typically used after the opening a serial port and
-        a stop-meas cmd, in case that the device was still sending meas. data"""
+        a stop-meas cmd, in case that the device was still sending meas. data """
 
-        
         time.sleep(0.5)  # wait a while
         while self.serial_port.in_waiting:
             self.serial_port.read(self.serial_port.in_waiting)
@@ -156,7 +154,7 @@ class SerialInterface(HWInterface):
     def stop_measurements(self):
         self.write([CMD_START_STOP_MEAS.tag, 0x01,0x00 ,CMD_START_STOP_MEAS.tag])
 
-    def open(self, port_name, baudrate=SERIAL_BAUD_RATE_DEFAULT, timeout=None, write_timeout=0):
+    def open(self, port_name:str= None, baudrate=SERIAL_BAUD_RATE_DEFAULT, timeout=None, write_timeout=0):
         """ Open serial interface
 
         Args:
@@ -166,7 +164,7 @@ class SerialInterface(HWInterface):
             write_timeout (int, optional): [description]. Defaults to 0.
 
         Raises:
-            serial.PortNotOpenError: [description]
+            SerialInterfaceError
         """
         try:
             self.serial_port = serial.Serial(   port_name,
@@ -188,11 +186,10 @@ class SerialInterface(HWInterface):
         except (OSError, serial.SerialException) as error:
             initial_error_message= error.__str__()
             msg=    f'Connection to serial port {port_name} - FAILED\
-                    \n  >>ErrorSource:{initial_error_message}'
+                    \n   ({initial_error_message})'
             logger.error(msg)
             raise SerialInterfaceError( self.serial_port, msg)
         
-
     def close(self):
         """ Close serial interface """
 
@@ -235,7 +232,7 @@ class SerialInterface(HWInterface):
         except (serial.SerialException, serial.PortNotOpenError) as error:
             initial_error_message= error.__str__()
             msg=f'Writing CMD: {command} to serial device "{self.serial_port.name}" - FAILED\
-                \n  >>ErrorSource:{initial_error_message}'
+                \n   ({initial_error_message})'
             logger.error(msg)
             raise SerialInterfaceError(self.serial_port, msg)
 
@@ -248,14 +245,22 @@ class SerialInterface(HWInterface):
 
         RXFrame:  - [cmd_byte, length_byte=0x01, option_byte, cmd_byte]
                   - [cmd_byte, length_byte, option_byte, [data], cmd_byte]
-                    
 
         Notes
         -----
         - the reading is active after running "sefl.clearObtained()"
         - if a SerialException is raised >> "ErrorSerialInterface" will be set to identify: disconnection of the device, etc."""
-
-        self.last_rx_frame= self.get_sciospec_complete_frame()
+        try:
+            self.last_rx_frame= self.get_sciospec_complete_frame()
+        except serial.SerialException as error:
+            # self.close()# disconnection .......
+            # initial_error_message= error.__str__()
+            # msg=f'get nb Bytes waiting on serial port "{self.serial_port.name}" - FAILED\
+            #     \n   ({initial_error_message})'
+            # logger.error(msg)
+            # show_msgBox(msg, 'Error: no Device connected', "Critical")
+            # raise SerialInterfaceError(self.serial_port, msg)
+            self.last_rx_frame=[0xFF, 0xFF,0xFF,0xFF]
         if self.last_rx_frame:
             self.callback(self.last_rx_frame)
 
@@ -266,22 +271,20 @@ class SerialInterface(HWInterface):
             [type]: [description]
         """
         rx_frame = []
-        try:
-            if self.serial_port.in_waiting >= FRAME_LENGTH_MIN: # a frame is at least 4 bytes
-                rx_frame = self.read_bytes(LENGTH_BYTE_INDX + 1) # read up to the length byte
-                length_data2read = rx_frame[LENGTH_BYTE_INDX] + 1 # read also the additional "ending CMD Byte"
-                while self.serial_port.in_waiting < length_data2read: # dangerous ...timer use?
-                    pass
-                rx_frame.extend(self.read_bytes(length_data2read))
-                msg=f'RX: {rx_frame[:10]}'
-                logger.debug(msg)
-            # print('in_waiting',self.serial_port.in_waiting)
-            return rx_frame
-        except serial.SerialException:
-            # disconnection .......
-            pass
+        if self.read_availables_bytes() >= FRAME_LENGTH_MIN: # a frame is at least 4 bytes
+            rx_frame = self.read_bytes(LENGTH_BYTE_INDX + 1) # read up to the length byte
+            length_data2read = rx_frame[LENGTH_BYTE_INDX] + 1 # read also the additional "ending CMD Byte"
+            while self.read_availables_bytes() < length_data2read: # dangerous ...timer use?
+                pass
+            rx_frame.extend(self.read_bytes(length_data2read))
+            msg=f'RX: {rx_frame[:10]}'
+            logger.debug(msg)
+        return rx_frame
 
 
+    def read_availables_bytes(self):
+        return self.serial_port.in_waiting
+        
     def read_bytes(self, nb_bytes:int= 1) -> List[bytes]:
         """ Read on serial port a number of bytes
 
@@ -289,7 +292,7 @@ class SerialInterface(HWInterface):
             nb_bytes (int): number of bytes to read. Default is set to 1
 
         Raises:
-            ErrorSerialInterface: [description]
+            ErrorSerialInterface: can be trigerred by serial.SerialException or serial.PortNotOpenError
 
         Returns:
             list: list of read bytes
@@ -299,7 +302,7 @@ class SerialInterface(HWInterface):
         except (serial.SerialException, serial.PortNotOpenError) as error:
             initial_error_message= error.__str__()
             msg=f'Reading of {nb_bytes}Bytes from serial port "{self.serial_port.name}" - FAILED\
-                \n  >>ErrorSource:{initial_error_message}'
+                \n   ({initial_error_message})'
             logger.error(msg)
             raise SerialInterfaceError(self.serial_port, msg)
 
@@ -307,7 +310,7 @@ class SerialInterface(HWInterface):
 if __name__ == '__main__':
 
     main_log()
-    s=SerialInterface(verbose=False)
+    s=SerialInterface()
 
 
     # logger.debug("An INFO message from " + __name__)

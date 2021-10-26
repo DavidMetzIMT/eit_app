@@ -61,7 +61,7 @@ class EITModelClass(object):
         for n in range(o_num.size):
             new[old==o_num[n]]= n_num[n]
             
-        self.InjPattern= new
+        self.InjPattern= new # to list???
         
     
 

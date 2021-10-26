@@ -25,13 +25,14 @@ from typing import Any, List
 import copy
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import tick_params
+from matplotlib.pyplot import flag, tick_params
 import pickle
 from os import listdir
 from os.path import isfile, join
 
 from eit_app.eit.model import *
-from eit_app.io.sciospec import dataset
+from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.io.sciospec.device_setup import SciospecSetup
 from eit_app.io.sciospec.com_constants import *
 from eit_app.io.sciospec.hw_serial_interface import SerialInterface, SERIAL_BAUD_RATE_DEFAULT, SerialInterfaceError
 from eit_app.threads_process.threads_worker import HardwarePoller
@@ -39,6 +40,8 @@ from eit_app.utils.constants import EXT_PKL, MEAS_DIR
 from eit_app.utils.log import main_log
 from eit_app.utils.utils_path import get_date_time, mk_ouput_dir, append_date_time, save_as_pickle, search4FileWithExtension
 from eit_app.io.sciospec.utils import *
+from eit_app.utils.flag import Flag
+from eit_app.app.dialog_boxes import show_msgBox
 import signal
 import time
 import logging
@@ -89,7 +92,7 @@ class MeasurementsRunningError(SWInterfaceError):
 
 
 class Buffer(object):
-    """ class to manage a queue"""
+    """ Class to manage a FIFO queue with custom methods for use as a buffer"""
     def __init__(self, maxsize=None) -> None:
         self.buffer= queue.Queue(maxsize=maxsize)
     
@@ -121,7 +124,8 @@ class Buffer(object):
             if not tmp.empty():
                 self.buffer.put_nowait(last)
         return last or []
-    
+
+
 ################################################################################
 ## Class for Sciopec Device ####################################################
 ################################################################################
@@ -134,56 +138,33 @@ class SWInterface4SciospecDevice(object):
     
     Regroup all informations, setup of the connected Sciospec EIT device
     and allow to interact with it according to is user guide.    """
-    def __init__(self, verbose=False):
-        
-        self.verbose=verbose # for debugging
-        # self.paths= paths
-        self.treat_rx_frame_worker=HardwarePoller('treat_rx_frame',self.get_last_rx_frame,0.01)
+    def __init__(self):
+        """Constructor """
+        self.treat_rx_frame_worker=HardwarePoller(name='treat_rx_frame',pollfunc=self.get_last_rx_frame,sleeptime=0.01)
         self.treat_rx_frame_worker.start()
-        
+        self._post_init_()
 
-        self.init_device()
-
-    def init_device(self):
+    def _post_init_(self):
         """ init the """
         self.channel = 32
-        self.interface= SerialInterface(self.verbose) # the serial interface is set outside this class (e.g. in the app_backend)
+        self.interface= SerialInterface()
         self.interface.register_callback(self.append_to_rx_buffer)
         self.setup=SciospecSetup(self.channel)
-        
-        self.log=[]
-        # self.add2Log('INIT: Device object created')
         self.status=StatusSWInterface.NOT_CONNECTED
         self.status_prompt = NO_DEVICE_CONNECTED_PROMPT
-
         self.dataset:EitMeasurementDataset=EitMeasurementDataset()
-        self.flag_new_data=False
-        self.flagMeasRunning= False
+        self.flag_new_data=Flag()
         self.available_devices = {}
         self.rx_buffer= queue.Queue(maxsize=256) # infine queue.... maybe handle only a certain number of data to reduce memory allocttions???
         self.cmds_history=Buffer(maxsize=16)
         self.responses_history=Buffer(maxsize=16)
-        
         self.make_callbacks_catalog()
-        # self.status_com_is_busy= False
-        if self.verbose:
-            print('Start: __init__ Device')
 
-
-
-    def _prepare_dataset(self, name_measurement:str):
-        name, output_dir =self.dataset.prepare_for_aquisition(self.setup, name_measurement) ## Prepare the Dataset
-        # self.make_callbacks_catalog()
+    def _prepare_dataset(self, meas_name:str):
+        """Prepare dataset for measurements
+        return the name of the data set and the output directory """
+        name, output_dir =self.dataset.prepare_for_aquisition(self.setup, meas_name)
         return name, output_dir
-
-
-    def set_flag_new_data(self):
-        self.flag_new_data=True
-    def clear_flag_new_data(self):
-        self.flag_new_data=False
-    def is_flag_new_data(self):
-        return self.flag_new_data
-
 
     def make_callbacks_catalog(self):
         """Link the CMD/OP to the pre/postprocess of the data"""
@@ -196,29 +177,29 @@ class SWInterface4SciospecDevice(object):
                 },
             CMD_SET_MEAS_SETUP.tag:{
                 OP_RESET_SETUP.tag: None,
-                OP_BURST_COUNT.tag: self.setup.get_burst_for_tx,
-                OP_FRAME_RATE.tag: self.setup.get_frame_rate_for_tx,
-                OP_EXC_FREQUENCIES.tag: self.setup.get_freq_for_tx,
-                OP_EXC_AMPLITUDE.tag: self.setup.get_exc_amp_for_tx,
-                OP_EXC_PATTERN.tag: self.setup.get_exc_pattern_for_tx
+                OP_BURST_COUNT.tag: self.setup.get_burst,
+                OP_FRAME_RATE.tag: self.setup.get_frame_rate,
+                OP_EXC_FREQUENCIES.tag: self.setup.get_freq_config,
+                OP_EXC_AMPLITUDE.tag: self.setup.get_exc_amp,
+                OP_EXC_PATTERN.tag: self.setup.get_exc_pattern
                 },
             CMD_GET_MEAS_SETUP.tag:{
                 # OP_RESET_SETUP.tag: None,
-                OP_BURST_COUNT.tag: self.setup.set_burst_from_rx,
-                OP_FRAME_RATE.tag: self.setup.set_frame_rate_from_rx,
-                OP_EXC_FREQUENCIES.tag: self.setup.set_freq_from_rx,
-                OP_EXC_AMPLITUDE.tag: self.setup.set_exc_amp_from_rx,
-                OP_EXC_PATTERN.tag: self.setup.set_exc_pattern_from_rx
+                OP_BURST_COUNT.tag: self.setup.set_burst,
+                OP_FRAME_RATE.tag: self.setup.set_frame_rate,
+                OP_EXC_FREQUENCIES.tag: self.setup.set_freq_config,
+                OP_EXC_AMPLITUDE.tag: self.setup.set_exc_amp,
+                OP_EXC_PATTERN.tag: self.setup.set_exc_pattern
                 },
             CMD_SET_OUTPUT_CONFIG.tag:{
-                OP_EXC_STAMP.tag: self.setup.get_exc_stamp_for_tx,
-                OP_CURRENT_STAMP.tag: self.setup.get_current_stamp_for_tx,
-                OP_TIME_STAMP.tag: self.setup.get_time_stamp_for_tx
+                OP_EXC_STAMP.tag: self.setup.get_exc_stamp,
+                OP_CURRENT_STAMP.tag: self.setup.get_current_stamp,
+                OP_TIME_STAMP.tag: self.setup.get_time_stamp
                 },
             CMD_GET_OUTPUT_CONFIG.tag:{
-                OP_EXC_STAMP.tag: self.setup.set_exc_stamp_from_rx,
-                OP_CURRENT_STAMP.tag: self.setup.set_current_stamp_from_rx,
-                OP_TIME_STAMP.tag: self.setup.set_time_stamp_from_rx
+                OP_EXC_STAMP.tag: self.setup.set_exc_stamp,
+                OP_CURRENT_STAMP.tag: self.setup.set_current_stamp,
+                OP_TIME_STAMP.tag: self.setup.set_time_stamp
                 },
             CMD_START_STOP_MEAS.tag:{
                 OP_NULL.tag:self.dataset.add_rx_frame_to_dataset#,
@@ -228,12 +209,12 @@ class SWInterface4SciospecDevice(object):
             CMD_SET_ETHERNET_CONFIG.tag:{
                 OP_IP_ADRESS.tag: None,
                 OP_MAC_ADRESS.tag: None,
-                OP_DHCP.tag: self.setup.get_dhcp_for_tx
+                OP_DHCP.tag: self.setup.get_dhcp
                 },
             CMD_GET_ETHERNET_CONFIG.tag:{
-                OP_IP_ADRESS.tag: self.setup.set_ip_from_rx,
-                OP_MAC_ADRESS.tag: self.setup.set_mac_from_rx,
-                OP_DHCP.tag: self.setup.set_dhcp_from_rx
+                OP_IP_ADRESS.tag: self.setup.set_ip,
+                OP_MAC_ADRESS.tag: self.setup.set_mac,
+                OP_DHCP.tag: self.setup.set_dhcp
                 },
             # CMD_SET_EXPORT_CHANNEL.tag:{:},
             # CMD_GET_EXPORT_CHANNEL.tag:{:},
@@ -243,7 +224,7 @@ class SWInterface4SciospecDevice(object):
             # CMD_SET_LED_CONTROL.tag:{:},
             # CMD_GET_LED_CONTROL.tag:{:},
             CMD_GET_DEVICE_INFOS.tag:{
-                OP_NULL.tag:self.setup.set_sn_from_rx
+                OP_NULL.tag:self.setup.set_sn
                 } #,
             # CMD_SET_CURRENT_SETTING.tag:{:},
             # CMD_GET_CURRENT_SETTING.tag:{:}
@@ -279,7 +260,12 @@ class SWInterface4SciospecDevice(object):
             logger.debug(f'Send cmd "{cmd.name}", op: "{op.name}", cmd_frame :{cmd_frame}')
         except SerialInterfaceError as error:
             self.cmds_history.rm_last()
-            raise CouldNotWriteToDevice(error)
+            self.update_status(oldest_cmd=(CMD_GET_DEVICE_INFOS, OP_NULL))
+            show_msgBox(error.__str__(), 'Error: no Device connected', "Critical")
+            # raise CouldNotWriteToDevice(error)
+            
+            
+
 
         
     def _make_command_frame(self,cmd:SciospecCmd, op:SciospecOption):
@@ -336,7 +322,9 @@ class SWInterface4SciospecDevice(object):
         """
 
         try:
-            return self.cllbcks[cmd.tag][op.tag]() or [0x00]
+            print(self.cllbcks[cmd.tag][op.tag](True))
+
+            return self.cllbcks[cmd.tag][op.tag](True) or [0x00]
         except KeyError:
             msg= f'Combination of Cmd:"{cmd.name}"({cmd.tag})/ Option:"{op.name}"({op.tag}) - NOT FOUND in callbacks catalog'
             logger.error(msg)
@@ -351,20 +339,18 @@ class SWInterface4SciospecDevice(object):
         Parameters
         ----------
         rx_frame: list of int8 (byte)"""
-        # try:
-        # print(f'appending to queue {rx_frame}')
+        
         self.rx_buffer.put_nowait(rx_frame)
-        # except queue.Full:
-        #     self.rx_buffer.get_nowait() #delete oldest
-        #     self.rx_buffer.put_nowait(rx_frame) # add the newest...
 
     def get_last_rx_frame(self):
-
         try:
             rx_frame=self.rx_buffer.get_nowait()
-            # print(f'get from queue {rx_frame}')
-            rx_frame=self._verify_len_of_rx_frame(rx_frame)
-            self.treat_rx_frame(rx_frame)
+            if rx_frame==[0xFF for _ in range(4)]:
+                self.disconnect_device()
+                show_msgBox('device disconnected', 'Error: no Device connected', "Critical")
+            else:
+                rx_frame=self._verify_len_of_rx_frame(rx_frame)
+                self.treat_rx_frame(rx_frame)
         except queue.Empty:
             pass # do nothing for the moment
         except SWInterfaceError as e:
@@ -472,7 +458,7 @@ class SWInterface4SciospecDevice(object):
         
         if not rx_frame:
             return
-        self.flag_new_data = False
+        self.flag_new_data.clear()
         cmd_tag= rx_frame[CMD_BYTE_INDX]
         if OP_NULL.tag in self.cllbcks[cmd_tag].keys(): # some answer do not have options (meas, sn)
             op_tag=OP_NULL.tag
@@ -480,8 +466,8 @@ class SWInterface4SciospecDevice(object):
             op_tag= rx_frame[OPTION_BYTE_INDX]
         try:
             if self.cllbcks[cmd_tag][op_tag]:
-                self.cllbcks[cmd_tag][op_tag](rx_frame)
-                self.flag_new_data = True
+                self.cllbcks[cmd_tag][op_tag](rx_frame,True)
+                self.flag_new_data.set()
                 msg=f'RX_ANSWER: {rx_frame} -  TREATED'
                 logger.debug(msg)
         except KeyError:
@@ -502,10 +488,19 @@ class SWInterface4SciospecDevice(object):
                 self.status=StatusSWInterface.MEASURING
             else:
                 self.status=StatusSWInterface.IDLE
-
-            
-    def is_status_measuring(self)->bool:
+    
+    def is_measuring(self):
         return self.status==StatusSWInterface.MEASURING
+    
+    def if_measuring_stop(self, force:bool=False)->None:
+
+        if self.is_measuring():
+            if force:
+                self.stop_meas()
+                show_msgBox('Measurements stopped', 'Measurements running', "Information")
+            else:
+                show_msgBox('Please stop measurements first', 'Measurements running', "Information")
+
     
 
     ## =========================================================================
@@ -514,56 +509,43 @@ class SWInterface4SciospecDevice(object):
     
 
     def buffering_device_infos(self):
-        """"""
         return copy.deepcopy(self.setup.device_infos)
 
     def retitute_device_infos(self,tmp):
         for k in tmp.__dict__.keys():
-            print(k)
             setattr(self.setup.device_infos, k, getattr(tmp,k))
-        """"""
 
 
     def get_available_sciospec_devices(self):
         """Lists the available Sciospec device is available
-
-        Device infos are ask and if an ack is get: it is a Sciospec device..."""
-        
+        - Device infos are ask and if an ack is get: it is a Sciospec device..."""
         ports=self.interface.get_ports_available()
         self.available_devices = {}
         self.treat_rx_frame_worker.start_polling()
-        
         tmp_device_infos = self.buffering_device_infos()
         for port in ports:
             self.interface.open(port)
             self.get_device_infos()
             if not self.rx_ack.is_nack():
-                # available_sciospec_devices.append(port)
                 device_name = f'Device (SN: {self.setup.get_sn()}) on serial port "{port}"'
                 self.available_devices[device_name]=port
             self.interface.close()
         self.treat_rx_frame_worker.stop_polling()
-        # print('refresh NOT_CONNECTED')
         self.status=StatusSWInterface.NOT_CONNECTED
         self.retitute_device_infos(tmp_device_infos)
-
         msg = f'Sciospec devices available: {[k for k in self.available_devices]}'
         logger.info(msg)
 
         return self.available_devices
         
     def connect_device(self, device_name:str, baudrate=SERIAL_BAUD_RATE_DEFAULT):
-
+        """" Connect a sciopec device"""
         if not self.available_devices:
-            raise NoListOfAvailableDevices(
-                'Please refresh the list of availables device first, and retry to connect')
-
+            show_msgBox('Please refresh the list of availables device first, and retry to connect', 'Refresh first', "Critical")
         if device_name not in self.available_devices.keys():
             msg= f'Sciospec device "{device_name}" - NOT FOUND'
             logger.warning(msg)
-            raise CouldNotFindPortInAvailableDevices(
-                f'Please reconnect your device, and retry ({msg})')
-        
+            show_msgBox(f'Please reconnect your device, and retry ({msg})', 'no Device connected', "Critical") 
         self.treat_rx_frame_worker.start_polling()
         port= self.available_devices[device_name]
         self.interface.open(port, baudrate)
@@ -572,28 +554,24 @@ class SWInterface4SciospecDevice(object):
         logger.info(self.status_prompt)
 
     def disconnect_device(self):
-        """" Disconnect the device"""
-        if self.is_status_measuring():
-            raise MeasurementsRunningError('Please stop first the measurements')
+        """" Disconnect the sciopec device"""
+        self.if_measuring_stop(force=True)
         self.treat_rx_frame_worker.stop_polling()
         msg=f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" - DISCONNECTED'
         self.interface.close()
         logger.info(msg)
-        self.init_device()
+        self._post_init_()
         self.get_available_sciospec_devices() # update the list of Sciospec devices available ????
 
     def get_device_infos(self):
         """Ask for the serial nummer of the Device """
-        if self.is_status_measuring():
-            raise MeasurementsRunningError('Please stop first the measurements')
+        self.if_measuring_stop(force=False)
         self._send_cmd_frame(CMD_GET_DEVICE_INFOS, OP_NULL)
         self.wait_until_not_busy()
 
-
     def start_meas(self, name_measurement:str='default_meas_name'):
         """ Start measurements """
-        if self.is_status_measuring():
-            raise MeasurementsRunningError('Please stop first the measurements')
+        self.if_measuring_stop(force=False)
         name, output_dir =self._prepare_dataset(name_measurement)
         self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
         self.wait_until_not_busy()
@@ -603,12 +581,10 @@ class SWInterface4SciospecDevice(object):
         """ Stop measurements """
         self._send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS, cmd_append=append)
         self.wait_until_not_busy()
-        # self.flagMeasRunning = False
-
+        
     def set_setup(self):
         """ Send the setup to the device """
-        if self.is_status_measuring():
-            raise MeasurementsRunningError('Please stop first the measurements')
+        self.if_measuring_stop(force=False)
         logger.info('### SET SETUP FROM DEVICE ####')
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
         self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
@@ -626,8 +602,7 @@ class SWInterface4SciospecDevice(object):
 
     def get_setup(self):
         """ Get the setup of the device """
-        if self.is_status_measuring():
-            raise MeasurementsRunningError('Please stop first the measurements')
+        self.if_measuring_stop(force=False)
         logger.info('### GET SETUP FROM DEVICE ####')
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
         self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)
@@ -641,18 +616,16 @@ class SWInterface4SciospecDevice(object):
         self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_MAC_ADRESS)
         self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_DHCP)
         self.wait_until_not_busy()
-        
-
 
     def software_reset(self):
         """ Sofware reset the device
-        
         Notes: a restart is needed after this method"""
-        if self.is_status_measuring():
-            raise MeasurementsRunningError('Please stop first the measurements')
+        self.if_measuring_stop(force=False)
         self._send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
         self.wait_until_not_busy()
-        raise SWReset('please reconnect')
+        self.disconnect_device()
+        show_msgBox('please reconnect', 'Device disconnected', "Warning") # to test
+
 
 
     # ## =========================================================================
@@ -663,302 +636,6 @@ class SWInterface4SciospecDevice(object):
         
     def loadSetupDevice(self, file):
         self.setup.loadSetupDevice(file)
-
-
-## ======================================================================================================================================================
-##  Class for the DataSet obtained from the EIT Device
-## ======================================================================================================================================================
-
-class EitMeasurementDataset(object):
-    """ Class EITDataSet: regroups infos and frames of measurements """
-    def __init__(self):
-        self.date_time= None
-        self.name= None
-        self.output_dir=None
-        self.dev_setup=None
-        self.frame_cnt=None
-        self.frame=None
-        self._last_frame=None
-        self.freqs_list= None
-        self._frame_TD_ref=None
-
-    def init_for_gui(self,dev_setup:SciospecSetup= SciospecSetup(32), name_measurement:str=None):
-        # self.date_time= get_date_time()
-        self.name= name_measurement#append_date_time(name_measurement, self.date_time)
-        self.output_dir=None #mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
-        self.dev_setup= dev_setup
-        self.frame_cnt=0
-        self.frame=[EITFrame(dev_setup)]
-        self._last_frame=[EITFrame(dev_setup)]
-        self.freqs_list= dev_setup.make_freqs_list()
-        self._frame_TD_ref=[EITFrame(dev_setup)]
-        return self.name, self.output_dir
-    def prepare_for_aquisition(self,dev_setup:SciospecSetup, name_measurement:str=None):
-        self.date_time= get_date_time()
-        self.name= append_date_time(name_measurement, self.date_time)
-        self.output_dir=mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
-        self.dev_setup= dev_setup
-        self.frame_cnt=0
-        self.frame=[EITFrame(dev_setup)]
-        self._last_frame=[EITFrame(dev_setup)]
-        self.freqs_list= dev_setup.make_freqs_list()
-        self._frame_TD_ref=[EITFrame(dev_setup)]
-        return self.name, self.output_dir
-    
-    def add_rx_frame_to_dataset(self, rx_frame):
-        """ add the data from the rx_frame in the dataset 
-        (is called when measuring rx_frame have been recieved)"""
-
-        idx= 0
-        data =self.extract_data(rx_frame)
-        # self.append(frame, idx_frm=0)
-        self.frame[idx].add_data(data,self.frame_cnt)
-        # if frame complete Frame_cnt+ and append new Frame
-        if self.frame[idx].is_complete():
-            self.frame_save_and_prepare_for_next_rx(idx)
-
-    def frame_save_and_prepare_for_next_rx(self, idx:int=0):
-        self.make_info_text_for_frame(idx)
-        self.save_frame()
-        self._last_frame[0]=self.frame[idx] # latch actual to the _last_frame
-        if self.frame_cnt == 0:
-            self.set_frame_TD_ref(idx) # init the reference frame for Time difference measurement
-        self.frame[idx]=EITFrame(self.dev_setup) # clear frame 
-        self.frame_cnt += 1
-
-    def extract_data(self,rx_frame):
-        """extract the single data out of the rx_frame, convert them if applicable
-        return them as a dict"""
-        data={}
-        rx_data= rx_frame[OPTION_BYTE_INDX:-1]
-        data['ch_group']= rx_data[0]
-        excitation=rx_data[1:3]
-        data['exc_indx']= self._find_excitation_indx(excitation)
-        data['freq_indx']= convertBytes2Int(rx_data[3:5])
-        data['time_stamp']= convertBytes2Int(rx_data[5:9]) 
-        data['voltages'] = self.convert_meas_data(rx_data[9:])
-        return data
-
-    def convert_meas_data(self, meas_data):
-        """return float voltages values () corresponding to meas data (bytes single float) """
-        n_bytes_real_imag= 4 # we got 4Bytes per value
-        meas_data=np.reshape(np.array(meas_data), (-1, n_bytes_real_imag)) # reshape the meas data in lock of 4 bytes
-        meas_data=meas_data.tolist() # back to list for conversion
-        meas_f=[convert4Bytes2Float(m)for m in meas_data] # conversion of each 4 bytes
-        meas_r_i=np.reshape(np.array(meas_f), (-1,2)) # get a matrix with real and imag values in each column
-        return meas_r_i[:,0]+1j*meas_r_i[:,1]
-
-    def set_frame_TD_ref(self, indx=0, path=None):
-        """ Latch Frame[indx] as reference for time difference mode
-        """
-        if path is None:
-            self._frame_TD_ref[0] = self._last_frame[0] if indx==0 else self.frame[indx]
-        else:
-            dataset_tmp=self.load_single_frame(path)
-            self._frame_TD_ref[0]=dataset_tmp.Frame[0]
-    
-
-    def save_frame(self):
-        filename= os.path.join(self.output_dir, f'Frame{self.frame_cnt:02}')
-        save_as_pickle(filename, self)
-
-    def saveSingleFrame(self,file_path):
-        """ Save single Frame to a .dat-file
-        Parameters
-        ----------
-        file_path: str
-            path of file without ending
-        
-        Notes
-        -----
-        - such files can not be read..."""
-        ## maybe create a text_format of the dataset to save it as a txt-file
-        with open(file_path + '.dat', "wb") as fp:   #Pickling
-            pickle.dump(self, fp)
-
-    def load_single_frame(self, file_path):
-        """Load Dataset file (.dat)
-
-        Parameters
-        ----------
-        file_path: str  path of file
-
-        Returns
-        -------
-        dataset: "EITDataSet" object
-        
-        Notes
-        -----
-        - such files can not be read..."""
-        ## maybe create a text_format of the dataset to load it as a txt-file
-        with open(file_path, "rb") as fp:   # Unpickling
-            return pickle.load(fp)
-    
-    
-
-    def extract(self):
-        pass
-
-    def LoadDataSet(self, dirpath):
-        """Load Dataset files (.dat)
-
-        Parameters
-        ----------
-        dirpath: str
-            directory path of of the dataset
-
-        Returns
-        -------
-        only_files_ list of str
-            list of filename (), error
-        error: 1 if no frame files found, 2 if dirpath not given (canceled), 0 if everything loaded """
-        # only_files=[]
-        # error = 0
-
-        only_files, error =search4FileWithExtension(dirpath, ext=EXT_PKL)
-        if not error: # if no files are contains
-            dataset_tmp=EitMeasurementDataset(dirpath)
-            for i,filename in enumerate(only_files): # get all the frame data
-                frame_path=dirpath+os.path.sep+filename
-                dataset_tmp=self.load_single_frame(frame_path)
-                if i ==0: 
-                    self.output_dir=dataset_tmp.output_dir
-                    self.name= dataset_tmp.name
-                    self.date_time= dataset_tmp.dateTime
-                    self.dev_setup= dataset_tmp.dev_setup
-                    self.frame=[] # reinit frame
-                    self.frame_cnt=len(only_files)
-                    self.freqs_list= dataset_tmp.frequencyList
-                    self._frame_TD_ref= []
-                    self._frame_TD_ref.append(dataset_tmp.Frame[0])
-                self.frame.append(dataset_tmp.Frame[0])
-                self.frame[-1].loaded_frame_path= frame_path
-                self.make_info_text_for_frame(i)
-
-        return only_files, error
-
-    def _find_excitation_indx(self, excitation):
-        """ Return the index of the given excitation in the excitation_Pattern
-
-        Parameters
-        ----------
-        excitation: list of int (e.g. [1, 2])
-
-        Returns
-        -------
-        indx: int
-            index of the given excitation in self.dev_setup.excitation_Pattern """
-        indx = 0
-        for Exc_i in self.dev_setup.get_exc_pattern():
-            if Exc_i== excitation:
-                break
-            indx += 1
-        return indx
-
-    def make_info_text_for_frame(self, indx):
-        """ Create a tex with information about the Frame nb indx
-        
-        Parameters
-        ----------
-        indx: int
-            index of the frame
-        
-        Notes
-        -----
-        save the text under Frame[indx].infoText """
-        frame = self.frame if indx==-1 else self.frame[indx]
-        frame.info_text= [ f"Dataset name:\t{self.name}",
-                    f"Frame#:\t{frame.idx}",
-                    f"TimeStamps:\t{self.date_time}",
-                    f"Sweepconfig:\tFmin = {self.dev_setup.get_freq_min()/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.get_freq_max()/1000:.3f} kHz",
-                    f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
-                    f"\tAmp = {self.dev_setup.get_exc_amp():.5f} A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
-                    f"excitation:\t{self.dev_setup.get_exc_pattern()}"]
-        
-
-class EITFrame(object):
-    """ Class Frame: regroup the voltages values for all frequencies at timestamps
-    for all excitation and for one frequency
-
-    Notes
-    -----
-    e.g. Meas[2] the measured voltages on each channel (VS a commmon GROUND) for the frequency_nb 2
-            for the frequency = frequency_val"""
-    def __init__(self, dev_setup:SciospecSetup):
-        self.time_stamp=0 
-        self.idx= 0
-        self.freqs_list= dev_setup.make_freqs_list()
-        self.freq_steps= dev_setup.get_freq_steps()
-        self.meas_frame_nb=len(dev_setup.get_exc_pattern())*2 # for x excitation x*2 meas are send
-        self.meas_frame_cnt=0 # cnt 
-        self.meas=[EITMeas(dev_setup) for i in range(self.freq_steps)] # Meas[Frequency_indx]
-        self.info_text=''
-        self.loaded_frame_path=''
-    
-    def set_freq(self, data):
-        """ set the frequence value in the corresponding Measuremeent object """
-        self.meas[data['freq_indx']].set_freq(self.freqs_list[data['freq_indx']])
-
-    def add_voltages(self, data):
-        self.meas[data['freq_indx']].add_voltages(data)
-
-    def is_complete(self):
-        """return if teh frame is complete"""
-        return self.meas_frame_cnt == self.meas_frame_nb
-
-    def set_time_stamp(self, data):
-        """ not defined"""
-        # if data['ch_group']==1:
-        #     self.time_stamp= data['time_stamp']
-        # elif self.time_stamp != data['time_stamp']:
-        #     raise Exception(f'time_stamp error expected {self.time_stamp}, rx: {data["time_stamp"]}')
-
-    def add_data(self, data:dict, frame_cnt:int):
-        """ add rx data to this frame"""
-        if self.is_very_first_data(data):
-            self.idx= frame_cnt
-        self.set_time_stamp(data)
-        self.set_freq(data)
-        self.add_voltages(data)
-        if self.is_all_freqs_aquired(data):
-            self.meas_frame_cnt += 1
-
-    def is_very_first_data(self, data):
-        """retrun if data is the very first one for this frame"""
-        return data['ch_group']+data['freq_indx']+data['exc_indx']==1
-
-    def is_all_freqs_aquired(self, data):
-        """return if all meas for all freqs were aquired for this frame"""
-        return data['freq_indx'] == self.freq_steps - 1
-
-class EITMeas(object):
-    """ Class measurement: regroup the voltage values of all channels of the EIT device
-    for all excitation and for one frequency
-
-    Notes
-    -----
-    e.g. voltage_Z[1][:] the measured voltages on each channel (VS a commmon GROUND) for excitation 1
-            for the frequency = frequency_val"""
-    def __init__(self, dev_setup:SciospecSetup):
-        self.voltage_Z=[np.zeros(dev_setup.get_channel()) for j in range(len(dev_setup.get_exc_pattern()))]
-        # self.voltage_Z=[[0 for i in range(dev_setup.get_channel())] for j in range(len(dev_setup.get_exc_pattern()))]
-        self.frequency=None # corresponding excitation frequency
-
-    def set_freq(self, freq_val):
-        """set the frequency value for the actual measurements"""
-        self.frequency=freq_val
-    def add_voltages(self, data):
-        """add rx voltage to the voltages matrix"""
-        n_ch_meas_per_frame= 16
-        ch_group=data['ch_group']
-        exc_indx=data['exc_indx']
-        volt = data['voltages']
-        n_ch_meas_per_frame=16
-        if volt.shape[0] != n_ch_meas_per_frame:
-            raise Exception(f'n_ch_meas_per_frame :{n_ch_meas_per_frame} is not correct {volt.shape[0]} voltages recieved' )
-        start_idx=(ch_group-1)*n_ch_meas_per_frame
-        end_idx=(ch_group)*n_ch_meas_per_frame
-        self.voltage_Z[exc_indx][start_idx:end_idx]= volt
 
 
 if __name__ == '__main__':

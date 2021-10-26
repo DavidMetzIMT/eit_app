@@ -19,7 +19,7 @@ class HardwarePoller(threading.Thread):
 
         self.name = f'Hardware Poller "{name}"'
         self.pollfunc = pollfunc
-        self.sleeptime= sleeptime if sleeptime else 0.1
+        self.sleeptime = sleeptime or 0.1
         self.daemon=deamon
         self._verbose=verbose
         self._runflag = threading.Event()  # clear this to pause thread
