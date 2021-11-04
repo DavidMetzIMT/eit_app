@@ -6,1510 +6,1127 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>960</height>
+    <width>1920</width>
+    <height>1080</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QTextEdit" name="textEditlog">
+   <widget class="QTabWidget" name="tabW_settings">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>730</y>
-      <width>411</width>
-      <height>161</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QTabWidget" name="tabWidget">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
       <y>10</y>
       <width>431</width>
-      <height>711</height>
+      <height>911</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
-    <widget class="QWidget" name="tab">
+    <widget class="QWidget" name="tab_device">
      <attribute name="title">
       <string>Device</string>
      </attribute>
-     <widget class="QPushButton" name="pB_save_setup">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>110</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Save parameters to files (*.xlsx)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Save_Setup</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_connect">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>20</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Connect to the selected serial port</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Connect</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="lab_device_status">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>80</y>
-        <width>381</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string/>
-      </property>
-      <property name="autoFillBackground">
-       <bool>true</bool>
-      </property>
-      <property name="text">
-       <string>Not Connected</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_load_setup">
-      <property name="geometry">
-       <rect>
-        <x>260</x>
-        <y>110</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Load parameters from file (*.xlsx)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Load_Setup</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="cB_ports">
+     <widget class="QGroupBox" name="groupBox_3">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>50</y>
-        <width>381</width>
-        <height>22</height>
+        <width>401</width>
+        <height>111</height>
        </rect>
       </property>
-      <property name="toolTip">
-       <string/>
+      <property name="title">
+       <string>EIT device</string>
       </property>
-      <property name="statusTip">
-       <string>Available serial port list</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_refresh">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>20</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string>test</string>
-      </property>
-      <property name="statusTip">
-       <string>Refresh the available serial port list</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Refresh</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_set_setup">
-      <property name="enabled">
-       <bool>true</bool>
-      </property>
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>110</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Send measurements parameters to connected device</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Set_Setup</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="formLayoutWidget_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>150</y>
-        <width>211</width>
-        <height>204</height>
-       </rect>
-      </property>
-      <layout class="QFormLayout" name="LayoutParameters">
-       <property name="horizontalSpacing">
-        <number>6</number>
+      <widget class="QLabel" name="lab_device_status">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>381</width>
+         <height>23</height>
+        </rect>
        </property>
-       <item row="0" column="1">
-        <widget class="QDoubleSpinBox" name="sBd_exc_amp">
-         <property name="decimals">
-          <number>4</number>
-         </property>
-         <property name="minimum">
-          <double>0.000100000000000</double>
-         </property>
-         <property name="maximum">
-          <double>10.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_Burst">
-         <property name="text">
-          <string>Burst number</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="sB_burst">
-         <property name="maximum">
-          <number>255</number>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_minF">
-         <property name="text">
-          <string>min Frequency [Hz]</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_maxF">
-         <property name="text">
-          <string>max Frequency [Hz]</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_Steps">
-         <property name="text">
-          <string>Steps number</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QSpinBox" name="sB_freq_steps">
-         <property name="maximum">
-          <number>255</number>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_Burst_5">
-         <property name="text">
-          <string>Scale</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QComboBox" name="cB_scale">
-         <property name="editable">
-          <bool>false</bool>
-         </property>
-         <property name="maxVisibleItems">
-          <number>2</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_FrameRate">
-         <property name="text">
-          <string>Frame rate [fps]</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QDoubleSpinBox" name="sBd_frame_rate">
-         <property name="decimals">
-          <number>3</number>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.001000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_Current_Amplitude">
-         <property name="text">
-          <string>Current Amplitude [mA]</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QDoubleSpinBox" name="sBd_freq_max">
-         <property name="autoFillBackground">
-          <bool>false</bool>
-         </property>
-         <property name="minimum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>1000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QDoubleSpinBox" name="sBd_freq_min">
-         <property name="minimum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>1000000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="QDoubleSpinBox" name="sBd_max_frame_rate">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="decimals">
-          <number>3</number>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.001000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_maxFrameRate">
-         <property name="text">
-          <string>max Frame rate [fps]</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+       <property name="statusTip">
+        <string/>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Not Connected</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="cB_ports">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>381</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="statusTip">
+        <string>Available serial port list</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_refresh">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string>test</string>
+       </property>
+       <property name="statusTip">
+        <string>Refresh the available serial port list</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Refresh</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_disconnect">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="statusTip">
+        <string>Disconnect the serial port</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Disconnect</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_connect">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Connect to the selected serial port</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Connect</string>
+       </property>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="pB_disconnect">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>20</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="statusTip">
-       <string>Disconnect the serial port</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Disconnect</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="verticalLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>150</y>
-        <width>121</width>
-        <height>421</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="vLayoutExcitationPattern">
-       <item>
-        <widget class="QLabel" name="label_ExcitationPattern">
-         <property name="text">
-          <string>Excitation pattern</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTableWidget" name="tw_exc_pattern">
-         <attribute name="horizontalHeaderDefaultSectionSize">
-          <number>40</number>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Inj+ </string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Inj-</string>
-          </property>
-         </column>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QPushButton" name="pB_get_setup">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>110</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Ask measurements parameters from connected device</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Get_Setup</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_reset">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>110</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Software reset of the device (reconnection needed after 10-15 sec)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Reset</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="formLayoutWidget">
+     <widget class="QGroupBox" name="groupBox_4">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>400</y>
-        <width>201</width>
-        <height>166</height>
+        <y>170</y>
+        <width>401</width>
+        <height>540</height>
        </rect>
       </property>
-      <layout class="QFormLayout" name="LayoutComConfig">
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_SN">
-         <property name="text">
-          <string>S/N</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="lE_sn">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string/>
-         </property>
-         <property name="whatsThis">
-          <string/>
-         </property>
-         <property name="inputMask">
-          <string extracomment="IP_Adress"/>
-         </property>
-         <property name="frame">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_IP">
-         <property name="text">
-          <string>IP Adress</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lE_ip">
-         <property name="toolTip">
-          <string/>
-         </property>
-         <property name="whatsThis">
-          <string/>
-         </property>
-         <property name="inputMask">
-          <string extracomment="IP_Adress"/>
-         </property>
-         <property name="frame">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>MAC Adress</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="lE_mac">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QCheckBox" name="chB_dhcp">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>DHCP_Activated</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QCheckBox" name="chB_exc_stamp">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Excitation_Stamp</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QCheckBox" name="chB_current_stamp">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Current_Stamp</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QCheckBox" name="chB_time_stamp">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Time_Stamp</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_OutputConfig">
-         <property name="text">
-          <string>Output config</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+      <property name="title">
+       <string>Setup of device</string>
+      </property>
+      <widget class="QPushButton" name="pB_save_setup">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>490</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Save parameters to files (*.xlsx)</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Save_Setup</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_set_setup">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Send measurements parameters to connected device</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Set_Setup</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="formLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>60</y>
+         <width>241</width>
+         <height>421</height>
+        </rect>
+       </property>
+       <layout class="QFormLayout" name="LayoutParameters">
+        <property name="horizontalSpacing">
+         <number>6</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_Current_Amplitude">
+          <property name="text">
+           <string>Current Amplitude [mA]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QDoubleSpinBox" name="sBd_exc_amp">
+          <property name="decimals">
+           <number>4</number>
+          </property>
+          <property name="minimum">
+           <double>0.000100000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_Burst">
+          <property name="text">
+           <string>Burst number</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QSpinBox" name="sB_burst">
+          <property name="maximum">
+           <number>255</number>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_minF">
+          <property name="text">
+           <string>Min Frequency [Hz]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDoubleSpinBox" name="sBd_freq_min">
+          <property name="minimum">
+           <double>100.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000000.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="label_maxF">
+          <property name="text">
+           <string>Max Frequency [Hz]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="sBd_freq_max">
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <double>100.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000000.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_Steps">
+          <property name="text">
+           <string>Steps number</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QSpinBox" name="sB_freq_steps">
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>255</number>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_Burst_5">
+          <property name="text">
+           <string>Scale</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QComboBox" name="cB_scale">
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="maxVisibleItems">
+           <number>2</number>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QLabel" name="label_FrameRate">
+          <property name="text">
+           <string>Frame rate [fps]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QDoubleSpinBox" name="sBd_frame_rate">
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="maximum">
+           <double>100.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.001000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="0">
+         <widget class="QLabel" name="label_maxFrameRate">
+          <property name="text">
+           <string>Max Frame rate [fps]</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QDoubleSpinBox" name="sBd_max_frame_rate">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="decimals">
+           <number>3</number>
+          </property>
+          <property name="maximum">
+           <double>100.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.001000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QLabel" name="label_SN">
+          <property name="text">
+           <string>S/N</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QLineEdit" name="lE_sn">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string/>
+          </property>
+          <property name="whatsThis">
+           <string/>
+          </property>
+          <property name="inputMask">
+           <string extracomment="IP_Adress"/>
+          </property>
+          <property name="frame">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QLabel" name="label_IP">
+          <property name="text">
+           <string>IP Adress</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QLineEdit" name="lE_ip">
+          <property name="toolTip">
+           <string/>
+          </property>
+          <property name="whatsThis">
+           <string/>
+          </property>
+          <property name="inputMask">
+           <string extracomment="IP_Adress"/>
+          </property>
+          <property name="frame">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>MAC Adress</string>
+          </property>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QLineEdit" name="lE_mac">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="0">
+         <widget class="QLabel" name="label_OutputConfig">
+          <property name="text">
+           <string>Output config</string>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="1">
+         <widget class="QCheckBox" name="chB_dhcp">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>DHCP_Activated</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="1">
+         <widget class="QCheckBox" name="chB_exc_stamp">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Excitation_Stamp</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="1">
+         <widget class="QCheckBox" name="chB_current_stamp">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Current_Stamp</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="14" column="1">
+         <widget class="QCheckBox" name="chB_time_stamp">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Time_Stamp</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="pB_load_setup">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>490</y>
+         <width>75</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Load parameters from file (*.xlsx)</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Load_Setup</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>260</x>
+         <y>60</y>
+         <width>131</width>
+         <height>421</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="vLayoutExcitationPattern">
+        <item>
+         <widget class="QLabel" name="label_ExcitationPattern">
+          <property name="text">
+           <string>Excitation pattern</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTableWidget" name="tw_exc_pattern">
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>40</number>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>Inj+ </string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Inj-</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QPushButton" name="pB_get_setup">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Ask measurements parameters from connected device</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Get_Setup</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_reset">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Software reset of the device (reconnection needed after 10-15 sec)</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Reset</string>
+       </property>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="pB_load_exc_pattern">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>580</y>
-        <width>131</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Save parameters to files (*.xlsx)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Load Excitation Pattern</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab_2">
-     <attribute name="title">
-      <string>Measurement</string>
-     </attribute>
-     <widget class="QPushButton" name="pB_reconstruction">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>340</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Save dataset to file (*.dat)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Reconstruct</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_load_meas_dataset">
-      <property name="geometry">
-       <rect>
-        <x>330</x>
-        <y>90</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Load dataset from file (*.dat)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>LoadDataSet</string>
-      </property>
-     </widget>
-     <widget class="QTextEdit" name="textEdit">
+     <widget class="QTextEdit" name="textEditlog">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>90</y>
+        <y>730</y>
         <width>301</width>
-        <height>211</height>
+        <height>141</height>
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="pB_Plot">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>300</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Plot.....</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Plot</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_Uplot">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>270</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Plot the U-Shape diagramm</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Uplot</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="cB_Frame_indx">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>190</y>
-        <width>69</width>
-        <height>22</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_Frame_indx">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>150</y>
-        <width>91</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Actual Frame#</string>
-      </property>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget_2">
+     <widget class="QWidget" name="gridLayoutWidget_4">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>500</y>
-        <width>260</width>
-        <height>80</height>
+        <y>20</y>
+        <width>391</width>
+        <height>19</height>
        </rect>
       </property>
-      <layout class="QGridLayout" name="gridLayout_2">
+      <layout class="QGridLayout" name="gridLayout_4">
        <item row="0" column="0">
-        <widget class="QRadioButton" name="showReal">
+        <widget class="QRadioButton" name="chB_plot_graph_2">
          <property name="text">
-          <string>Real</string>
+          <string>USB FS</string>
          </property>
          <property name="checked">
           <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QRadioButton" name="showImag">
-         <property name="text">
-          <string>Image</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QRadioButton" name="showPhase">
-         <property name="text">
-          <string>Phase</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="showAbsValue">
-         <property name="text">
-          <string>Show absolute values</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QRadioButton" name="showMagnitude">
-         <property name="text">
-          <string>Magnitude</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>405</y>
-        <width>345</width>
-        <height>81</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <property name="verticalSpacing">
-        <number>2</number>
-       </property>
        <item row="0" column="2">
-        <widget class="QLabel" name="label_vmax_2">
+        <widget class="QRadioButton" name="chB_diff_2">
          <property name="text">
-          <string>in Hz</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QRadioButton" name="rB_time_diff_meas">
-         <property name="text">
-          <string>Time-difference</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QRadioButton" name="rB_freq_diff_meas">
-         <property name="text">
-          <string>Frequency-difference</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="cB_freq_freq_meas_0">
-         <property name="currentText">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3">
-        <widget class="QComboBox" name="cB_freq_freq_meas_1"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QRadioButton" name="rB_abs_meas">
-         <property name="text">
-          <string>Single Meas. (absolut)</string>
+          <string>Ethernet</string>
          </property>
          <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLabel" name="label_vmax_4">
-         <property name="text">
-          <string>in Hz</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_vmax_3">
-         <property name="text">
-          <string>in Hz</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="4">
-        <widget class="QLabel" name="label_vmax_5">
-         <property name="text">
-          <string>in Hz</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QPushButton" name="pB_set_ref_time_diff">
-         <property name="statusTip">
-          <string>Start measurement</string>
-         </property>
-         <property name="autoFillBackground">
           <bool>false</bool>
          </property>
-         <property name="text">
-          <string>Ref</string>
-         </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QComboBox" name="cB_freq_abs_meas"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="cB_freq_time_meas">
-         <property name="currentText">
-          <string notr="true"/>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="gridLayoutWidget_3">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>310</y>
-        <width>220</width>
-        <height>80</height>
-       </rect>
-      </property>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="1" column="2">
-        <widget class="QComboBox" name="cB_rec_method"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="label_vmax_6">
+        <widget class="QRadioButton" name="chB_Uplot_2">
          <property name="text">
-          <string>Reconstruction</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QCheckBox" name="chB_diff">
-         <property name="text">
-          <string>Difference</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QCheckBox" name="chB_Uplot">
-         <property name="text">
-          <string>Uplot</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="chB_plot_image_rec">
-         <property name="text">
-          <string>Image</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="chB_plot_graph">
-         <property name="text">
-          <string>Graph</string>
+          <string>USB HS</string>
          </property>
          <property name="checked">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
       </layout>
      </widget>
-     <widget class="QPushButton" name="pB_loadRef">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>230</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Save dataset to file (*.dat)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>loadref</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="chB_y_log">
-      <property name="geometry">
-       <rect>
-        <x>330</x>
-        <y>540</y>
-        <width>72</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>y log</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="eit_FEMRefinement">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>370</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>0.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>10.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.001000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.100000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_FEMRefinement">
-      <property name="geometry">
-       <rect>
-        <x>250</x>
-        <y>350</y>
-        <width>91</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>FEM Refinement</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="replay_refresh_time">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>600</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>1</number>
-      </property>
-      <property name="minimum">
-       <double>1.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>10.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>1.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>1.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_replay_refresh_time">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>580</y>
-        <width>91</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Refresh time [s]</string>
-      </property>
-     </widget>
-     <widget class="QSlider" name="slider_replay_meas">
+    </widget>
+    <widget class="QWidget" name="tab_measurements">
+     <attribute name="title">
+      <string>Measurements</string>
+     </attribute>
+     <widget class="QGroupBox" name="groupBox_2">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>640</y>
-        <width>391</width>
-        <height>22</height>
+        <y>330</y>
+        <width>401</width>
+        <height>270</height>
        </rect>
       </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+      <property name="title">
+       <string>Frame infos</string>
       </property>
-      <property name="tickPosition">
-       <enum>QSlider::TicksAbove</enum>
-      </property>
-      <property name="tickInterval">
-       <number>0</number>
-      </property>
+      <widget class="QComboBox" name="cB_current_frame_indx">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>20</y>
+         <width>69</width>
+         <height>23</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="lab_current_frame_indx">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>91</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Current frame #</string>
+       </property>
+      </widget>
+      <widget class="QTextEdit" name="textEdit">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>381</width>
+         <height>211</height>
+        </rect>
+       </property>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="pB_gotoend_replay_meas">
+     <widget class="QGroupBox" name="groupBox">
       <property name="geometry">
        <rect>
-        <x>110</x>
-        <y>600</y>
-        <width>25</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Plot the U-Shape diagramm</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>docs/icons/icon_end.png</normaloff>docs/icons/icon_end.png</iconset>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_pause_replay_meas">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>600</y>
-        <width>25</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Plot the U-Shape diagramm</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>docs/icons/icon_pause.png</normaloff>docs/icons/icon_pause.png</iconset>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_play_replay_meas">
-      <property name="geometry">
-       <rect>
-        <x>80</x>
-        <y>600</y>
-        <width>25</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Plot the U-Shape diagramm</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>docs/icons/icon_play.png</normaloff>docs/icons/icon_play.png</iconset>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_backbegin_replay_meas">
-      <property name="geometry">
-       <rect>
-        <x>50</x>
-        <y>600</y>
-        <width>25</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Plot the U-Shape diagramm</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>docs/icons/icon_begin.png</normaloff>docs/icons/icon_begin.png</iconset>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_stop_replay_meas">
-      <property name="geometry">
-       <rect>
-        <x>170</x>
-        <y>600</y>
-        <width>25</width>
-        <height>25</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Plot the U-Shape diagramm</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="icon">
-       <iconset>
-        <normaloff>docs/icons/icon_stop.png</normaloff>docs/icons/icon_stop.png</iconset>
-      </property>
-      <property name="autoDefault">
-       <bool>false</bool>
-      </property>
-      <property name="flat">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QLabel" name="lab_live_view">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>50</y>
-        <width>47</width>
-        <height>13</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Live</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="sB_actual_frame_cnt">
-      <property name="geometry">
-       <rect>
-        <x>350</x>
+        <x>10</x>
         <y>10</y>
-        <width>51</width>
-        <height>20</height>
+        <width>401</width>
+        <height>110</height>
        </rect>
       </property>
-      <property name="maximum">
-       <number>255</number>
+      <property name="title">
+       <string>Acquisition</string>
       </property>
+      <widget class="QProgressBar" name="meas_progress_bar">
+       <property name="geometry">
+        <rect>
+         <x>220</x>
+         <y>80</y>
+         <width>171</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="lab_actual_frame_cnt">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>141</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Acquisition progress of frame</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="sB_actual_frame_cnt">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>80</y>
+         <width>51</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="frame">
+        <bool>true</bool>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+       <property name="prefix">
+        <string>#</string>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+      </widget>
+      <widget class="QLabel" name="lab_live_meas_status">
+       <property name="geometry">
+        <rect>
+         <x>270</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Meas status</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="lE_meas_dataset_dir">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>50</y>
+         <width>201</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>default_autosave_dir</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_stop_meas">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Stop measurement</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Stop</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_start_meas">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Start measurement</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Start</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_dataset_autoset">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>autosave</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
-     <widget class="QLabel" name="lab_actual_frame_cnt">
+     <widget class="QGroupBox" name="groupBox_6">
       <property name="geometry">
        <rect>
-        <x>230</x>
-        <y>10</y>
-        <width>111</width>
-        <height>20</height>
+        <x>10</x>
+        <y>130</y>
+        <width>401</width>
+        <height>190</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Nb of acquired frames</string>
+      <property name="title">
+       <string>Loading</string>
       </property>
-     </widget>
-     <widget class="QLineEdit" name="meas_dataset_name">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>10</y>
-        <width>201</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>DataSetName_default</string>
-      </property>
-     </widget>
-     <widget class="QProgressBar" name="meas_progress_bar">
-      <property name="geometry">
-       <rect>
-        <x>200</x>
-        <y>40</y>
-        <width>118</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="value">
-       <number>0</number>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_stop_meas">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>40</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Stop measurement</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Stop</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_start_meas">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>40</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Start measurement</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Start</string>
-      </property>
+      <widget class="QSlider" name="slider_replay_meas">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>160</y>
+         <width>381</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="tickPosition">
+        <enum>QSlider::TicksAbove</enum>
+       </property>
+       <property name="tickInterval">
+        <number>0</number>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_gotoend_replay_meas">
+       <property name="geometry">
+        <rect>
+         <x>79</x>
+         <y>121</y>
+         <width>28</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Plot the U-Shape diagramm</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../icons/icon_end.png</normaloff>../icons/icon_end.png</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_play_replay_meas">
+       <property name="geometry">
+        <rect>
+         <x>45</x>
+         <y>121</y>
+         <width>28</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Plot the U-Shape diagramm</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../icons/icon_play.png</normaloff>../icons/icon_play.png</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_backbegin_replay_meas">
+       <property name="geometry">
+        <rect>
+         <x>11</x>
+         <y>121</y>
+         <width>28</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Plot the U-Shape diagramm</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../icons/icon_begin.png</normaloff>../icons/icon_begin.png</iconset>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="sB_replay_refresh_time">
+       <property name="geometry">
+        <rect>
+         <x>339</x>
+         <y>120</y>
+         <width>51</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="suffix">
+        <string> s</string>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="minimum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>10.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_pause_replay_meas">
+       <property name="geometry">
+        <rect>
+         <x>113</x>
+         <y>121</y>
+         <width>28</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Plot the U-Shape diagramm</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../icons/icon_pause.png</normaloff>../icons/icon_pause.png</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_stop_replay_meas">
+       <property name="geometry">
+        <rect>
+         <x>147</x>
+         <y>121</y>
+         <width>28</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Plot the U-Shape diagramm</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>../icons/icon_stop.png</normaloff>../icons/icon_stop.png</iconset>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_replay_refresh_time">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>120</y>
+         <width>91</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Refresh time</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pB_load_meas_dataset">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>181</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Load dataset from file (*.dat)</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Load measurements</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="lab_replay_status">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>20</y>
+         <width>181</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="autoFillBackground">
+        <bool>true</bool>
+       </property>
+       <property name="text">
+        <string>Replay status</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+      <widget class="QTextEdit" name="tE_load_dataset_dir">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>381</width>
+         <height>50</height>
+        </rect>
+       </property>
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;default_&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;loading_&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;dirpath&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_6">
-     <attribute name="title">
-      <string>EIT Plotter</string>
-     </attribute>
-     <widget class="QDoubleSpinBox" name="scalePlot_vmax">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>50</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmax">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>50</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>vmax</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmin">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>80</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>vmin</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="scalePlot_vmin">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>80</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="normalize">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>30</y>
-        <width>127</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Normalize</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="cB_verbose">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>360</y>
-        <width>70</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>verbose</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmax_9">
-      <property name="geometry">
-       <rect>
-        <x>110</x>
-        <y>410</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>n</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="eit_n">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>410</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>0</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>64.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_set_eit">
-      <property name="geometry">
-       <rect>
-        <x>340</x>
-        <y>360</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>Save dataset to file (*.dat)</string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>set EIT</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmax_7">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>350</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>p</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="eit_lamda">
-      <property name="geometry">
-       <rect>
-        <x>200</x>
-        <y>380</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.010000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmax_8">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>380</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>lamda</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="eit_p">
-      <property name="geometry">
-       <rect>
-        <x>200</x>
-        <y>350</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>1</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.500000000000000</double>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab_11">
+    <widget class="QWidget" name="tab_video">
      <attribute name="title">
       <string>Video</string>
      </attribute>
@@ -1606,40 +1223,584 @@
       </property>
      </widget>
     </widget>
+    <widget class="QWidget" name="tab_eit_model">
+     <attribute name="title">
+      <string>EIT:_model</string>
+     </attribute>
+     <widget class="QDoubleSpinBox" name="scalePlot_vmax">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>50</y>
+        <width>90</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>4</number>
+      </property>
+      <property name="minimum">
+       <double>-1000000000000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>1000000000000000.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_vmax">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>50</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>vmax</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_vmin">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>80</y>
+        <width>71</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>vmin</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="scalePlot_vmin">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>80</y>
+        <width>90</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>4</number>
+      </property>
+      <property name="minimum">
+       <double>-1000000000000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>1000000000000000.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="normalize">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>30</y>
+        <width>127</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Normalize</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="cB_verbose">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>430</y>
+        <width>70</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>verbose</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="eit_FEMRefinement">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>60</y>
+        <width>90</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>4</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>10.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.001000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.100000000000000</double>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_FEMRefinement">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>60</y>
+        <width>91</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>FEM Refinement</string>
+      </property>
+     </widget>
+     <widget class="QTabWidget" name="tabW_reconstruction">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>580</y>
+        <width>411</width>
+        <height>271</height>
+       </rect>
+      </property>
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="tab_pyeit">
+       <attribute name="title">
+        <string>PyEIT</string>
+       </attribute>
+       <widget class="QLabel" name="lab_solver">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>72</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Solver</string>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="cB_solver">
+        <property name="geometry">
+         <rect>
+          <x>98</x>
+          <y>20</y>
+          <width>73</width>
+          <height>20</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="formLayoutWidget_3">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>70</y>
+          <width>167</width>
+          <height>80</height>
+         </rect>
+        </property>
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_vmax_7">
+           <property name="text">
+            <string>p</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="eit_p">
+           <property name="decimals">
+            <number>1</number>
+           </property>
+           <property name="minimum">
+            <double>-1000000000000000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1000000000000000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.500000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_vmax_8">
+           <property name="text">
+            <string>lamda</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="eit_lamda">
+           <property name="decimals">
+            <number>4</number>
+           </property>
+           <property name="minimum">
+            <double>-1000000000000000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1000000000000000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>0.010000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_vmax_9">
+           <property name="text">
+            <string>n</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QDoubleSpinBox" name="eit_n">
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="minimum">
+            <double>-1000000000000000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>1000000000000000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>64.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tab_nn">
+       <attribute name="title">
+        <string>NN</string>
+       </attribute>
+       <widget class="QLineEdit" name="lE_load_model_dir">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>251</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>default_loading_dirpath</string>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>150</y>
+        <width>411</width>
+        <height>261</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Imaging type</string>
+      </property>
+      <widget class="QCheckBox" name="chB_extract_volt_txt">
+       <property name="geometry">
+        <rect>
+         <x>280</x>
+         <y>100</y>
+         <width>121</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>extract voltages (txt)</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>381</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <property name="verticalSpacing">
+         <number>2</number>
+        </property>
+        <item row="2" column="2" colspan="2">
+         <widget class="QComboBox" name="cB_freq_meas_1">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>78</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QComboBox" name="cB_freq_meas_0">
+          <property name="currentText">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QLabel" name="lab_freq_meas_0">
+          <property name="text">
+           <string>Frequence in Hz</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2" colspan="2">
+         <widget class="QLabel" name="lab_freq_meas_1">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Frequence in Hz</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="4">
+         <widget class="QComboBox" name="cB_ref_frame_idx">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>78</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>16777215</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="4">
+         <widget class="QLabel" name="lab_ref_frame_idx">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>Reference frame#</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="5">
+         <widget class="QComboBox" name="cB_eit_imaging_type">
+          <property name="currentText">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="gridLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>90</y>
+         <width>260</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="showAbsValue">
+          <property name="text">
+           <string>Show absolute values</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QComboBox" name="cB_transform_volt">
+          <property name="currentText">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="pB_set_reconstruction">
+      <property name="geometry">
+       <rect>
+        <x>279</x>
+        <y>570</y>
+        <width>131</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="statusTip">
+       <string>Save dataset to file (*.dat)</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Set reconstruction</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
-   <widget class="QTabWidget" name="tabWidget_3">
+   <widget class="QTabWidget" name="tabW_display">
     <property name="geometry">
      <rect>
       <x>440</x>
-      <y>100</y>
-      <width>661</width>
-      <height>621</height>
+      <y>10</y>
+      <width>831</width>
+      <height>911</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
-    <widget class="QWidget" name="tab_7">
+    <widget class="QWidget" name="tab_meas_voltages">
      <attribute name="title">
-      <string>Graph</string>
+      <string>Measured voltages</string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>10</y>
-        <width>651</width>
-        <height>581</height>
+        <y>120</y>
+        <width>821</width>
+        <height>740</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="PlotLayout"/>
      </widget>
+     <widget class="QLabel" name="video_frame_miniature">
+      <property name="geometry">
+       <rect>
+        <x>610</x>
+        <y>10</y>
+        <width>201</width>
+        <height>100</height>
+       </rect>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Live Video</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>501</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>GroupBox</string>
+      </property>
+      <widget class="QWidget" name="gridLayoutWidget_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>391</width>
+         <height>65</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="1">
+         <widget class="QCheckBox" name="chB_Uplot">
+          <property name="text">
+           <string>Uplot</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QCheckBox" name="chB_diff">
+          <property name="text">
+           <string>Difference</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QCheckBox" name="chB_y_log">
+          <property name="text">
+           <string>y log</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QCheckBox" name="chB_plot_graph">
+          <property name="text">
+           <string>Graph</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QCheckBox" name="chB_plot_image_rec">
+          <property name="text">
+           <string>Image</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </widget>
-    <widget class="QWidget" name="tab_8">
+    <widget class="QWidget" name="tab_values">
      <attribute name="title">
       <string>Values</string>
      </attribute>
-     <widget class="QTabWidget" name="tabWidget_Z">
+     <widget class="QTabWidget" name="tabW_values">
       <property name="geometry">
        <rect>
         <x>0</x>
@@ -1649,9 +1810,9 @@
        </rect>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="tab_Z">
        <attribute name="title">
         <string>Z</string>
        </attribute>
@@ -1676,7 +1837,7 @@
         </column>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_4">
+      <widget class="QWidget" name="tab_real">
        <attribute name="title">
         <string>Real</string>
        </attribute>
@@ -1701,7 +1862,7 @@
         </column>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_5">
+      <widget class="QWidget" name="tab_imag">
        <attribute name="title">
         <string>Imag</string>
        </attribute>
@@ -1726,29 +1887,29 @@
         </column>
        </widget>
       </widget>
-      <widget class="QWidget" name="tab_9">
+      <widget class="QWidget" name="tab_magnitude">
        <attribute name="title">
         <string>Magnitude</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="tab_10">
+      <widget class="QWidget" name="tab_phase">
        <attribute name="title">
         <string>Phase</string>
        </attribute>
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_12">
+    <widget class="QWidget" name="tab_video_2">
      <attribute name="title">
       <string>video</string>
      </attribute>
      <widget class="QLabel" name="video_frame">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>10</x>
         <y>10</y>
-        <width>651</width>
-        <height>581</height>
+        <width>811</width>
+        <height>771</height>
        </rect>
       </property>
       <property name="cursor">
@@ -1775,35 +1936,13 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QLabel" name="video_frame_miniature">
-    <property name="geometry">
-     <rect>
-      <x>890</x>
-      <y>0</y>
-      <width>201</width>
-      <height>100</height>
-     </rect>
-    </property>
-    <property name="mouseTracking">
-     <bool>false</bool>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="text">
-     <string>Live Video</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1280</width>
+     <width>1920</width>
      <height>21</height>
     </rect>
    </property>

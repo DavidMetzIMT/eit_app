@@ -35,7 +35,7 @@ from eit_app.eit.model import EITModelClass
 ## ======================================================================================================================================================
 ##  Class for EIT Reconstruction
 ## ======================================================================================================================================================
-class ReconstructionPyEIT():
+class ReconstructionPyEIT_old():
     """ Class for the EIT reconstruction with the package pyEIT """
     def __init__(self):
         self.EitModel = EITModelClass()

@@ -1,10 +1,14 @@
 
+import os
 from typing import List, Union
 import numpy as np
+from eit_app.app.dialog_boxes import show_msgBox
 from eit_app.io.sciospec.utils import *
 from eit_app.io.sciospec.com_constants import *
 import pandas as pd
 import ast
+
+from eit_app.utils.utils_path import CancelledError, DataLoadedNotCompatibleError, get_date_time, get_dir, get_file, load_pickle, read_txt, save_as_pickle, save_as_txt, set_attributes
 
 
 
@@ -58,62 +62,30 @@ class SciospecSetup(object):
         if self.frame_rate>self.max_frame_rate:
             self.frame_rate=self.max_frame_rate
 
-    def saveSetupDevice(self, file_path, sheetname):
-        """ Save the setup of the device in an excel file
-        all attributes and subattributes will be saved
+    def save(self, dir:str=None):
+        """ Save the setup in pkl file"""
+        try:
+            if not dir:
+                dir= get_dir(title='Select a directory, where the setup will be saved')
+            file=os.path.join(dir, f'setup_{get_date_time()}')
+            save_as_pickle(file, self)
+            print(f'Setup: {self.__dict__} \n saved in file : {dir} ')
+        except CancelledError:
+            print('Saving cancelled')
 
-        Parameters
-        ----------
-        file_path: str
-        sheetname: str
-
-        Notes
-        -----
-        - the excel file can be edited..."""
-        data2save, name, types = getAllSubattributes(self)
-        # add logging
-        # print('data saved : '+ str(data2save))
-        # print(name)
-        # print(types)
-        dataframe = pd.DataFrame(data2save, name)
-        dataframe.to_excel(file_path,sheet_name= sheetname)
-        
-        
-        
-    def loadSetupDevice(self, file_path, sheetname):
-        """ Load the setup of the device from an excel file
-        all attributes and subattributes will be loaded
-
-        Parameters
-        ----------
-        file_path: str
-        sheetname: str"""
-        df= pd.read_excel(file_path,sheet_name=sheetname)
-        data, name, types = getAllSubattributes(self)
-        for i in range(len(df.values)):
-            
-            # print(df.values[i][0])
-            # print(df.values[i][1])
-            # print(types[i])
-            ## the obtain data are not the same type as needed (e.g. we  get str for list of int)            
-            if  types[i]==type(df.values[i][1]):
-                val=df.values[i][1]
-            elif types[i]== type(float('0')) and  type(df.values[i][1])== type(int('0')):
-                val=float(df.values[i][1])
-            else:
-                val=ast.literal_eval(df.values[i][1])
-            ## set the attributes and sub attributes of the setup
-            attr_str= str(df.values[i][0])    
-            indexPt= attr_str.find('.')
-            if indexPt<0:
-                setattr(self, df.values[i][0], val)
-            else:
-                setattr(getattr(self,attr_str[:indexPt]), attr_str[indexPt+1:], val)
-        dataloaded, name, types = getAllSubattributes(self)
-        # add logging
-        print('data loaded : '+ str(dataloaded))
-
-
+    def load(self):
+        """ Load the setup out of a pkl file """
+        try:
+            path, filename = get_file(filetypes=[(".pkl-files", "*.pkl")],)
+            load_pickle(os.path.join(path, filename),self)
+            # set_attributes(self,loaded_setup)
+            print(f'Setup: {self.__dict__} \n loaded from file : {os.path.join(path, filename)} ')
+        except CancelledError:
+            # show_msgBox('Loading cancelled','', "I")
+            print('Loading cancelled')
+        except DataLoadedNotCompatibleError:
+            show_msgBox('Please select a setup file', 'Not a setup file', "Warning")
+            # print('wrong pickle file choosen!!!')
     ## Get methods
     def get_channel(self):
         """ Return the number of channnel used in the device"""
@@ -254,13 +226,13 @@ class SciospecSetup(object):
         """ Set value of burst:
         - out of Bytes from the device (rx_frame)
         - from an int for simple set """
-        self.burst =convertBytes2Int(value[DATA_START_INDX:-1]) if for_ser else value if value>0 else 1.0
+        self.burst =convertBytes2Int(value[DATA_START_INDX:-1]) if for_ser else value 
         
     def set_frame_rate(self, value:Union[List[bytes], float], for_ser:bool=False):
         """ Set value of frame rate:
         - out of Bytes from the device (rx_frame)
         - from a float for simple set """
-        self.frame_rate=convert4Bytes2Float(value[DATA_START_INDX:-1]) if for_ser else value
+        self.frame_rate=convert4Bytes2Float(value[DATA_START_INDX:-1]) if for_ser else value if value>0 else 1.0
         
     def set_freq_config(self, value:List[bytes]=None, for_ser:bool=False, **kwargs):
         """ Set values of frequence config:
@@ -307,19 +279,19 @@ class SciospecSetup(object):
         """ Set value of excitation stamp from output config:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set """
-        self.output_config.exc_stamp= bool(value[DATA_START_INDX:-1][0]) if for_ser else value
+        self.output_config.exc_stamp= True# bool(value[DATA_START_INDX:-1][0]) if for_ser else value
         
     def set_current_stamp(self, value:Union[List[bytes], bool], for_ser:bool=False):
         """ Set value of current stamp from output config:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set """
-        self.output_config.current_stamp= bool(value[DATA_START_INDX:-1][0]) if for_ser else value
+        self.output_config.current_stamp=True# bool(value[DATA_START_INDX:-1][0]) if for_ser else value
         
     def set_time_stamp(self, value:Union[List[bytes], bool], for_ser:bool=False):
         """ Set value of time stamp from output config:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set """
-        self.output_config.time_stamp= bool(value[DATA_START_INDX:-1][0]) if for_ser else value
+        self.output_config.time_stamp=True# bool(value[DATA_START_INDX:-1][0]) if for_ser else value
         
     def set_ip(self, value:Union[List[bytes], str], for_ser:bool=False):
         """ Set value of ip adress:
@@ -350,7 +322,7 @@ class SciospecSetup(object):
         """ Set value of dhcp:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set"""
-        self.ethernet_config.dhcp= bool(value[DATA_START_INDX:-1][0]) if for_ser else value
+        self.ethernet_config.dhcp=True# bool(value[DATA_START_INDX:-1][0]) if for_ser else value
     
     def set_sn(self, value:Union[List[bytes], float], for_ser:bool=False):
         """ Set value of mac adress:

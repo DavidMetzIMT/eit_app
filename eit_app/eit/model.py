@@ -1,10 +1,13 @@
 
 
-
+from dataclasses import dataclass
+from enum import Enum, auto
+from typing import List
 import numpy as np
 import os
 from numpy.core.shape_base import hstack
 from numpy.lib.arraysetops import ediff1d
+from numpy.lib.polynomial import RankWarning
 
 from eit_app.utils.constants import DEFAULT_DIR, \
                                     DEFAULT_MEASUREMENTS,\
@@ -14,15 +17,109 @@ from eit_app.utils.constants import DEFAULT_DIR, \
 ## ======================================================================================================================================================
 ##  
 ## ======================================================================================================================================================
+class BodyTypes(Enum):
+    circle_2D=auto()
+    cylinder_3D=auto()
+    rectangle_2D=auto()
+    cubic_3D=auto()
+
+
+class ElectrodePatternTypes(Enum):
+    ring=auto()
+    grid=auto()
+    polka_dot=auto()
+
+class EletrodeFormtypes(Enum):
+    circular=auto()
+    rectangle=auto()
+    
+@dataclass
+class EITBox():
+    """ define the overall dimensions of the chamber"""
+    length:float=2.0 # on x axis
+    width:float=2.0 # on y axis
+    height:float=0.0 # on z axis (0.0 for 2D models)
+
+@dataclass
+class EITBody():
+    box:EITBox=EITBox()
+    type:BodyTypes=BodyTypes.circle_2D
+@dataclass
+class ElectrodeForm():
+    type:EletrodeFormtypes=EletrodeFormtypes.circular
+    size:np.ndarray=np.array([0.1, 0]) # diameter/lenght, width
+    
+@dataclass
+class EITElectrodeConfig():
+    type:ElectrodePatternTypes=ElectrodePatternTypes.ring
+    number:int=16
+    position:int='Wall'
+    form:ElectrodeForm=ElectrodeForm()
+
+@dataclass
+class EITChamber():
+    name:str=''
+    body:EITBody=EITBody()
+    electrodes_config:EITElectrodeConfig=EITElectrodeConfig()
+
+    def get_chamber_limit(self):
+        x=self.body.box.length/2
+        y=self.body.box.width/2
+        z=self.body.box.height/2
+        return [[-x,-y,-z],[x,y,z]] if z else [[-x,-y],[x,y]]
+
+
+@dataclass
+class FEM():
+    nodes:np.ndarray=None
+    elems:np.ndarray=None
+    elems_data:np.ndarray=None
+    boundaries:np.ndarray=None
+    gnd_node:int=0
+    refinement:float=0.1
+
+    def get_pyeit_mesh(self):
+        return {
+            'node':self.nodes,
+            'element':self.elems,
+            'perm':self.elems_data,
+        }
+
+    def update_from_pyeit(self, mesh_obj:dict):
+        self.nodes= mesh_obj['node']
+        self.elems= mesh_obj['element']
+        self.elems_data= mesh_obj['perm']
+    
+    def get_data_for_plots(self):
+        return self.nodes, self.elems, self.elems_data
+
+
+class Stimulations():
+    stim_type:str='Amperes'
+    stim_pattern:np.ndarray=None
+    meas_pattern:np.ndarray=None
+
+class Electrodes():
+    nodes:np.ndarray=None # 1D array
+    z_contact:float=None
+    position:np.ndarray=None #1Darray x,y,z,nx,ny,nz
+    shape:float=None #????
+    obj: str=None # to which it belongs
+
+
 
 class EITModelClass(object):
-    ''' 
-    '''
+    """ Class regrouping all information about the virtual model 
+    of the measuremnet chamber used for the reconstruction:
+    - chamber
+    - mesh
+    - 
+    """
     def __init__(self):
         self.Name = 'EITModel_defaultName'
         self.InjPattern = [[0,0], [0,0]]
         self.Amplitude= float(1)
-        self.MeasPattern=[[0,0], [0,0]]
+        self.meas_pattern=[[0,0], [0,0]]
         self.n_el=16
         self.p=0.5
         self.lamb=0.01
@@ -33,12 +130,16 @@ class EITModelClass(object):
         self.InjPattern=np.loadtxt(path, dtype=int)
         # print(type(self.InjPattern))
         path= os.path.join(DEFAULT_DIR,DEFAULT_MEASUREMENTS[pattern])
-        self.MeasPattern=np.loadtxt(path)
+        self.meas_pattern=np.loadtxt(path)
         # print(type(self.MeasPattern))
         # print(self.MeasPattern)
         self.SolverType= 'none'
         self.FEMRefinement=0.1
         self.translate_inj_pattern_4_chip()
+
+        self.chamber:EITChamber=EITChamber()
+        self.fem:FEM=FEM()
+        self.stimulations:List[Stimulations]=[Stimulations()]
 
     
     def set_solver(self, solver_type):
@@ -63,7 +164,11 @@ class EITModelClass(object):
             
         self.InjPattern= new # to list???
         
-    
+    def get_fem_refinement(self):
+        return self.fem.refinement
+    def get_nd_elecs(self, all:bool=True):
+        return self.chamber.electrodes_config.number 
+
 
 
 

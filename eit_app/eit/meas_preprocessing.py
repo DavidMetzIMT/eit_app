@@ -1,10 +1,11 @@
-from typing import ValuesView
+from typing import List, ValuesView
 
 import numpy as np
 from matplotlib.cbook import flatten
 from matplotlib.pyplot import title
 
 from eit_app.io.sciospec.device import EitMeasurementDataset
+from eit_app.io.sciospec.meas_dataset import EITFrame
 
 
 def _voltages_preparation(dataset:EitMeasurementDataset, frameIndx, imagingParameters, EITModel, liveView=False):
@@ -51,9 +52,9 @@ def _voltages_preparation(dataset:EitMeasurementDataset, frameIndx, imagingParam
         imagingDataAbs= identity
 
     if liveView==True:
-        frame= dataset._last_frame
+        frame= dataset.meas_frame
     else:
-        frame= dataset.frame
+        frame= dataset.rx_meas_frame
         
     ouput_labels=[]
         
@@ -117,13 +118,14 @@ def Voltages4Reconstruct(dataset, frameIndx, imagingParameters, EITModel, liveVi
     
     """ 
     voltages_4_plot, current_label, voltages_4_rec = _voltages_preparation(dataset, frameIndx, imagingParameters , EITModel, liveView=liveView)
+    
     if path!=None:
         extract(voltages_4_rec, path)
-        
+
     return voltages_4_rec, current_label
 
     
-def _get_meas_voltage_vector(frame,frameIndx, freqIndx, imagingDataAbs, imagingDataFunc, EITModel):
+def _get_meas_voltage_vector(frame:List[EITFrame],frameIndx, freqIndx, imagingDataAbs, imagingDataFunc, EITModel):
     """
     Extract the measured voltage vector out of the given frame
     and transform it value depending the selected imagingDataFunc / imagingDataAbs
@@ -136,10 +138,11 @@ def _get_meas_voltage_vector(frame,frameIndx, freqIndx, imagingDataAbs, imagingD
     -----
     
     """ 
-    meas_voltage=np.array(frame[frameIndx].Meas[freqIndx].voltage_Z) # select the measured voltages on all 32 channels (columns ) for all injections (row)
+    meas_voltage=np.array(frame[frameIndx].meas[freqIndx].voltage_Z) # select the measured voltages on all 32 channels (columns ) for all injections (row)
     meas_voltage=np.array(meas_voltage[:,:EITModel.n_el]) # select the measured voltages on all 32 channels
     meas_voltage=(EITModel.MeasPattern.dot(meas_voltage.T)).flatten()
     meas_voltage=np.reshape(imagingDataAbs(imagingDataFunc(meas_voltage)),(meas_voltage.shape[0],1))
+    
 
     return meas_voltage
 

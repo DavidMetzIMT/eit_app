@@ -28,7 +28,7 @@ def main_log(logfile:str='debug.log'):
     logging_file_h.setFormatter(format_long)
 
     logging_out_h.addFilter(MaxLevelFilter(logging.WARNING))
-    logging_out_h.setLevel(logging.DEBUG)
+    logging_out_h.setLevel(logging.WARNING)
     logging_err_h.setLevel(logging.WARNING)
     logging_file_h.setLevel(logging.DEBUG)
 

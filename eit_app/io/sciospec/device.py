@@ -18,37 +18,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
-import ast
-from re import A
-import struct
+
+from copy import deepcopy
+from enum import Enum
+from logging import getLogger
+from queue import Empty, Queue
+from time import sleep
 from typing import Any, List
-import copy
-import numpy as np
-import pandas as pd
-from matplotlib.pyplot import flag, tick_params
-import pickle
-from os import listdir
-from os.path import isfile, join
 
-from eit_app.eit.model import *
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
-from eit_app.io.sciospec.device_setup import SciospecSetup
+from eit_app.app.dialog_boxes import show_msgBox
+from eit_app.eit.rec_abs import RecCMDs
 from eit_app.io.sciospec.com_constants import *
-from eit_app.io.sciospec.hw_serial_interface import HARDWARE_NOT_DETECTED, SerialInterface, SERIAL_BAUD_RATE_DEFAULT, SerialInterfaceError
-from eit_app.threads_process.threads_worker import HardwarePoller
-from eit_app.utils.constants import EXT_PKL, MEAS_DIR
+from eit_app.io.sciospec.device_setup import SciospecSetup
+from eit_app.io.sciospec.hw_serial_interface import (HARDWARE_NOT_DETECTED,
+                                                     SERIAL_BAUD_RATE_DEFAULT,
+                                                     SerialInterface,
+                                                     SerialInterfaceError)
+from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.threads_process.threads_worker import Poller
+from eit_app.utils.flag import CustomFlag
 from eit_app.utils.log import main_log
-from eit_app.utils.utils_path import get_date_time, mk_ouput_dir, append_date_time, save_as_pickle, search4FileWithExtension
-from eit_app.io.sciospec.utils import *
-from eit_app.utils.flag import Flag
-from eit_app.app.dialog_boxes import show_dialog, show_msgBox
-import signal
-import time
-import logging
-import queue
-import enum
 
-from dataclasses import dataclass
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
 __credits__ = ["David Metz"]
@@ -58,12 +48,12 @@ __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 NO_DEVICE_CONNECTED_PROMPT= 'No device connected'
 
-class StatusSWInterface(enum.Enum):
+class StatusSWInterface(Enum):
     NOT_CONNECTED='NOT_CONNECTED'
     IDLE='IDLE'
     MEASURING='MEASURING'
@@ -94,7 +84,7 @@ class MeasurementsRunningError(SWInterfaceError):
 class Buffer(object):
     """ Class to manage a FIFO queue with custom methods for use as a buffer"""
     def __init__(self, maxsize=None) -> None:
-        self.buffer= queue.Queue(maxsize=maxsize)
+        self.buffer= Queue(maxsize=maxsize)
     
     def is_full(self):
         return self.buffer.full()
@@ -107,7 +97,7 @@ class Buffer(object):
     def get_oldest(self):
         try:
             return self.buffer.get_nowait()
-        except queue.Empty: # if empty then return empty ....
+        except Empty: # if empty then return empty ....
             return []
    
     def clear(self):
@@ -115,7 +105,7 @@ class Buffer(object):
             self.buffer.get_nowait()
 
     def rm_last(self):
-        tmp= queue.Queue()
+        tmp= Queue()
         while not self.buffer.empty():
             tmp.put_nowait(self.buffer.get_nowait())
 
@@ -138,9 +128,11 @@ class SWInterface4SciospecDevice(object):
     
     Regroup all informations, setup of the connected Sciospec EIT device
     and allow to interact with it according to is user guide.    """
-    def __init__(self):
+    def __init__(self,):
         """Constructor """
-        self.treat_rx_frame_worker=HardwarePoller(name='treat_rx_frame',pollfunc=self.get_last_rx_frame,sleeptime=0.01)
+        # self.queue_in= queue_in
+        self.queue_out= Queue()
+        self.treat_rx_frame_worker=Poller(name='treat_rx_frame',pollfunc=self.get_last_rx_frame,sleeptime=0.01)
         self.treat_rx_frame_worker.start()
         self._post_init_()
 
@@ -153,12 +145,17 @@ class SWInterface4SciospecDevice(object):
         self.status=StatusSWInterface.NOT_CONNECTED
         self.status_prompt = NO_DEVICE_CONNECTED_PROMPT
         self.dataset:EitMeasurementDataset=EitMeasurementDataset()
-        self.flag_new_data=Flag()
+        self.flag_new_data=CustomFlag()
+        self.flag_new_meas=CustomFlag()
         self.available_devices = {}
-        self.rx_buffer= queue.Queue(maxsize=256) # infine queue.... maybe handle only a certain number of data to reduce memory allocttions???
+        self.rx_buffer= Queue(maxsize=256) # infine queue.... maybe handle only a certain number of data to reduce memory allocttions???
         self.cmds_history=Buffer(maxsize=16)
         self.responses_history=Buffer(maxsize=16)
         self.make_callbacks_catalog()
+    
+
+    def get_dataset(self, mk_copy:bool=False)-> EitMeasurementDataset:
+        return deepcopy(self.dataset) if mk_copy else self.dataset
 
     def _prepare_dataset(self, meas_name:str):
         """Prepare dataset for measurements
@@ -233,7 +230,16 @@ class SWInterface4SciospecDevice(object):
     
         while self.status==StatusSWInterface.WAIT_FOR_DEVICE:
             pass
+    def get_queue_out(self):
+        return self.queue_out
+    def put_queue_out(self, data):
+        self.queue_out.put(data)
 
+    def set_autosave(self, autosave:bool=True):
+        if autosave:
+            self.dataset.autosave.set()
+        else:
+            self.dataset.autosave.clear()
     ## =========================================================================
     ##  Methods for sending data/commands
     ## =========================================================================
@@ -265,8 +271,7 @@ class SWInterface4SciospecDevice(object):
             # raise CouldNotWriteToDevice(error)
             
     def _make_command_frame(self,cmd:SciospecCmd, op:SciospecOption):
-        """ Make the command frame to send
-        according to the cmd and op parameters
+        """ Make the command frame to send according to the cmd and op parameters
         
         Parameters
         ----------
@@ -318,7 +323,7 @@ class SWInterface4SciospecDevice(object):
         """
 
         try:
-            print(self.cllbcks[cmd.tag][op.tag](True))
+            # print(self.cllbcks[cmd.tag][op.tag](True))
 
             return self.cllbcks[cmd.tag][op.tag](True) or [0x00]
         except KeyError:
@@ -331,22 +336,15 @@ class SWInterface4SciospecDevice(object):
     ## =========================================================================
 
     def append_to_rx_buffer(self,rx_frame:List[bytes]):
-        """ Called by the SerialInterface "PollreadSerial" to treat the recieved frame
-        Parameters
-        ----------
-        rx_frame: list of int8 (byte)"""
-        
+        """ Called by the SerialInterface """
         self.rx_buffer.put_nowait(rx_frame)
 
     def get_last_rx_frame(self):
         try:
             rx_frame=self.rx_buffer.get_nowait()
-            if rx_frame==[HARDWARE_NOT_DETECTED]:
-                self.disconnect_device()
-            else:
-                rx_frame=self._verify_len_of_rx_frame(rx_frame)
-                self.treat_rx_frame(rx_frame)
-        except queue.Empty:
+            self.treat_rx_frame(rx_frame)
+    
+        except Empty:
             pass # do nothing for the moment
         except SWInterfaceError as e:
             logger.error(e)
@@ -362,12 +360,19 @@ class SWInterface4SciospecDevice(object):
     def treat_rx_frame(self,rx_frame:List[bytes]):
         """ Sort the recieved frames between ACKNOWLEGMENT,MEASURING, RESPONSE 
         and treat them accordingly"""
+        if rx_frame==[HARDWARE_NOT_DETECTED]:
+            self.disconnect_device(stop_meas=False)
+            return
+        rx_frame=self._verify_len_of_rx_frame(rx_frame)
         if self.is_ack(rx_frame):          
             self.treat_rx_ack(rx_frame)
         elif self.is_meas(rx_frame):
             self.treat_rx_meas(rx_frame)
         else: # is_resp
-            self.treat_rx_response(rx_frame)
+            self.treat_rx_resp(rx_frame)
+        if self.is_new_meas():
+            self.queue_out.put_nowait((self.get_dataset(mk_copy=True), 0, RecCMDs.rec))
+            self.get_dataset().flag_new_meas.clear()
 
     def is_ack(self,rx_frame:List[bytes])-> bool:
         """ Return if rx_frame is an ACKNOWLEGMENT frame  """
@@ -400,7 +405,7 @@ class SWInterface4SciospecDevice(object):
         logger.info(msg)
         self.proceed_answer(rx_frame)
 
-    def treat_rx_response(self, rx_frame):
+    def treat_rx_resp(self, rx_frame):
         """ Treat the recieved RESPONSE frame
         - logging
         - add the response to the history (it will be )"""
@@ -440,9 +445,9 @@ class SWInterface4SciospecDevice(object):
         oldest_cmd= self.cmds_history.get_oldest()
         oldest_response=self.responses_history.get_oldest()
         if oldest_cmd[0].answer_type==Answer.WAIT_FOR_ANSWER_AND_ACK:
-            msg=f'RX_ACK: {self.rx_ack.name} of ANSWER {oldest_response} from CMD {oldest_cmd[0].name}- SUCCESS'
+            msg=f'RX_ACK: {self.rx_ack.name} of ANSWER {oldest_response} from CMD {oldest_cmd[0].name}({oldest_cmd[1].name})- SUCCESS'
         elif oldest_cmd[0].answer_type==Answer.WAIT_FOR_ACK:
-            msg= f'RX_ACK: {self.rx_ack.name} for CMD {oldest_cmd[0].name} - SUCCESS'
+            msg= f'RX_ACK: {self.rx_ack.name} for CMD {oldest_cmd[0].name}({oldest_cmd[1].name}) - SUCCESS'
         logger.info(msg)
         return oldest_cmd, oldest_response
 
@@ -450,7 +455,6 @@ class SWInterface4SciospecDevice(object):
         """ Extract the data from rx_frame and save them to the right place regading the cllbcks catalog 
 
         - the errors were for the testing of that method and should never be raised"""
-        
         if not rx_frame:
             return
         self.flag_new_data.clear()
@@ -498,13 +502,11 @@ class SWInterface4SciospecDevice(object):
             else:
                 show_msgBox('Please stop measurements first', 'Measurements still running!', "Information")
 
-    
-
+    def is_new_meas(self):
+        return self.get_dataset().flag_new_meas.is_raising_edge()
     ## =========================================================================
     ##  Methods excecuting task on the device
     ## =========================================================================
-
-
 
     def get_available_sciospec_devices(self):
         """Lists the available Sciospec device is available
@@ -548,9 +550,10 @@ class SWInterface4SciospecDevice(object):
         self.status_prompt= f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" (b:{self.interface.get_actual_baudrate()} d:8 s:1 p:None) - CONNECTED'
         logger.info(self.status_prompt)
 
-    def disconnect_device(self):
+    def disconnect_device(self, stop_meas:bool=True)->None:
         """" Disconnect the sciopec device"""
-        self.if_measuring_stop(force=True)
+        if stop_meas:
+            self.if_measuring_stop(force=True)
         self.treat_rx_frame_worker.stop_polling()
         msg=f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" - DISCONNECTED'
         self.interface.close()
@@ -568,9 +571,11 @@ class SWInterface4SciospecDevice(object):
         """ Start measurements """
         self.if_measuring_stop(force=False)
         name, output_dir =self._prepare_dataset(name_measurement)
+        if self.dataset.autosave.is_set():
+            self.save_setup(output_dir)
         self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
         self.wait_until_not_busy()
-        return name, output_dir
+        # return name, output_dir
 
     def stop_meas(self, append=True):
         """ Stop measurements """
@@ -618,25 +623,22 @@ class SWInterface4SciospecDevice(object):
         self.if_measuring_stop(force=False)
         self._send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
         self.wait_until_not_busy()
-        time.sleep(10)
+        sleep(10)
         self.disconnect_device()
         show_msgBox(
                 'Reset done',
                 'Device reset ', "Information")
         
-
-
-
     # ## =========================================================================
     # ##  Methods relative to loading and saving setups of the device
     # ## =========================================================================
-    def saveSetupDevice(self, file):
-        self.setup.saveSetupDevice(file)
+    def save_setup(self, dir):
+        self.setup.save(dir)
         
-    def loadSetupDevice(self, file):
-        self.setup.loadSetupDevice(file)
+    def load_setup(self):
+        self.setup.load()
 
-        
+
 class TmpBuffer:
     tmp:Any=None
     
@@ -644,7 +646,7 @@ class TmpBuffer:
         self.buffering_object(obj)
 
     def buffering_object(self, obj:Any):
-        self.tmp=copy.deepcopy(obj)
+        self.tmp=deepcopy(obj)
 
     def restitute_object_from_buffer(self,original_obj):
         for k in self.tmp.__dict__.keys():
@@ -661,7 +663,7 @@ if __name__ == '__main__':
     dev.get_setup()
     dev.set_setup()
     dev.start_meas()
-    time.sleep(5)
+    sleep(10)
     dev.stop_meas()
     dev.disconnect_device()
 

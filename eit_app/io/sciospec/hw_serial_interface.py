@@ -35,22 +35,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
 from __future__ import print_function
-from ast import Bytes
 
-import glob
-import logging
-import sys
-import time
+from glob import glob
+from logging import getLogger
+from sys import platform, exit
+from time import sleep
 from typing import List
 
-import serial  # get from http://pyserial.sourceforge.net/
+from serial import Serial,SerialException,PortNotOpenError # get from http://pyserial.sourceforge.net/
 from eit_app.io.sciospec.com_constants import *
 # from eit_app.io.sciospec.hw_interfaces import HWInterface
-from eit_app.threads_process.threads_worker import HardwarePoller
+from eit_app.threads_process.threads_worker import Poller
 from eit_app.utils.log import main_log
-from eit_app.app.dialog_boxes import show_msgBox
 
-from abc import ABC, abstractmethod
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -61,7 +58,7 @@ __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 SER_TIMEOUT = 0.1
 SERIAL_BAUD_RATE_DEFAULT= 115200
@@ -69,7 +66,7 @@ HARDWARE_NOT_DETECTED=0xFF
 
 class SerialInterfaceError(Exception):
     """ Custom Error for serial interface """
-    def __init__(self,port:serial.Serial, msg) -> None:
+    def __init__(self,port:Serial, msg) -> None:
         super().__init__(msg)
         self.port=port
 
@@ -85,9 +82,9 @@ class SerialInterface(object):
         self.callback = None
         self.register_callback()
         self.ErrorSerialInterface = ''
-        self.serial_port = serial.Serial()
+        self.serial_port = Serial()
         self.ports_available = []
-        self.listen_worker = HardwarePoller(name='Serial',sleeptime= 0.01,pollfunc=self.poll_read)
+        self.listen_worker = Poller(name='Serial',sleeptime= 0.01,pollfunc=self.poll_read)
         self.listen_worker.start()
         logger.debug('__init__ SerialInterface - done')
 
@@ -114,23 +111,23 @@ class SerialInterface(object):
         
         raises EnvironmentError On unsupported or unknown platforms"""
         
-        if sys.platform.startswith('win'):
+        if platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
-        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+        elif platform.startswith('linux') or platform.startswith('cygwin'):
             # this excludes your current terminal "/dev/tty"
-            ports = glob.glob('/dev/tty[A-Za-z]*')
-        elif sys.platform.startswith('darwin'):
-            ports = glob.glob('/dev/tty.*')
+            ports = glob('/dev/tty[A-Za-z]*')
+        elif platform.startswith('darwin'):
+            ports = glob('/dev/tty.*')
         else:
             raise EnvironmentError('Unsupported platform')
 
         actual_ports = []
         for port in ports:
             try:
-                ser = serial.Serial(port,str(SERIAL_BAUD_RATE_DEFAULT), timeout=None)
+                ser = Serial(port,str(SERIAL_BAUD_RATE_DEFAULT), timeout=None)
                 actual_ports.append(port)
                 ser.close()
-            except (OSError, serial.SerialException):
+            except (OSError, SerialException):
                 pass
         
         self.ports_available = actual_ports
@@ -148,12 +145,12 @@ class SerialInterface(object):
         - Typically used after the opening a serial port and
         a stop-meas cmd, in case that the device was still sending meas. data """
 
-        time.sleep(0.5)  # wait a while
-        while self.serial_port.in_waiting:
-            self.serial_port.read(self.serial_port.in_waiting)
+        sleep(0.5)  # wait a while
+        while self.read_nb_of_availables_bytes():
+            self.serial_port.read_all()
         
     def stop_measurements(self):
-        self.write([CMD_START_STOP_MEAS.tag, 0x01,0x00 ,CMD_START_STOP_MEAS.tag])
+        self.write([CMD_START_STOP_MEAS.tag, 0x01, 0x00 ,CMD_START_STOP_MEAS.tag])
 
     def open(self, port_name:str= None, baudrate=SERIAL_BAUD_RATE_DEFAULT, timeout=None, write_timeout=0):
         """ Open serial interface
@@ -168,23 +165,24 @@ class SerialInterface(object):
             SerialInterfaceError
         """
         try:
-            self.serial_port = serial.Serial(   port_name,
-                                                str(baudrate), 
-                                                timeout=timeout, 
-                                                write_timeout=write_timeout)
+            self.serial_port = Serial(  port_name,
+                                        str(baudrate), 
+                                        timeout=timeout, 
+                                        write_timeout=write_timeout)
             # read everything the device could send
             self.serial_port.reset_output_buffer()
             self.serial_port.reset_input_buffer()
             self.serial_port.flush()
+            msg=f'Connection to serial port {port_name} - OPENED'
+            logger.debug(msg)
             self.listen_worker.stop_polling()
             self.stop_measurements()
             self.clear_unwanted_rx_frames()
 
             self.listen_worker.start_polling()
-            msg=f'Connection to serial port {port_name} - OPENED'
-            logger.debug(msg)
+            
 
-        except (OSError, serial.SerialException) as error:
+        except (OSError, SerialException) as error:
             initial_error_message= error.__str__()
             msg=    f'Connection to serial port {port_name} - FAILED\
                     \n   ({initial_error_message})'
@@ -210,7 +208,7 @@ class SerialInterface(object):
     def no_callback(self):
 
         msg='Callback for rx_frame not defined'
-        # time.sleep(0.1)
+        # sleep(0.1)
         logger.warning(msg)
 
     def write(self, command:list):
@@ -228,7 +226,7 @@ class SerialInterface(object):
             self.serial_port.write(bytearray(command))
             msg='TX: ' + str(command)
             logger.debug(msg)
-        except (serial.SerialException, serial.PortNotOpenError) as error:
+        except (SerialException, PortNotOpenError) as error:
             initial_error_message= error.__str__()
             msg=f'Write CMD: {get_cmd(command).name}({command}) to serial port "{self.serial_port.name}" - FAILED\
                 \n   ({initial_error_message})'
@@ -251,7 +249,7 @@ class SerialInterface(object):
         - if a SerialException is raised >>  will be set to identify: disconnection of the device, etc."""
         try:
             self.last_rx_frame= self.get_sciospec_complete_frame()
-        except serial.SerialException as error:
+        except SerialException as error:
             self.last_rx_frame=[HARDWARE_NOT_DETECTED] # for detction of unplugging and truning off or sofreset
         if self.last_rx_frame:
             self.callback(self.last_rx_frame)
@@ -263,17 +261,17 @@ class SerialInterface(object):
             [type]: [description]
         """
         rx_frame = []
-        if self.read_availables_bytes() >= FRAME_LENGTH_MIN: # a frame is at least 4 bytes
+        if self.read_nb_of_availables_bytes() >= FRAME_LENGTH_MIN: # a frame is at least 4 bytes
             rx_frame = self.read_bytes(LENGTH_BYTE_INDX + 1) # read up to the length byte
             length_data2read = rx_frame[LENGTH_BYTE_INDX] + 1 # read also the additional "ending CMD Byte"
-            while self.read_availables_bytes() < length_data2read: # dangerous ...timer use?
+            while self.read_nb_of_availables_bytes() < length_data2read: # dangerous ...timer use?
                 pass
             rx_frame.extend(self.read_bytes(length_data2read))
             msg=f'RX: {rx_frame[:10]}'
             logger.debug(msg)
         return rx_frame
 
-    def read_availables_bytes(self):
+    def read_nb_of_availables_bytes(self):
         return self.serial_port.in_waiting
         
     def read_bytes(self, nb_bytes:int= 1) -> List[bytes]:
@@ -283,14 +281,14 @@ class SerialInterface(object):
             nb_bytes (int): number of bytes to read. Default is set to 1
 
         Raises:
-            ErrorSerialInterface: can be trigerred by serial.SerialException or serial.PortNotOpenError
+            ErrorSerialInterface: can be trigerred by SerialException or PortNotOpenError
 
         Returns:
             list: list of read bytes
         """
         try:
             return list(self.serial_port.read(nb_bytes))
-        except (serial.SerialException, serial.PortNotOpenError) as error:
+        except (SerialException, PortNotOpenError) as error:
             initial_error_message= error.__str__()
             msg=f'Reading of {nb_bytes}Bytes from serial port "{self.serial_port.name}" - FAILED\
                 \n   ({initial_error_message})'
@@ -320,11 +318,11 @@ if __name__ == '__main__':
         print('handle not write serial')
     
 
-    time.sleep(0.1)
+    sleep(0.1)
     
 
     for _ in range(10000):
         pass
-    time.sleep(1)
+    sleep(1)
     s.close_serial()
-    sys.exit()
+    exit()

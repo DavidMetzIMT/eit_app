@@ -1,49 +1,36 @@
 
-import time
+from time import sleep
 
 from eit_app.io.video.microcamera import MicroCam, convert_frame_to_Qt_format
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtGui import QImage
-import threading
-import sys
+from threading import Thread, Event
 
-import logging
-class HardwarePoller(threading.Thread):
-    """ thread to repeatedly poll hardware
+class Poller(Thread):
+    """ thread to repeatedly poll
     sleeptime: time to sleep between pollfunc calls
     pollfunc: function to repeatedly call to poll hardware"""
 
-    
-    def __init__(self,name, pollfunc, sleeptime=None,deamon=True, verbose=False) -> None:
-        threading.Thread.__init__(self)
+    def __init__(self,name, pollfunc, sleeptime=None,deamon=True) -> None:
+        Thread.__init__(self)
 
         self.name = f'Hardware Poller "{name}"'
         self.pollfunc = pollfunc
         self.sleeptime = sleeptime or 0.1
         self.daemon=deamon
-        self._verbose=verbose
-        self._runflag = threading.Event()  # clear this to pause thread
+        self._runflag = Event()  # clear this to pause thread
         self._runflag.clear()    
       
     def run(self):
-        # self.runflag.set()
         self.worker()
 
     def worker(self):
-        # while(1):
-        #     if self.verbose:
-        #         print(f'{self.name} is running!!')
-        #     time.sleep(self.sleeptime)
-        #     self.progress.emit()
-        while True:
-            # logging.info(f'{self.name} is running!!')
-            if self._verbose:
-                print(f'{self.name} is running!!')
+        while 1:
             if self._runflag.is_set():
                 self.pollfunc()
-                time.sleep(self.sleeptime)
+                sleep(self.sleeptime)
             else:
-                time.sleep(0.1)
+                sleep(0.1)
 
     def start_polling(self):
         self._runflag.set()
@@ -59,9 +46,6 @@ class HardwarePoller(threading.Thread):
 
     def is_running(self):
         return(self._runflag.is_set())
-
-    
-
 
 
 
@@ -108,10 +92,10 @@ class Worker(QThread):
     #     self._Thread__stop()
 
     def run(self):
-        while(1):
+        while 1:
             if self.verbose:
                 print(f'{self.name} is running!!')
-            time.sleep(self.sleeptime)
+            sleep(self.sleeptime)
             self.progress.emit()
     
 
@@ -132,10 +116,10 @@ class WorkerCam(QThread):
 
     def run(self):
         while 1:
-            time.sleep(self.sleeptime)
+            sleep(self.sleeptime)
             while self.thread_active:
                 ret, frame = self.capture_device.capture_frame()
-                time.sleep(self.sleeptime)
+                sleep(self.sleeptime)
                 if ret:
                     # img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     # trans_img = cv2.flip(img, 1)
