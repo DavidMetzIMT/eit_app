@@ -1,9 +1,7 @@
 
 from time import sleep
 
-from eit_app.io.video.microcamera import MicroCam, convert_frame_to_Qt_format
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtGui import QImage
 from threading import Thread, Event
 
 class Poller(Thread):
@@ -42,7 +40,7 @@ class Poller(Thread):
         self.stop_polling()
 
     def resume_polling(self):
-        self.start_polling()
+        self.stop_polling()
 
     def is_running(self):
         return(self._runflag.is_set())
@@ -57,39 +55,8 @@ class Worker(QThread):
     def __init__(self, name, sleeptime=None, verbose=False):
         super(Worker,self).__init__()
         self.name = f'Worker "{name}"'
-        self.sleeptime= sleeptime if sleeptime else 0.1
+        self.sleeptime = sleeptime or 0.1
         self.verbose=verbose
-        
-    #     self.sleeptime = sleeptime
-    #     self.pollfunc = pollfunc  
-    #     self.runflag = QThreading.Event()  # clear this to pause thread
-    #     self.runflag.clear()
-        
-    # def run(self):
-    #     self.runflag.set()
-    #     self.worker()
-
-    # def worker(self):
-    #     while(1):
-    #     if self.runflag.is_set():
-    #         self.pollfunc()
-    #         time.sleep(self.sleeptime)
-    #     else:
-    #         time.sleep(0.01)
-
-    # def pause(self):
-    #     self.runflag.clear()
-
-    # def resume(self):
-    #     self.runflag.set()
-
-    # def running(self):
-    #     return(self.runflag.is_set())
-
-    # def kill(self):
-    #     print "WORKER END"
-    #     sys.stdout.flush()
-    #     self._Thread__stop()
 
     def run(self):
         while 1:
@@ -98,35 +65,64 @@ class Worker(QThread):
             sleep(self.sleeptime)
             self.progress.emit()
     
+class CustomWorker(QThread):
 
-class WorkerCam(QThread):
+    finished = pyqtSignal()
+    progress = pyqtSignal()
 
-    image_update = pyqtSignal(QImage)
+    def __init__(self, sleeptime:float=None):  # sourcery skip: or-if-exp-identity
+        super(CustomWorker,self).__init__()
+        self.sleeptime= sleeptime or 0.1
+        self._runflag = Event()  # clear this to pause thread
+        self._runflag.clear()  
 
-    def __init__(self, sleeptime=None):
-        super(WorkerCam,self).__init__()
-        self.thread_active = False
-        self.sleeptime= sleeptime if sleeptime else 0.1
+    def start_polling(self):
+        self._runflag.set()
 
-    def set_capture_device(self, device:MicroCam):
-        self.capture_device= device
+    def stop_polling(self):
+        self._runflag.clear()
 
-    def start_capture(self):
-        self.thread_active= True
+    def is_running(self):
+        return self._runflag.is_set()
 
     def run(self):
         while 1:
             sleep(self.sleeptime)
-            while self.thread_active:
-                ret, frame = self.capture_device.capture_frame()
+            while self.is_running():
+                self.progress.emit()
                 sleep(self.sleeptime)
-                if ret:
-                    # img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    # trans_img = cv2.flip(img, 1)
-                    # ConvertToQtFormat = QImage(trans_img.data, trans_img.shape[1], trans_img.shape[0], QImage.Format_RGB888)
-                    # picture = ConvertToQtFormat.scaled(640, 480, Qt.KeepAspectRatio)
-                    self.image_update.emit(convert_frame_to_Qt_format(frame))
+# class WorkerCam(QThread):
 
-    def stop_capture(self):
-        self.thread_active = False
-        # self.quit()
+#     image_update = pyqtSignal(QImage)
+
+#     def __init__(self, sleeptime=None):  # sourcery skip: or-if-exp-identity
+#         super(WorkerCam,self).__init__()
+#         self.thread_active = False
+#         self.sleeptime= sleeptime or 0.1
+#         self.sleeptime = sleeptime
+#         self._runflag = Event()  # clear this to pause thread
+#         self._runflag.clear()  
+
+#     def set_capture_device(self, device:MicroCam):
+#         self.capture_device= device
+
+#     def start_capture(self):
+#         self._runflag.set()
+
+#     def stop_capture(self):
+#         self._runflag.clear()
+#     # def running(self):
+#     #     return(self.runflag.is_set())
+
+#     def is_running(self):
+#         return(self._runflag.is_set())
+
+
+#     def run(self):
+#         while 1:
+#             sleep(self.sleeptime)
+#             while self.thread_active:
+#                 ret, frame = self.capture_device.capture_frame()
+#                 if ret:
+#                     self.image_update.emit(convert_frame_to_Qt_format(frame))
+#                 sleep(self.sleeptime)

@@ -7,7 +7,7 @@ import numpy as np
 from eit_app.app.gui import Ui_MainWindow
 from eit_app.app.utils import set_comboBox_items, set_slider, set_table_widget, change_value_withblockSignal
 from eit_app.app.event import CustomEvents
-from eit_app.io.sciospec.device import StatusSWInterface, SWInterface4SciospecDevice
+from eit_app.io.sciospec.device import StatusSWInterface, IOInterfaceSciospec
 from enum import Enum, auto
 
 from eit_app.eit.imaging_type import DATA_TRANSFORMATIONS, IMAGING_TYPE, Imaging
@@ -29,12 +29,12 @@ class AutoName(Enum):
 
 #### Update device tab
 
-def handle_device_refresh_event(app:Ui_MainWindow, device:SWInterface4SciospecDevice):
+def handle_device_refresh_event(app:Ui_MainWindow, device:IOInterfaceSciospec):
     """ Handle responsible of refesh the list of devices in the comboBox """
     items = [key for key in device.available_devices.keys()] or ['None device']
     set_comboBox_items(app.cB_ports,items)
 
-def handle_device_status_event(app:Ui_MainWindow, device:SWInterface4SciospecDevice):
+def handle_device_status_event(app:Ui_MainWindow, device:IOInterfaceSciospec):
     """ Handle responsible of actualize the status label of the device """
     app.lab_device_status.setText(device.status_prompt)
     app.lab_device_status.adjustSize
@@ -43,7 +43,7 @@ def handle_device_status_event(app:Ui_MainWindow, device:SWInterface4SciospecDev
     else:
         app.lab_device_status.setStyleSheet("background-color: green")
 
-def handle_device_setup_event(app:Ui_MainWindow, device:SWInterface4SciospecDevice, set_freq_max_enable:bool=True, error:bool=False):
+def handle_device_setup_event(app:Ui_MainWindow, device:IOInterfaceSciospec, set_freq_max_enable:bool=True, error:bool=False):
     
     app.lE_sn.setText(device.setup.get_sn())
     ## Update EthernetConfig
@@ -101,7 +101,7 @@ def update_replay_status(app:Ui_MainWindow, replay:CustomFlag):
     else:
         app.lab_replay_status.setText('REPLAY OFF')
         app.lab_replay_status.setStyleSheet("background-color: grey")
-        set_slider(app.slider_replay_meas, slider_pos=0)
+        set_slider(app.slider_replay, slider_pos=0)
 
 def update_imaging_inputs_field(app:Ui_MainWindow, imaging_type:Imaging):
     """"""
@@ -126,21 +126,22 @@ def update_progression_acquisition_single_frame(app:Ui_MainWindow, idx_frame:int
     app.sB_actual_frame_cnt.setValue(idx_frame)
     app.meas_progress_bar.setValue(progression)
 
-def update_info_data_computed(app:Ui_MainWindow, live_meas:CustomFlag=CustomFlag, idx_frame:List[int]=[0], info:str=''):
+def update_info_data_computed(app:Ui_MainWindow, live_meas:CustomFlag=CustomFlag, idx_frame:List[int]=0, info:str=''):
     if live_meas.is_set():
-        set_comboBox_items(app.cB_current_frame_indx,idx_frame, reset_box=False, set_index=-1, block=True ) 
-    app.textEdit.setText("\r\n".join(info))
+        set_comboBox_items(app.cB_current_idx_frame, [idx_frame], reset_box=False, set_index=-1, block=True ) 
+    app.tE_frame_info.setText("\r\n".join(info))
     
 def update_autosave_changed(app:Ui_MainWindow):
     app.lE_meas_dataset_dir.setEnabled(app.chB_dataset_autoset.isChecked())
+    app.chB_dataset_save_img.setEnabled(app.chB_dataset_autoset.isChecked())
 
 def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementDataset ):
 
     app.tE_load_dataset_dir.setText(dataset.output_dir)
     nb_loaded_frame= dataset.frame_cnt
-    set_comboBox_items(app.cB_current_frame_indx, [i for i in range(nb_loaded_frame)])
+    set_comboBox_items(app.cB_current_idx_frame, [i for i in range(nb_loaded_frame)])
     set_comboBox_items(app.cB_ref_frame_idx, [i for i in range(nb_loaded_frame)])
-    set_slider(app.slider_replay_meas,  slider_pos=0, pos_min=0, pos_max=nb_loaded_frame-1, single_step=1)
+    set_slider(app.slider_replay,  slider_pos=0, pos_min=0, pos_max=nb_loaded_frame-1, single_step=1)
 
 
 class UpdateEvents(AutoName):
@@ -151,7 +152,7 @@ class UpdateEvents(AutoName):
     replay_status=auto()
     freqs_inputs=auto()
     plots_to_show= auto()
-    progress_acq_frame=auto()
+    progress_frame=auto()
     info_data_computed=auto()
     autosave_changed=auto()
     dataset_loaded=auto()
@@ -165,7 +166,7 @@ update_devices_events={
     UpdateEvents.replay_status:             [update_replay_status, True],
     UpdateEvents.freqs_inputs: [update_imaging_inputs_field, True],
     UpdateEvents.plots_to_show: [update_plots_to_show_inputs,True],
-    UpdateEvents.progress_acq_frame: [update_progression_acquisition_single_frame,True],
+    UpdateEvents.progress_frame: [update_progression_acquisition_single_frame,True],
     UpdateEvents.info_data_computed: [update_info_data_computed, True],
     UpdateEvents.autosave_changed: [update_autosave_changed, True],
     UpdateEvents.dataset_loaded: [update_dataset_loaded, True]

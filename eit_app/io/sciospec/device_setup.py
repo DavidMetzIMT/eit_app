@@ -12,6 +12,9 @@ from eit_app.utils.utils_path import CancelledError, DataLoadedNotCompatibleErro
 
 
 
+from logging import getLogger
+logger = getLogger(__name__)
+
 
 ################################################################################
 ##  Setup class Sciospec EIT Device ############################################
@@ -24,7 +27,9 @@ class SciospecSetup(object):
     -----
     - see documentation of the EIT device    """
     def __init__(self, ch):
-
+        self.reinit(ch)
+        
+    def reinit(self, ch):
         self.exc_amp= float(10.0)
         self.exc_pattern = [[ 1, 2], [2, 3]]
         self.exc_pattern_idx= int(0)
@@ -69,9 +74,9 @@ class SciospecSetup(object):
                 dir= get_dir(title='Select a directory, where the setup will be saved')
             file=os.path.join(dir, f'setup_{get_date_time()}')
             save_as_pickle(file, self)
-            print(f'Setup: {self.__dict__} \n saved in file : {dir} ')
+            logger.info(f'Setup: {self.__dict__} \n saved in file : {dir} ')
         except CancelledError:
-            print('Saving cancelled')
+            logger.debug('Saving setup cancelled')
 
     def load(self):
         """ Load the setup out of a pkl file """
@@ -79,10 +84,10 @@ class SciospecSetup(object):
             path, filename = get_file(filetypes=[(".pkl-files", "*.pkl")],)
             load_pickle(os.path.join(path, filename),self)
             # set_attributes(self,loaded_setup)
-            print(f'Setup: {self.__dict__} \n loaded from file : {os.path.join(path, filename)} ')
+            logger.info(f'Setup: {self.__dict__} \n loaded from file : {os.path.join(path, filename)} ')
         except CancelledError:
             # show_msgBox('Loading cancelled','', "I")
-            print('Loading cancelled')
+             logger.debug('Loading cancelled')
         except DataLoadedNotCompatibleError:
             show_msgBox('Please select a setup file', 'Not a setup file', "Warning")
             # print('wrong pickle file choosen!!!')

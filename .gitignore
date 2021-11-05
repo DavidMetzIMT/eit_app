@@ -8,4 +8,5 @@ exe
 _test_scripts
 outputs
 datasets
+snapshots
 *.svg

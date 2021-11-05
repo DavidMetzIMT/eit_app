@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
 import os
 from logging import getLogger
+from queue import Queue
 from sys import argv
 from PyQt5.QtWidgets import QApplication
 
@@ -30,6 +31,7 @@ from eit_app.app.dialog_boxes import show_msgBox
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.device_setup import SciospecSetup
 from eit_app.io.sciospec.utils import convertBytes2Int,convert4Bytes2Float
+from eit_app.io.video.microcamera import VideoCaptureModule
 from eit_app.utils.constants import EXT_PKL, MEAS_DIR
 from eit_app.utils.flag import CustomFlag
 from eit_app.utils.utils_path import (CancelledError, append_date_time, get_date_time, get_dir, load_pickle,
@@ -54,6 +56,7 @@ logger = getLogger(__name__)
 class EitMeasurementDataset(object):
     """ Class EITDataSet: regroups infos and frames of measurements """
     def __init__(self):
+        # self.queue_out_video_module:Queue=None
         self.date_time= None
         self.name= None
         self.output_dir=None
@@ -65,25 +68,16 @@ class EitMeasurementDataset(object):
         self._frame_TD_ref=None
         self.flag_new_meas=CustomFlag()
         self.autosave=CustomFlag()
-        self.autosave.set()
-
-
-    def init_for_gui(self,dev_setup:SciospecSetup= SciospecSetup(32), name_measurement:str=None):
-        # self.date_time= get_date_time()
-        self.name= name_measurement#append_date_time(name_measurement, self.date_time)
-        self.output_dir=None #mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
-        self.dev_setup= dev_setup
-        self.frame_cnt=0
-        self.rx_meas_frame=[EITFrame(dev_setup)]
-        self.meas_frame=[EITFrame(dev_setup)]
-        self.freqs_list= dev_setup.make_freqs_list()
-        self._frame_TD_ref=[EITFrame(dev_setup)]
-        return self.name, self.output_dir
+        self.save_img=CustomFlag()
         
-    def prepare_for_aquisition(self,dev_setup:SciospecSetup, name_measurement:str=None):
+    def initForAquisition(self,dev_setup:SciospecSetup, name_measurement:str=None):
         self.date_time= get_date_time()
-        self.name= append_date_time(name_measurement, self.date_time)
-        self.output_dir=mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
+        if self.autosave.is_set():
+            self.name= append_date_time(name_measurement, self.date_time)
+            self.output_dir=mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
+        else:
+            self.name= 'Not saved'
+            self.output_dir=None
         self.dev_setup= dev_setup
         self.frame_cnt=0
         self.rx_meas_frame=[EITFrame(dev_setup)]
@@ -94,30 +88,24 @@ class EitMeasurementDataset(object):
         return self.name, self.output_dir
     
 
-
-
     def add_rx_frame_to_dataset(self, rx_frame, for_ser:bool=False, idx:int=0):
         """ add the data from the rx_frame in the dataset 
         (is called when measuring rx_frame have been recieved)"""
 
         data =self.extract_data(rx_frame)
-        # self.append(frame, idx_frm=0)
         self.rx_meas_frame[idx].add_data(data,self.frame_cnt)
         # if frame complete Frame_cnt+ and append new Frame
         if self.rx_meas_frame[idx].is_complete():
             self.frame_save_and_prepare_for_next_rx(idx)
+            self.frame_cnt += 1
+            self.flag_new_meas.set_edge_up()
 
     def frame_save_and_prepare_for_next_rx(self, idx:int=0):
-        self.make_info_text_for_frame(idx)
-        self.meas_frame[0]=self.rx_meas_frame[idx] # latch actual to the _last_frame
-        if self.frame_cnt == 0:
-            self.set_frame_TD_ref(idx) # init the reference frame for Time difference measurement
-        self.rx_meas_frame[idx]=EITFrame(self.dev_setup) # clear frame 
-        if self.autosave.is_set():
-            self.save_dataset_single_frame()
-        self.frame_cnt += 1
-        # self.flag_new_meas.set()
-        self.flag_new_meas.set_edge_up()
+
+        self.latch_rx_frame_to_meas(0,0)
+        logger.info(f'Frame #{self.meas_frame[0].idx} - complete')
+        self.save_dataset_single_frame()
+        self.rx_meas_frame[idx]=EITFrame(self.dev_setup) # clear frame
 
     def extract_data(self,rx_frame):
         """extract the single data out of the rx_frame, convert them if applicable
@@ -141,19 +129,21 @@ class EitMeasurementDataset(object):
         meas_r_i=np.reshape(np.array(meas_f), (-1,2)) # get a matrix with real and imag values in each column
         return meas_r_i[:,0]+1j*meas_r_i[:,1]
 
-    def set_frame_TD_ref(self, indx=0, path=None):
+    def set_frame_TD_ref(self, idx:int=0, path:str=None):
         """ Latch Frame[indx] as reference for time difference mode
         """
         if path is None:
-            self._frame_TD_ref[0] = self.meas_frame[0] if indx==0 else self.rx_meas_frame[indx]
+            self._frame_TD_ref[0] = self.meas_frame[idx]
         else:
             dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(path)
             self._frame_TD_ref[0]=dataset_tmp.meas_frame[0]
     
-
-    def save_dataset_single_frame(self):
-        filename= os.path.join(self.output_dir, f'Frame{self.frame_cnt:02}')
-        save_as_pickle(filename, self)
+    def save_dataset_single_frame(self, idx:int=0):
+        if not self.autosave.is_set():
+            return
+        path=self.meas_frame[idx].frame_path
+        logger.debug(f'Frame #{self.meas_frame[idx].idx} saved in: {path}')
+        save_as_pickle(path, self)
 
     def load_single_frame(self, file_path):
         dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(file_path)
@@ -181,7 +171,7 @@ class EitMeasurementDataset(object):
             if 'setup' in filename:
                 filenames.remove(filename)
         if not filenames:
-            show_msgBox(f'No frames-files in directory dirpath!', 'NO Files FOUND', 'Warning')
+            show_msgBox('No frames-files in directory dirpath!', 'NO Files FOUND', 'Warning')
             return
         # print('filepaths', filenames)
         for i,filename in enumerate(filenames): # get all the frame data
@@ -190,39 +180,19 @@ class EitMeasurementDataset(object):
             if i ==0:
                 set_attributes(self,dataset_tmp)
                 setattr(self, 'output_dir', dir_path)
-                    # if key not in self.__dict__.keys():
-                    #     print(f'key:{key} not found')
-                    # setattr(self, key, getattr(dataset_tmp,key))
 
-                # self.output_dir=dataset_tmp.output_dir
-                # self.name= dataset_tmp.name
-                # self.date_time= dataset_tmp.dateTime
-                # self.dev_setup= dataset_tmp.dev_setup
-                # self.frame=[] # reinit frame
-                # self.frame_cnt=len(only_files)
-                # self.freqs_list= dataset_tmp.frequencyList
-                # self._frame_TD_ref= []
-                # self._frame_TD_ref.append(dataset_tmp.Frame[0])
             else:
                 # setattr(self, 'frame_cnt', getattr(dataset_tmp,'frame_cnt'))
                 self.meas_frame.append(dataset_tmp.meas_frame[0])
-            self.meas_frame[-1].loaded_frame_path= filepath
-        setattr(self, 'frame_cnt', len(self.meas_frame) )
+            self.meas_frame[-1].frame_path= filepath
+            self.make_info_text_for_frame(-1)
+        setattr(self, 'frame_cnt', len(self.meas_frame))
         # print(self.__dict__)
 
         return filenames
 
     def _find_excitation_indx(self, excitation):
-        """ Return the index of the given excitation in the excitation_Pattern
-
-        Parameters
-        ----------
-        excitation: list of int (e.g. [1, 2])
-
-        Returns
-        -------
-        indx: int
-            index of the given excitation in self.dev_setup.excitation_Pattern """
+        """ Return the index of the given excitation in the excitation_Pattern"""
         indx = 0
         for Exc_i in self.dev_setup.get_exc_pattern():
             if Exc_i== excitation:
@@ -230,39 +200,43 @@ class EitMeasurementDataset(object):
             indx += 1
         return indx
 
-    def make_info_text_for_frame(self, indx):
-        """ Create a tex with information about the Frame nb indx
+    def latch_rx_frame_to_meas(self, idx_rx_frame:int=0, idx_meas_frame:int=0):
+
+        self.meas_frame[idx_meas_frame]=self.rx_meas_frame[idx_rx_frame]
+        if self.autosave.is_set():
+            self.meas_frame[idx_meas_frame].frame_path= os.path.join(self.output_dir, f'Frame{self.frame_cnt:02}.pkl')
+        if self.frame_cnt == 0:
+            self.set_frame_TD_ref(0)
+        self.make_info_text_for_frame(idx_meas_frame)
         
-        Parameters
-        ----------
-        indx: int
-            index of the frame
-        
-        Notes
-        -----
-        save the text under Frame[indx].infoText """
-        frame = self.rx_meas_frame if indx==-1 else self.rx_meas_frame[indx]
-        frame.info_text= [ f"Dataset name:\t{self.name}",
-                    f"Frame#:\t{frame.idx}",
-                    f"TimeStamps:\t{self.date_time}",
-                    f"Sweepconfig:\tFmin = {self.dev_setup.get_freq_min()/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.get_freq_max()/1000:.3f} kHz",
-                    f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
-                    f"\tAmp = {self.dev_setup.get_exc_amp():.5f} A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
-                    f"excitation:\t{self.dev_setup.get_exc_pattern()}"]
+
+    def make_info_text_for_frame(self, idx_meas_frame):
+        """ Create a tex with information about the Frame nb indx"""
+
+        frame = self.meas_frame[idx_meas_frame]
+        dirname, filename= os.path.split(frame.frame_path)
+        frame.info_text= [ 
+            f"Dataset name:\t{self.name}",
+            f"Frame filename:\t{filename}",
+            f"dirname:\t{dirname}",
+            f"Frame#:\t{frame.idx}",
+            f"TimeStamps:\t{self.date_time}",
+            f"Sweepconfig:\tFmin = {self.dev_setup.get_freq_min()/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.get_freq_max()/1000:.3f} kHz",
+            f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
+            f"\tAmp = {self.dev_setup.get_exc_amp():.5f} A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
+            f"excitation:\t{self.dev_setup.get_exc_pattern()}"
+        ]
                 
     def get_filling(self, idx_frame:int=0):
         return self.rx_meas_frame[idx_frame].filling
 
     def get_voltages_ref_frame(self, idx_freq:int=0)-> np.ndarray:
-
         return self._frame_TD_ref[0].get_voltages(idx_freq)
     
     def get_idx_ref_frame(self)-> int:
-
         return self._frame_TD_ref[0].get_idx()
 
     def get_idx_frame(self, idx_frame:int=0)-> int:
-
         return self.meas_frame[idx_frame].get_idx()
 
     def get_voltages(self, idx_frame:int=0, idx_freq:int=0)-> np.ndarray:
@@ -275,14 +249,21 @@ class EitMeasurementDataset(object):
            
     def get_freqs_list(self):
         return self.freqs_list
+
     def get_freq_val(self, idx_freq:int=0):
         try:
             return self.freqs_list[idx_freq]
         except IndexError:
             print(f'try to access index {idx_freq} in fregs_list {self.freqs_list}')
             return self.freqs_list[0]
+
     def get_info(self, idx_frame:int=0):
         return self.meas_frame[idx_frame].info_text
+    
+    def get_frame_cnt(self):
+        return self.frame_cnt
+    
+    
 
 
 class EITFrame(object):
@@ -303,7 +284,7 @@ class EITFrame(object):
         self.filling:int=0 # pourcentage of filling
         self.meas=[EITMeas(dev_setup) for i in range(self.freq_steps)] # Meas[Frequency_indx]
         self.info_text=''
-        self.loaded_frame_path=''
+        self.frame_path=''
     
     def set_freq(self, data):
         """ set the frequence value in the corresponding Measuremeent object """
@@ -353,7 +334,6 @@ class EITFrame(object):
             print(f'try to access index {idx_freq} in meas {self.meas},{len(self.meas)}')
             return self.meas[0].get_voltages()
            
-    
     def get_idx(self)-> int:
         return self.idx
 

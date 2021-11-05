@@ -7,8 +7,9 @@
 
 MEAS_DIR='measurements'
 ICONS_DIR= 'icons'
-SETUPS_DIR= 'setups'
+# SETUPS_DIR= 'setups'
 DEFAULT_DIR= 'default'
+SNAPSHOT_DIR= 'snapshots'
 
 DEFAULT_INJECTIONS= {   'ad':'InjPattern_default_ad.txt',
                         'op':'InjPattern_default_op.txt'}
@@ -33,11 +34,12 @@ EXT_TXT= '.txt'
 
 
 
-DEFAULT_IMG_SIZES={  #'1600 x 1200':(1600,1200), 
-        #'1280 x 960':(1280, 960),
-        #'800 x 600':(800,600),
-        '640 x 480':(640,480)
-        }
+DEFAULT_IMG_SIZES={
+    '1600 x 1200':(1600,1200), 
+    '1280 x 960':(1280,960),
+    '800 x 600':(800,600),
+    '640 x 480':(640,480)
+}
 EXT_IMG= {'PNG': '.png', 'JPEG':'.jpg'}
 
 

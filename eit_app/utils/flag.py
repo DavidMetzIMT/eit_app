@@ -5,10 +5,10 @@ class CustomFlag(object):
         super().__init__()
         self.reset()
 
-    def set(self):
+    def set(self, val:bool=True):
         """Set the flag"""
         self._set_old()
-        self.flag=True
+        self.flag=val
     def set_edge_up(self):
         """Set the flag"""
         self._set_old(False)
@@ -36,28 +36,43 @@ class CustomFlag(object):
 
 
 class CustomTimer(object):
+    max_time:float=1.0
+    time_stp:float=0.1
+    cnt:int=0
+    max_cnt:int
 
-    def __init__(self) -> None:
+    def __init__(self, max_time:float=1.0, time_stp:float=0.1) -> None:
         super().__init__()
-        self.max_cnt:float=0.0
-        self.cnt:float=0.0
-        self.step:float=1.0
+        self.set_max_time(max_time)
+        self.set_time_stp(time_stp)
+        self.reset()
 
     def increment(self)->bool:
+        # print('cnt', self.cnt, self.max_cnt, self.step, self._is_done())
         if self._is_done():
-            self.cnt=self.step
-            return 1
+            self.reset()
+            return True
         else:
-            self.cnt+=self.step
-            return 0
+            self.cnt+=1
+            return False
     
-    def reset(self):
-        self.cnt=0.0
-    
-    def set_max_cnt(self, max_cnt):
-        self.max_cnt=max_cnt
-    def set_step(self, step):
-        self.step=step    
+    def reset(self)->None:
+        self.cnt=0
+
+    def set_max_time(self, max_time:float=1.0)->None:
+        self.max_time=max_time
+        self.set_counter()  
+
+    def set_time_stp(self, time_stp:float=0.1)->None:
+        self.time_stp=time_stp  
+        self.set_counter()  
 
     def _is_done(self)->bool:
         return self.max_cnt==self.cnt
+    
+    def is_rst(self)->bool:
+        return bool(self.cnt)
+
+    def set_counter(self):
+        self.max_cnt= int(self.max_time/self.time_stp)
+        

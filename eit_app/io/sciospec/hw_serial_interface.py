@@ -81,12 +81,16 @@ class SerialInterface(object):
         self.last_rx_frame = None  # last response retrieved by polling
         self.callback = None
         self.register_callback()
-        self.ErrorSerialInterface = ''
         self.serial_port = Serial()
         self.ports_available = []
         self.listen_worker = Poller(name='Serial',sleeptime= 0.01,pollfunc=self.poll_read)
         self.listen_worker.start()
         logger.debug('__init__ SerialInterface - done')
+
+    def reinit(self):
+        self.ports_available = []
+        self.last_rx_frame = None 
+        logger.debug('reinit SerialInterface - done')
 
     def get_actual_port_name(self):
         return self.serial_port.name or 'None'
@@ -173,8 +177,7 @@ class SerialInterface(object):
             self.serial_port.reset_output_buffer()
             self.serial_port.reset_input_buffer()
             self.serial_port.flush()
-            msg=f'Connection to serial port {port_name} - OPENED'
-            logger.debug(msg)
+            logger.debug(f'Connection to serial port {port_name} - OPENED')
             self.listen_worker.stop_polling()
             self.stop_measurements()
             self.clear_unwanted_rx_frames()
@@ -192,8 +195,7 @@ class SerialInterface(object):
     def close(self):
         """ Close serial interface """
         self.listen_worker.stop_polling() # stop  the automatic polling on the hardware 
-        msg=f'Connection to serial port {self.serial_port.name} - CLOSED'
-        logger.debug(msg)
+        logger.debug(f'Connection to serial port {self.serial_port.name} - CLOSED')
         self.serial_port.close() # close the serial interface
 
     def register_callback(self, func=None):
@@ -206,10 +208,7 @@ class SerialInterface(object):
         self.callback = func or self.no_callback
     
     def no_callback(self):
-
-        msg='Callback for rx_frame not defined'
-        # sleep(0.1)
-        logger.warning(msg)
+        logger.warning('Callback for rx_frame not defined')
 
     def write(self, command:list):
         """ Send a command to the hardware
@@ -224,8 +223,7 @@ class SerialInterface(object):
 
         try:
             self.serial_port.write(bytearray(command))
-            msg='TX: ' + str(command)
-            logger.debug(msg)
+            logger.debug('TX: ' + str(command))
         except (SerialException, PortNotOpenError) as error:
             initial_error_message= error.__str__()
             msg=f'Write CMD: {get_cmd(command).name}({command}) to serial port "{self.serial_port.name}" - FAILED\
@@ -267,8 +265,7 @@ class SerialInterface(object):
             while self.read_nb_of_availables_bytes() < length_data2read: # dangerous ...timer use?
                 pass
             rx_frame.extend(self.read_bytes(length_data2read))
-            msg=f'RX: {rx_frame[:10]}'
-            logger.debug(msg)
+            logger.debug(f'RX: {rx_frame[:10]}')
         return rx_frame
 
     def read_nb_of_availables_bytes(self):

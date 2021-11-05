@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -19,6 +22,16 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>icons/EIT.png</normaloff>icons/EIT.png</iconset>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>20</width>
+    <height>20</height>
+   </size>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabW_settings">
     <property name="geometry">
@@ -26,11 +39,11 @@
       <x>10</x>
       <y>10</y>
       <width>431</width>
-      <height>911</height>
+      <height>1021</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -646,7 +659,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>330</y>
+        <y>340</y>
         <width>401</width>
         <height>270</height>
        </rect>
@@ -654,7 +667,7 @@
       <property name="title">
        <string>Frame infos</string>
       </property>
-      <widget class="QComboBox" name="cB_current_frame_indx">
+      <widget class="QComboBox" name="cB_current_idx_frame">
        <property name="geometry">
         <rect>
          <x>120</x>
@@ -677,7 +690,7 @@
         <string>Current frame #</string>
        </property>
       </widget>
-      <widget class="QTextEdit" name="textEdit">
+      <widget class="QTextEdit" name="tE_frame_info">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -829,12 +842,28 @@
         <rect>
          <x>10</x>
          <y>50</y>
-         <width>121</width>
+         <width>71</width>
          <height>23</height>
         </rect>
        </property>
        <property name="text">
         <string>autosave</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_dataset_save_img">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>50</y>
+         <width>71</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>save img</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -853,7 +882,7 @@
       <property name="title">
        <string>Loading</string>
       </property>
-      <widget class="QSlider" name="slider_replay_meas">
+      <widget class="QSlider" name="slider_replay">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -872,7 +901,7 @@
         <number>0</number>
        </property>
       </widget>
-      <widget class="QPushButton" name="pB_gotoend_replay_meas">
+      <widget class="QPushButton" name="pB_replay_goto_end">
        <property name="geometry">
         <rect>
          <x>79</x>
@@ -892,16 +921,16 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../icons/icon_end.png</normaloff>../icons/icon_end.png</iconset>
+         <normaloff>icon_end.png</normaloff>icon_end.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
        <property name="flat">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
-      <widget class="QPushButton" name="pB_play_replay_meas">
+      <widget class="QPushButton" name="pB_replay_play">
        <property name="geometry">
         <rect>
          <x>45</x>
@@ -921,16 +950,16 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../icons/icon_play.png</normaloff>../icons/icon_play.png</iconset>
+         <normaloff>icons/icon_play.png</normaloff>icons/icon_play.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
        <property name="flat">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
-      <widget class="QPushButton" name="pB_backbegin_replay_meas">
+      <widget class="QPushButton" name="pB_replay_back_begin">
        <property name="geometry">
         <rect>
          <x>11</x>
@@ -950,7 +979,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../icons/icon_begin.png</normaloff>../icons/icon_begin.png</iconset>
+         <normaloff>icons/icon_begin.png</normaloff>icons/icon_begin.png</iconset>
        </property>
        <property name="checkable">
         <bool>false</bool>
@@ -962,10 +991,10 @@
         <bool>false</bool>
        </property>
        <property name="flat">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
-      <widget class="QDoubleSpinBox" name="sB_replay_refresh_time">
+      <widget class="QDoubleSpinBox" name="sB_replay_time">
        <property name="geometry">
         <rect>
          <x>339</x>
@@ -981,19 +1010,19 @@
         <number>1</number>
        </property>
        <property name="minimum">
-        <double>1.000000000000000</double>
+        <double>0.100000000000000</double>
        </property>
        <property name="maximum">
         <double>10.000000000000000</double>
        </property>
        <property name="singleStep">
-        <double>1.000000000000000</double>
+        <double>0.100000000000000</double>
        </property>
        <property name="value">
         <double>1.000000000000000</double>
        </property>
       </widget>
-      <widget class="QPushButton" name="pB_pause_replay_meas">
+      <widget class="QPushButton" name="pB_replay_pause">
        <property name="geometry">
         <rect>
          <x>113</x>
@@ -1013,16 +1042,19 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../icons/icon_pause.png</normaloff>../icons/icon_pause.png</iconset>
+         <normaloff>icons/icon_pause.png</normaloff>icons/icon_pause.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
        <property name="flat">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
-      <widget class="QPushButton" name="pB_stop_replay_meas">
+      <widget class="QPushButton" name="pB_replay_stop">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="geometry">
         <rect>
          <x>147</x>
@@ -1042,16 +1074,16 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../icons/icon_stop.png</normaloff>../icons/icon_stop.png</iconset>
+         <normaloff>icons/icon_stop.png</normaloff>icons/icon_stop.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
        <property name="flat">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
       </widget>
-      <widget class="QLabel" name="label_replay_refresh_time">
+      <widget class="QLabel" name="lab_replay_time">
        <property name="geometry">
         <rect>
          <x>250</x>
@@ -1074,7 +1106,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Load dataset from file (*.dat)</string>
+        <string>Load measurements from a selected directory</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -1174,28 +1206,6 @@ p, li { white-space: pre-wrap; }
        <string>Refresh</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pB_start_video">
-      <property name="geometry">
-       <rect>
-        <x>190</x>
-        <y>70</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Video</string>
-      </property>
-      <property name="shortcut">
-       <string/>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-      <property name="checked">
-       <bool>false</bool>
-      </property>
-     </widget>
      <widget class="QComboBox" name="cB_img_file_ext">
       <property name="geometry">
        <rect>
@@ -1212,14 +1222,89 @@ p, li { white-space: pre-wrap; }
      <widget class="QComboBox" name="cB_img_size">
       <property name="geometry">
        <rect>
-        <x>170</x>
+        <x>132</x>
         <y>180</y>
-        <width>73</width>
+        <width>111</width>
         <height>20</height>
        </rect>
       </property>
       <property name="currentText">
        <string/>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pB_capture_start">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>110</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>test</string>
+      </property>
+      <property name="statusTip">
+       <string>Refresh the available serial port list</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Start capture</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pB_capture_stop">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>270</x>
+        <y>110</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>test</string>
+      </property>
+      <property name="statusTip">
+       <string>Refresh the available serial port list</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Stop capture</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pB_capture_snapshot">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>180</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>test</string>
+      </property>
+      <property name="statusTip">
+       <string>Refresh the available serial port list</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Snapshot</string>
       </property>
      </widget>
     </widget>
@@ -1365,7 +1450,7 @@ p, li { white-space: pre-wrap; }
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_pyeit">
        <attribute name="title">
@@ -1682,12 +1767,12 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>440</x>
       <y>10</y>
-      <width>831</width>
-      <height>911</height>
+      <width>1471</width>
+      <height>1021</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_meas_voltages">
      <attribute name="title">
@@ -1696,8 +1781,8 @@ p, li { white-space: pre-wrap; }
      <widget class="QWidget" name="verticalLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>120</y>
+        <x>10</x>
+        <y>250</y>
         <width>821</width>
         <height>740</height>
        </rect>
@@ -1935,6 +2020,35 @@ p, li { white-space: pre-wrap; }
       </property>
      </widget>
     </widget>
+   </widget>
+   <widget class="QComboBox" name="cB_log_level">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>0</y>
+      <width>130</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string/>
+    </property>
+    <property name="statusTip">
+     <string>Available serial port list</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lab_log_level">
+    <property name="geometry">
+     <rect>
+      <x>730</x>
+      <y>0</y>
+      <width>64</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>log level</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

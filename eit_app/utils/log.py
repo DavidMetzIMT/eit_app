@@ -21,6 +21,7 @@ def main_log(logfile:str='debug.log'):
     format_short = logging.Formatter('%(levelname)s [%(module)s]: %(message)s')
     
     logging_out_h = logging.StreamHandler(sys.stdout)
+
     logging_err_h = logging.StreamHandler(sys.stderr)
     logging_file_h = logging.FileHandler(logfile)
     logging_out_h.setFormatter(format_short)
@@ -28,7 +29,7 @@ def main_log(logfile:str='debug.log'):
     logging_file_h.setFormatter(format_long)
 
     logging_out_h.addFilter(MaxLevelFilter(logging.WARNING))
-    logging_out_h.setLevel(logging.WARNING)
+    logging_out_h.setLevel(logging.DEBUG)
     logging_err_h.setLevel(logging.WARNING)
     logging_file_h.setLevel(logging.DEBUG)
 
@@ -38,7 +39,9 @@ def main_log(logfile:str='debug.log'):
     logger.addHandler(logging_err_h)
     logger.addHandler(logging_file_h)
     logger.setLevel(logging.DEBUG)
-
+    
+def change_level(level=logging.DEBUG):
+    logger.setLevel(level)
 
 if __name__ == '__main__':
     main_log()

@@ -1,5 +1,6 @@
 
 import os
+import struct
 import time
 
 from tkinter import Tk     # from tkinter import Tk for Python 3.x
@@ -22,7 +23,8 @@ class CancelledError(Exception):
     """"""
 class DataLoadedNotCompatibleError(Exception):
     """"""
-
+class EmptyFileError(Exception):
+    """"""
 
 def get_date_time():
     _now = datetime.datetime.now()
@@ -31,7 +33,7 @@ def get_date_time():
 def get_time():
     return time.time()
 
-def append_date_time(s:str, datetime:str=None):
+def append_date_time(s:str, datetime:str=None) -> str:
 
     s= remove_date_time(s)
     if datetime:
@@ -169,14 +171,15 @@ def load_pickle(filename, class2upload=None, verbose=False):
     Returns:
         [type]: [description]
     """
+    if os.path.getsize(filename) == 0:
+        raise EmptyFileError(f'The file :{filename} is empty!')
 
     with open(filename, 'rb') as file:
-                loaded_class = pickle.load(file)
+        loaded_class = pickle.load(file)
     print_loading_verbose(filename, loaded_class, verbose)
     if not class2upload:
         return loaded_class
     set_attributes(class2upload,loaded_class)
-    
     return class2upload
 
 def save_as_txt(filepath, class2save, verbose=True, add_ext=True):
@@ -245,7 +248,7 @@ def print_loading_verbose(filename, classloaded= None, verbose=True):
         else:
             print('\nSome data were loaded from : ...{}'.format(filename[-50:]))
 
-def createPath(path:str, append_datetime=True, incrementDir=False):
+def createPath(path:str, append_datetime=True) -> str:
     """[summary]
 
     Args:
@@ -256,44 +259,13 @@ def createPath(path:str, append_datetime=True, incrementDir=False):
     Returns:
         [type]: [description]
     """
-    # if incrementDir:
-    #     if os.path.exists(path):
-    #         dir_name= path[path.rfind(os.path.sep)+1:]
-    #         if len(dir_name)>2:
-    #             try:
-    #                 indx = [f'_{i:02}' for i in range(1,100)].index(dir_name[-3:])+2
-    #                 dir_name= dir_name[:-3]
-    #             except ValueError:
-    #                 indx= 1
-    #         else:
-    #             indx= 1
+    if append_datetime:        
+        path= append_date_time(path)
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return path
 
-    #         appendix=f'_{indx:02}'
-    #         dir_name= dir_name+ f'_{indx:02}'
-                
-    #         newpath = path[:path.rfind(os.path.sep)+1]+dir_name
-    #         os.mkdir(newpath)
-    #     else:
-    #         os.mkdir(path)
-    #         newpath= path
-    #     return newpath, appendix
-    
-    if append_datetime:
-        if path.rfind('_') + path.rfind('-') - len(path)*2 == -23: # a _date-time pattern has been found
-            path= path[:path.rfind('_')]
-
-        s=str(datetime.datetime.now())
-        for str_,rstr in zip(['-',':',' '], ['','','-']):
-            s= s.replace(str_,rstr)
-        appendix ='_' + s[:s.rfind('.')]
-        newpath = path + appendix
-        os.mkdir(newpath)
-        return newpath, appendix
-    else:
-        if not os.path.exists(path):
-            os.mkdir(path)
-        return path, ''
-def set_attributes(class2upload,loaded_class):
+def set_attributes(class2upload,loaded_class) -> None:
     if not isinstance(loaded_class, type(class2upload)):
         raise DataLoadedNotCompatibleError(f'loaded data type{type(loaded_class,)}, expected type {type(class2upload)}')
 
