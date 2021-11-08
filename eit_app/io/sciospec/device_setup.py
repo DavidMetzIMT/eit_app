@@ -27,9 +27,9 @@ class SciospecSetup(object):
     -----
     - see documentation of the EIT device    """
     def __init__(self, ch):
-        self.reinit(ch)
+        self.reInit(ch)
         
-    def reinit(self, ch):
+    def reInit(self, ch):
         self.exc_amp= float(10.0)
         self.exc_pattern = [[ 1, 2], [2, 3]]
         self.exc_pattern_idx= int(0)

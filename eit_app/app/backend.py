@@ -379,29 +379,29 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _callback_get_device_setup(self):
         """ Get setup of the sciospec device and display it"""
-        self.io_interface.get_setup()
+        self.io_interface.getSetup()
         self.up_events.post(UpdateEvents.device_setup,self, self.io_interface)
 
     def _callback_set_device_setup(self):
         """ Set the displayed setup of the sciospec device"""
         self._update_device_setup_from_gui()
-        self.io_interface.set_setup()
+        self.io_interface.setSetup()
         self._callback_get_device_setup()
 
     def _callback_softreset_device(self):
         """ Reset the sciopec device"""
-        self.io_interface.software_reset()
+        self.io_interface.softwareReset()
         self.up_events.post(UpdateEvents.device_status,self, self.io_interface)
     
     def _callback_start_measurement(self):
         """ Start measurements on sciopec device"""
         self._callback_set_device_setup()
-        if self.io_interface.start_meas(self.lE_meas_dataset_dir.text()):
+        if self.io_interface.startMeasurements(self.lE_meas_dataset_dir.text()):
             self.init_gui_for_live_meas()
 
     def _callback_stop_measurement(self):
         """ Start measurements on sciopec device"""
-        self.io_interface.stop_meas()
+        self.io_interface.stopMeasurements()
         self.live_meas_status.clear()
         # self.frame_cnt_old =-1 # reset
     

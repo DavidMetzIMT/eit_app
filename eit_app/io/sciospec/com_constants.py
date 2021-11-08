@@ -60,8 +60,8 @@ class Answer(Enum):
 
 class CmdTypes(Enum):
     simple=auto()
-    set_w_option=auto()
-    get_w_option=auto()
+    set=auto()
+    get=auto()
 
 
 ################################################################################
@@ -83,7 +83,12 @@ class SciospecCmd(object):
         self.options=[]
     def set_options(self, options:list=[]):
         self.options=options
-
+    def isSimpleCMD(self):
+        return self.type==CmdTypes.simple
+    def isSetCMD(self):
+        return self.type==CmdTypes.set
+    def isGetCMD(self):
+        return self.type==CmdTypes.get
 
 class SciospecOption(object):
     """ OP: Option structure description:
@@ -116,8 +121,8 @@ CMD_SOFT_RESET.set_options([OP_NULL])
 
 ## -----------------------------------------------------------------------------
 ## Set_Measurement_Setup - 0xB0 / Get_Measurement_Setup - 0xB1
-CMD_SET_MEAS_SETUP          = SciospecCmd('CMD_Set_Measurement_Setup',0xB0,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK)
-CMD_GET_MEAS_SETUP          = SciospecCmd('CMD_Get_Measurement_Setup',0xB1,CmdTypes.get_w_option,Answer.WAIT_FOR_ANSWER_AND_ACK)
+CMD_SET_MEAS_SETUP          = SciospecCmd('CMD_Set_Measurement_Setup',0xB0,CmdTypes.set,Answer.WAIT_FOR_ACK)
+CMD_GET_MEAS_SETUP          = SciospecCmd('CMD_Get_Measurement_Setup',0xB1,CmdTypes.get,Answer.WAIT_FOR_ANSWER_AND_ACK)
 # Options for "Set_Measurement_Setup"/"Get_Measurement_Setup"
 OP_RESET_SETUP              = SciospecOption('OP_Reset_Setup',0x01, [0x01,0x00])
 OP_BURST_COUNT              = SciospecOption('OP_Burst_Count',0x02, [0x03,0x01])
@@ -141,8 +146,8 @@ CMD_SET_MEAS_SETUP.set_options(used_cmds)
 CMD_GET_MEAS_SETUP.set_options(used_cmds[1:]) 
 ## -----------------------------------------------------------------------------
 ## Set_Output_Configuration - 0xB2 / Get_Output_Configuration - 0xB3
-CMD_SET_OUTPUT_CONFIG       = SciospecCmd('CMD_Set_Output_Configuration',0xB2,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK)
-CMD_GET_OUTPUT_CONFIG       = SciospecCmd('CMD_Get_Output_Configuration',0xB3,CmdTypes.get_w_option,Answer.WAIT_FOR_ANSWER_AND_ACK)
+CMD_SET_OUTPUT_CONFIG       = SciospecCmd('CMD_Set_Output_Configuration',0xB2,CmdTypes.set,Answer.WAIT_FOR_ACK)
+CMD_GET_OUTPUT_CONFIG       = SciospecCmd('CMD_Get_Output_Configuration',0xB3,CmdTypes.get,Answer.WAIT_FOR_ANSWER_AND_ACK)
 # Options for "Set_Output_Configuration"/"Get_Output_Configuration"
 OP_EXC_STAMP                = SciospecOption('OP_Excitation_Setting',0x01, [0x02,0x01])
 OP_CURRENT_STAMP            = SciospecOption('OP_Current_Row',0x02, [0x02,0x01])
@@ -151,15 +156,15 @@ CMD_SET_OUTPUT_CONFIG.set_options([OP_EXC_STAMP, OP_CURRENT_STAMP, OP_TIME_STAMP
 CMD_GET_OUTPUT_CONFIG.set_options([OP_EXC_STAMP, OP_CURRENT_STAMP, OP_TIME_STAMP])
 ## -----------------------------------------------------------------------------
 ## Start_Stop_Measurement - 0xB4
-CMD_START_STOP_MEAS         = SciospecCmd('CMD_Start_Stop_Measurement',0xB4,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK)
+CMD_START_STOP_MEAS         = SciospecCmd('CMD_Start_Stop_Measurement',0xB4,CmdTypes.set,Answer.WAIT_FOR_ACK)
 # Options for "Start_Stop_Measurement"
 OP_STOP_MEAS                = SciospecOption('OP_Stop_Measurement',0x00, [0x01,0x00])
 OP_START_MEAS               = SciospecOption('OP_Start_Measurement',0x01, [0x01,0x00])
 CMD_START_STOP_MEAS.set_options([OP_START_MEAS, OP_STOP_MEAS])
 ## -----------------------------------------------------------------------------
 ## Set_Ethernet_Configuration - 0xBD / Get_Ethernet_Configuration - 0xBE
-CMD_SET_ETHERNET_CONFIG     = SciospecCmd('CMD_Set_Ethernet_Configuration',0xBD,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK)# NOT USED
-CMD_GET_ETHERNET_CONFIG     = SciospecCmd('CMD_Get_Ethernet_Configuration',0xBE,CmdTypes.get_w_option,Answer.WAIT_FOR_ANSWER_AND_ACK)
+CMD_SET_ETHERNET_CONFIG     = SciospecCmd('CMD_Set_Ethernet_Configuration',0xBD,CmdTypes.set,Answer.WAIT_FOR_ACK)# NOT USED
+CMD_GET_ETHERNET_CONFIG     = SciospecCmd('CMD_Get_Ethernet_Configuration',0xBE,CmdTypes.get,Answer.WAIT_FOR_ANSWER_AND_ACK)
 # Options for "Set_Ethernet_Configuration/Get_Ethernet_Configuration"
 OP_IP_ADRESS                = SciospecOption('OP_IP_adress',0x01, [0x05,0x01]) #set get Static IP adress
 OP_MAC_ADRESS               = SciospecOption('OP_MAC_adress',0x02, [0x00,0x01]) # only get Mac adress
@@ -168,7 +173,7 @@ CMD_SET_ETHERNET_CONFIG.set_options([OP_IP_ADRESS, OP_MAC_ADRESS, OP_DHCP])
 CMD_GET_ETHERNET_CONFIG.set_options([OP_IP_ADRESS, OP_MAC_ADRESS, OP_DHCP])
 ## -----------------------------------------------------------------------------
 ## Set_ExtPort_Channel - 0xC2 / Get_ExtPort_Channel - 0xC3
-CMD_SET_EXPORT_CHANNEL      = SciospecCmd('CMD_Set_ExtPort_Channel',0xC2,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK)# NOT USED
+CMD_SET_EXPORT_CHANNEL      = SciospecCmd('CMD_Set_ExtPort_Channel',0xC2,CmdTypes.set,Answer.WAIT_FOR_ACK)# NOT USED
 CMD_GET_EXPORT_CHANNEL      = SciospecCmd('CMD_Get_ExtPort_Channel',0xC3,CmdTypes.simple,Answer.WAIT_FOR_ANSWER_AND_ACK)# NOT USED
 # Options for "Set_ExtPort_Channel /Get_ExtPort_Channel "
 OP_CH_1_16_NOT_CONNECTED    = SciospecOption('OP_Ch_1_16_not_connected',0x00, [0x01,0x01]) #set get Static IP adress # NOT USED
@@ -185,8 +190,8 @@ CMD_GET_EXPORT_MODULE       = SciospecCmd('CMD_Get_ExtPort_Module',0xC5,CmdTypes
 CMD_GET_EXPORT_MODULE.set_options([OP_NULL])
 ## -----------------------------------------------------------------------------
 ## Set_Battery_Control - 0xC6 / Get_Battery_Control - 0xC7
-CMD_SET_BATTERY_CONTROL     = SciospecCmd('CMD_Set_Battery_Control',0xC6,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK) # NOT USED
-CMD_GET_BATTERY_CONTROL     = SciospecCmd('CMD_Get_Battery_Control',0xC7,CmdTypes.get_w_option,Answer.WAIT_FOR_ANSWER_AND_ACK) # NOT USED
+CMD_SET_BATTERY_CONTROL     = SciospecCmd('CMD_Set_Battery_Control',0xC6,CmdTypes.set,Answer.WAIT_FOR_ACK) # NOT USED
+CMD_GET_BATTERY_CONTROL     = SciospecCmd('CMD_Get_Battery_Control',0xC7,CmdTypes.get,Answer.WAIT_FOR_ANSWER_AND_ACK) # NOT USED
 # Options for "Set_Battery_Control /Get_Battery_Control "
 OP_BATTERY_STATUS          = SciospecOption('OP_Battery_Status',0x01, [0x01,0x01]) # NOT USED
 OP_BATTERY_MODE            = SciospecOption('OP_Battery_mode',0x02, [0x02,0x01])  # NOT USED
@@ -195,8 +200,8 @@ CMD_SET_BATTERY_CONTROL.set_options([OP_BATTERY_STATUS, OP_BATTERY_MODE,OP_BATTE
 CMD_SET_BATTERY_CONTROL.set_options([OP_BATTERY_STATUS, OP_BATTERY_MODE,OP_BATTERY_MIN_CAPACITY])
 ## -----------------------------------------------------------------------------
 ## Set_LED_Control - 0xC8 / Get_LED_Control - 0xC9
-CMD_SET_LED_CONTROL         = SciospecCmd('CMD_Set_LED_Control',0xC8,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK) # NOT USED
-CMD_GET_LED_CONTROL         = SciospecCmd('CMD_Get_LED_Control',0xC9,CmdTypes.get_w_option,Answer.WAIT_FOR_ANSWER_AND_ACK) # NOT USED
+CMD_SET_LED_CONTROL         = SciospecCmd('CMD_Set_LED_Control',0xC8,CmdTypes.set,Answer.WAIT_FOR_ACK) # NOT USED
+CMD_GET_LED_CONTROL         = SciospecCmd('CMD_Get_LED_Control',0xC9,CmdTypes.get,Answer.WAIT_FOR_ANSWER_AND_ACK) # NOT USED
 # Options for "Set_ExtPort_Channel /Get_ExtPort_Channel "
 OP_AUTOMODE_ON_OFF          = SciospecOption('OP_Automode_on_off ',0x01, [0x02,0x01]) #set get Static IP adress # NOT USED
 OP_STATUS_LED               = SciospecOption('OP_Status_LED',0x02, [0x02,0x02]) #set get Static IP adress # NOT USED
@@ -212,7 +217,7 @@ CMD_GET_DEVICE_INFOS    = SciospecCmd('CMD_Device_Serial_Number',0xD1,CmdTypes.s
 CMD_GET_DEVICE_INFOS.set_options([OP_NULL])
 ## -----------------------------------------------------------------------------
 # Set_Current_Source_Setting - 0xB6 / Get_Current_Source_Setting - 0xB7
-CMD_SET_CURRENT_SETTING   = SciospecCmd('CMD_Set_Current_Source_Setting',0xB6,CmdTypes.set_w_option,Answer.WAIT_FOR_ACK) # NOT USED
+CMD_SET_CURRENT_SETTING   = SciospecCmd('CMD_Set_Current_Source_Setting',0xB6,CmdTypes.set,Answer.WAIT_FOR_ACK) # NOT USED
 CMD_GET_CURRENT_SETTING   = SciospecCmd('CMD_Get_Current_Source_Setting',0xB7,CmdTypes.simple,Answer.WAIT_FOR_ANSWER_AND_ACK) # NOT USED
 # Options for "Set_Current_Source_Setting"/"Get_Current_Source_Setting"
 OP_DC_SOURCE              = SciospecOption('DC_Source',0x01, 0x01) # NOT USED
