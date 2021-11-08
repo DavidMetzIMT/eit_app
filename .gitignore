@@ -10,3 +10,4 @@ outputs
 datasets
 snapshots
 *.svg
+*.log
