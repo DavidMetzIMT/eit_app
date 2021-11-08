@@ -88,7 +88,7 @@ class ReconstructionPyEIT(Reconstruction):
         
     def reconstruct(self,  model:EITModelClass, U):
         """ return the reconstructed reconstructed conductivities values for the FEM"""
-        if self.initialized.isSet():
+        if self.initialized.is_set():
             """ DO SOMETTHING and return data of reconstruction"""
             MeshObj=model.fem.get_pyeit_mesh()
             MeshObj["perm"]=_inv_solve_eit(self.eit,U[:,1],U[:,0], True)

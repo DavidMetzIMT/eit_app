@@ -149,7 +149,7 @@ class MicroCam(CaptureDeviceType):
 
         
     def capture_frame(self)-> np.ndarray:
-        if not self.init.isSet():
+        if not self.init.is_set():
             raise NoCaptureDeviceSelected()
         succeed, frame = self.device.read()
         if not succeed:

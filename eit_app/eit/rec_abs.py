@@ -73,7 +73,7 @@ class Reconstruction(ABC):
     @abstractmethod
     def reconstruct(self, data):
         """ return the reconstructed reconstructed conductivities values for the FEM"""
-        if self.initialized.isSet():
+        if self.initialized.is_set():
             """ DO SOMETTHING and return data of reconstruction"""
 
 

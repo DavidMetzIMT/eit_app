@@ -87,7 +87,7 @@ class SerialInterface(object):
         self.listen_worker.start()
         logger.debug('__init__ SerialInterface - done')
 
-    def reInit(self):
+    def reinit(self):
         self.ports_available = []
         self.last_rx_frame = None 
         logger.debug('reinit SerialInterface - done')

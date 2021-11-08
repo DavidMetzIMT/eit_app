@@ -8,7 +8,7 @@ from eit_app.io.sciospec.com_constants import *
 import pandas as pd
 import ast
 
-from eit_app.utils.utils_path import CancelledError, DataLoadedNotCompatibleError, getDateTime, get_dir, get_file, load_pickle, read_txt, save_as_pickle, save_as_txt, set_attributes
+from eit_app.utils.utils_path import CancelledError, DataLoadedNotCompatibleError, get_date_time, get_dir, get_file, load_pickle, read_txt, save_as_pickle, save_as_txt, set_attributes
 
 
 
@@ -27,9 +27,9 @@ class SciospecSetup(object):
     -----
     - see documentation of the EIT device    """
     def __init__(self, ch):
-        self.reInit(ch)
+        self.reinit(ch)
         
-    def reInit(self, ch):
+    def reinit(self, ch):
         self.exc_amp= float(10.0)
         self.exc_pattern = [[ 1, 2], [2, 3]]
         self.exc_pattern_idx= int(0)
@@ -72,7 +72,7 @@ class SciospecSetup(object):
         try:
             if not dir:
                 dir= get_dir(title='Select a directory, where the setup will be saved')
-            file=os.path.join(dir, f'setup_{getDateTime()}')
+            file=os.path.join(dir, f'setup_{get_date_time()}')
             save_as_pickle(file, self)
             logger.info(f'Setup: {self.__dict__} \n saved in file : {dir} ')
         except CancelledError:
@@ -92,7 +92,7 @@ class SciospecSetup(object):
             show_msgBox('Please select a setup file', 'Not a setup file', "Warning")
             # print('wrong pickle file choosen!!!')
     ## Get methods
-    def getChNum(self):
+    def get_channel(self):
         """ Return the number of channnel used in the device"""
         return self.device_infos.channel
 
@@ -161,7 +161,7 @@ class SciospecSetup(object):
         """ Return the frequencies list"""
         return  self.freq_config.freqs
     
-    def getExcPattern(self, for_ser:bool=False)-> Union[List[bytes], List[List[bytes]]]:
+    def get_exc_pattern(self, for_ser:bool=False)-> Union[List[bytes], List[List[bytes]]]:
         """ Return excitation pattern:
         - in Bytes for sending to the device (only one index)
         - in float for simple get (the whole list)"""

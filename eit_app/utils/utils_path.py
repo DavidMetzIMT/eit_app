@@ -26,23 +26,23 @@ class DataLoadedNotCompatibleError(Exception):
 class EmptyFileError(Exception):
     """"""
 
-def getDateTime():
+def get_date_time():
     _now = datetime.datetime.now()
     return _now.strftime(FORMAT_DATE_TIME)
 
 def get_time():
     return time.time()
 
-def appendDateTime(s:str, datetime:str=None) -> str:
+def append_date_time(s:str, datetime:str=None) -> str:
 
     s= remove_date_time(s)
     if datetime:
         return f'{s}_{datetime}'
     else:
-        return f'{s}_{getDateTime()}'
+        return f'{s}_{get_date_time()}'
 
 def remove_date_time(s:str)->str:
-    length= len(getDateTime())
+    length= len(get_date_time())
     if len(s)>= length:
         try:
             datetime.datetime.strptime(s[-length:], FORMAT_DATE_TIME)
@@ -58,7 +58,7 @@ def get_POSIX_path(path:str):
     return path.replace('\\','/')
 
 
-def mkOuputDir(name, default_out_dir= DEFAULT_OUTPUTS_DIR, verbose= False ):
+def mk_ouput_dir(name, default_out_dir= DEFAULT_OUTPUTS_DIR, verbose= False ):
     """create and return the path of a folder "name" in the default_out_directory
 
     Args:
@@ -260,7 +260,7 @@ def createPath(path:str, append_datetime=True) -> str:
         [type]: [description]
     """
     if append_datetime:        
-        path= appendDateTime(path)
+        path= append_date_time(path)
     if not os.path.exists(path):
         os.mkdir(path)
     return path

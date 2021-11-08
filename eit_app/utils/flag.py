@@ -17,13 +17,13 @@ class CustomFlag(object):
         """clear the flag"""
         self._set_old()
         self.flag=False
-    def isSet(self):
+    def is_set(self):
         """Return value of the flag"""
         return self.flag
     def has_changed(self):
         return self.flag!=self.flag_old
     def is_raising_edge(self):
-        return self.has_changed() and self.isSet()
+        return self.has_changed() and self.is_set()
     def reset(self):
         self.flag_old:bool=False
         self.flag:bool=False
