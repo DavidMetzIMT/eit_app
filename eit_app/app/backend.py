@@ -38,7 +38,7 @@ from eit_app.eit.model import EITModelClass
 from eit_app.eit.plots import PlotImage2D, PlotDiffPlot, PlotUPlot, plot_measurements
 from eit_app.io.sciospec.device import IOInterfaceSciospec
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
-from eit_app.utils.utils_path import createPath, get_date_time
+from eit_app.utils.utils_path import createPath, getDateTime
 # from eit_app.eit.meas_preprocessing import *
 from eit_app.threads_process.threads_worker import CustomWorker
 from eit_app.utils.constants import EXT_TXT, MEAS_DIR, DEFAULT_IMG_SIZES,EXT_IMG, SNAPSHOT_DIR
@@ -264,7 +264,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         if self.live_meas_status.has_changed():
             self.up_events.post(UpdateEvents.live_meas_status, self, self.live_meas_status)
             self.live_meas_status.ack_change()
-            if self.live_meas_status.is_set():
+            if self.live_meas_status.isSet():
                 self.replay_status.clear()
                 self.capture_module.set_meas()
             else:
@@ -275,8 +275,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             self.up_events.post( UpdateEvents.replay_status, self, self.replay_status)
             self.replay_status.ack_change()
 
-        if self.live_meas_status.is_set():
-            self.up_events.post(UpdateEvents.progress_frame, self,self.get_current_frame_cnt(), self.get_dataset().get_filling())
+        if self.live_meas_status.isSet():
+            self.up_events.post(UpdateEvents.progress_frame, self,self.get_current_frame_cnt(), self.get_dataset().getFilling())
             self.nb_burst_reached()
 
         self.replay_pulse()
@@ -325,7 +325,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
                     UpdateEvents.info_data_computed,
                     self,
                     self.live_meas_status,
-                    dataset.get_idx_frame(idx_frame),
+                    dataset.getFrameIdx(idx_frame),
                     dataset.get_info(idx_frame)
                 )
 
@@ -354,7 +354,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             self._callback_refresh_device_list()
 
     def replay_pulse(self):
-        if self.replay.is_set() and self.replay_timer.increment():
+        if self.replay.isSet() and self.replay_timer.increment():
             set_slider(self.slider_replay, next=True, loop=True)
 
     ## ======================================================================================================================================================
@@ -443,7 +443,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self._callback_UpdateRef4TD(path=path)    
         
     def _callback_UpdateRef4TD(self, path=None):
-        if self.live_meas_status.is_set()==True:
+        if self.live_meas_status.isSet()==True:
             self.get_dataset().set_frame_TD_ref() # Frame to use is ._last_frame[0] is the last updated...
         else:
             self.get_dataset().set_frame_TD_ref(self.cB_current_idx_frame.currentIndex(), path= path)
@@ -508,23 +508,23 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _show_current_frame(self, idx_frame:int=0):
 
-        if not self.replay_status.is_set() or self.live_meas_status.is_set():
+        if not self.replay_status.isSet() or self.live_meas_status.isSet():
             show_msgBox('First load a measuremment dataset', 'Replay mode not activated', 'Warning' )
             return
         self.compute_frame(idx_frame)
 
     def _callback_live_capture_start(self, look_memory_flag:bool=False):
-        if self.live_meas_status.is_set():
+        if self.live_meas_status.isSet():
             show_msgBox('First stop measurement', 'Measurement is running', 'Warning' )
             return
-        if look_memory_flag and not self.live_capture.is_set():
+        if look_memory_flag and not self.live_capture.isSet():
             return
         self.capture_module.set_live()
         self.live_capture.set()
         
         
     def _callback_live_capture_stop(self, memory_flag:bool=False):
-        if self.live_meas_status.is_set():
+        if self.live_meas_status.isSet():
             show_msgBox('First stop measurement', 'Measurement is running', 'Warning' )
             return
         self.capture_module.set_idle()
@@ -533,7 +533,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _callback_capture_snapshot(self):
         """"""
-        self.capture_module.save_image_now(os.path.join(SNAPSHOT_DIR,f'Snapshot_{get_date_time()}'))
+        self.capture_module.save_image_now(os.path.join(SNAPSHOT_DIR,f'Snapshot_{getDateTime()}'))
         
     def _callback_refresh_capture_devices(self):
         capture_devices= self.capture_module.get_devices_available()
@@ -544,7 +544,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self._callback_set_capture_device2()
         # self._callback_set_capture_device2()
     def _callback_set_capture_device2(self):
-        if self.live_meas_status.is_set():
+        if self.live_meas_status.isSet():
             show_msgBox('First stop measurement', 'Measurement is running', 'Warning' )
             return
         self._callback_live_capture_stop(memory_flag=True)
@@ -600,10 +600,10 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _load_dataset(self, dir_path:str=None):
 
-        if self.live_capture.is_set():
+        if self.live_capture.isSet():
             self._callback_live_capture_stop()
             show_msgBox('Live video stopped', 'Live video still running', 'Information')
-        if self.live_meas_status.is_set():
+        if self.live_meas_status.isSet():
             show_msgBox('Please stop measurements before loading dataset', 'Live measurements still running', 'Warning')
             return
         # if not dirpath: # if dirpath not given then open dialog 
@@ -620,7 +620,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         # if not any(errors):
         #     self.donotdisplayloadedimage= True
         self.replay_status.clear()
-        if not self.get_dataset().load_dataset_dir(dir_path):
+        if not self.get_dataset().loadDatasetDir(dir_path):
             return
         self.replay_status.set()
         self.up_events.post(UpdateEvents.device_setup,self, self.io_interface)
@@ -705,7 +705,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
         dataset:EitMeasurementDataset=data['dataset']
         idx_frame=data['idx_frame']
-        voltages= dataset.get_voltages(idx_frame, 0)
+        voltages= dataset.getVoltages(idx_frame, 0)
         if voltages is not None:
             set_table_widget(self.tableWidgetvoltages_Z, voltages)
             # set_table_widget(self.tableWidgetvoltages_Z_real, np.real(voltages))
@@ -718,7 +718,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         elapsed = time.time() - t
         
         if isinstance(dataset, EitMeasurementDataset):
-            print(f'plot of frame #{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}, lasted {elapsed}')
+            print(f'plot of frame #{dataset.getFrameIdx(idx_frame)}, time {getDateTime()}, lasted {elapsed}')
 
     ## ======================================================================================================================================================
     ##  Setter

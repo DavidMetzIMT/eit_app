@@ -34,8 +34,8 @@ from eit_app.io.sciospec.utils import convertBytes2Int,convert4Bytes2Float
 from eit_app.io.video.microcamera import VideoCaptureModule
 from eit_app.utils.constants import EXT_PKL, MEAS_DIR
 from eit_app.utils.flag import CustomFlag
-from eit_app.utils.utils_path import (CancelledError, append_date_time, get_date_time, get_dir, load_pickle,
-                                      mk_ouput_dir, save_as_pickle,
+from eit_app.utils.utils_path import (CancelledError, appendDateTime, getDateTime, get_dir, load_pickle,
+                                      mkOuputDir, save_as_pickle,
                                       search_for_file_with_ext, set_attributes)
 
 __author__ = "David Metz"
@@ -71,10 +71,10 @@ class EitMeasurementDataset(object):
         self.save_img=CustomFlag()
         
     def initForAquisition(self,dev_setup:SciospecSetup, name_measurement:str=None):
-        self.date_time= get_date_time()
-        if self.autosave.is_set():
-            self.name= append_date_time(name_measurement, self.date_time)
-            self.output_dir=mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
+        self.date_time= getDateTime()
+        if self.autosave.isSet():
+            self.name= appendDateTime(name_measurement, self.date_time)
+            self.output_dir=mkOuputDir(self.name, default_out_dir=MEAS_DIR)
         else:
             self.name= 'Not saved'
             self.output_dir=None
@@ -92,35 +92,35 @@ class EitMeasurementDataset(object):
         """ add the data from the rx_frame in the dataset 
         (is called when measuring rx_frame have been recieved)"""
 
-        data =self.extract_data(rx_frame)
-        self.rx_meas_frame[idx].add_data(data,self.frame_cnt)
+        data =self.__extract_data(rx_frame)
+        self.rx_meas_frame[idx].addData(data,self.frame_cnt)
         # if frame complete Frame_cnt+ and append new Frame
-        if self.rx_meas_frame[idx].is_complete():
-            self.frame_save_and_prepare_for_next_rx(idx)
+        if self.rx_meas_frame[idx].__is_complete():
+            self.__frame_save_and_prepare_for_next_rx(idx)
             self.frame_cnt += 1
             self.flag_new_meas.set_edge_up()
 
-    def frame_save_and_prepare_for_next_rx(self, idx:int=0):
+    def __frame_save_and_prepare_for_next_rx(self, idx:int=0):
 
-        self.latch_rx_frame_to_meas(0,0)
+        self.__latch_rx_frame_to_meas(0,0)
         logger.info(f'Frame #{self.meas_frame[0].idx} - complete')
-        self.save_dataset_single_frame()
+        self.__save_dataset_single_frame()
         self.rx_meas_frame[idx]=EITFrame(self.dev_setup) # clear frame
 
-    def extract_data(self,rx_frame):
+    def __extract_data(self,rx_frame):
         """extract the single data out of the rx_frame, convert them if applicable
         return them as a dict"""
         data={}
         rx_data= rx_frame[OPTION_BYTE_INDX:-1]
         data['ch_group']= rx_data[0]
         excitation=rx_data[1:3]
-        data['exc_indx']= self._find_excitation_indx(excitation)
+        data['exc_indx']= self.__find_excitation_indx(excitation)
         data['freq_indx']= convertBytes2Int(rx_data[3:5])
         data['time_stamp']= convertBytes2Int(rx_data[5:9]) 
-        data['voltages'] = self.convert_meas_data(rx_data[9:])
+        data['voltages'] = self.__convert_meas_data(rx_data[9:])
         return data
     
-    def convert_meas_data(self, meas_data):
+    def __convert_meas_data(self, meas_data):
         """return float voltages values () corresponding to meas data (bytes single float) """
         n_bytes_real_imag= 4 # we got 4Bytes per value
         meas_data=np.reshape(np.array(meas_data), (-1, n_bytes_real_imag)) # reshape the meas data in lock of 4 bytes
@@ -135,25 +135,26 @@ class EitMeasurementDataset(object):
         if path is None:
             self._frame_TD_ref[0] = self.meas_frame[idx]
         else:
-            dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(path)
+            dataset_tmp:EitMeasurementDataset=self.__load_dataset_single_frame(path)
             self._frame_TD_ref[0]=dataset_tmp.meas_frame[0]
     
-    def save_dataset_single_frame(self, idx:int=0):
-        if not self.autosave.is_set():
+    def __save_dataset_single_frame(self, idx:int=0):
+        if not self.autosave.isSet():
             return
         path=self.meas_frame[idx].frame_path
+
         logger.debug(f'Frame #{self.meas_frame[idx].idx} saved in: {path}')
         save_as_pickle(path, self)
 
     def load_single_frame(self, file_path):
-        dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(file_path)
+        dataset_tmp:EitMeasurementDataset=self.__load_dataset_single_frame(file_path)
         self.meas_frame[0]=dataset_tmp.meas_frame[0]
 
-    def load_dataset_single_frame(self, file_path):
+    def __load_dataset_single_frame(self, file_path):
         """Load Dataset file with single frame"""
         return load_pickle(file_path)
 
-    def load_dataset_dir(self, dir_path:str=None):
+    def loadDatasetDir(self, dir_path:str=None):
         """Load Dataset files """
         try:
             if not dir_path:
@@ -176,7 +177,7 @@ class EitMeasurementDataset(object):
         # print('filepaths', filenames)
         for i,filename in enumerate(filenames): # get all the frame data
             filepath=os.path.join(dir_path, filename)
-            dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(filepath)
+            dataset_tmp:EitMeasurementDataset=self.__load_dataset_single_frame(filepath)
             if i ==0:
                 set_attributes(self,dataset_tmp)
                 setattr(self, 'output_dir', dir_path)
@@ -185,32 +186,32 @@ class EitMeasurementDataset(object):
                 # setattr(self, 'frame_cnt', getattr(dataset_tmp,'frame_cnt'))
                 self.meas_frame.append(dataset_tmp.meas_frame[0])
             self.meas_frame[-1].frame_path= filepath
-            self.make_info_text_for_frame(-1)
+            self.__make_info_text_for_frame(-1)
         setattr(self, 'frame_cnt', len(self.meas_frame))
         # print(self.__dict__)
 
         return filenames
 
-    def _find_excitation_indx(self, excitation):
+    def __find_excitation_indx(self, excitation):
         """ Return the index of the given excitation in the excitation_Pattern"""
         indx = 0
-        for Exc_i in self.dev_setup.get_exc_pattern():
+        for Exc_i in self.dev_setup.getExcPattern():
             if Exc_i== excitation:
                 break
             indx += 1
         return indx
 
-    def latch_rx_frame_to_meas(self, idx_rx_frame:int=0, idx_meas_frame:int=0):
+    def __latch_rx_frame_to_meas(self, idx_rx_frame:int=0, idx_meas_frame:int=0):
 
         self.meas_frame[idx_meas_frame]=self.rx_meas_frame[idx_rx_frame]
-        if self.autosave.is_set():
+        if self.autosave.isSet():
             self.meas_frame[idx_meas_frame].frame_path= os.path.join(self.output_dir, f'Frame{self.frame_cnt:02}.pkl')
         if self.frame_cnt == 0:
             self.set_frame_TD_ref(0)
-        self.make_info_text_for_frame(idx_meas_frame)
+        self.__make_info_text_for_frame(idx_meas_frame)
         
 
-    def make_info_text_for_frame(self, idx_meas_frame):
+    def __make_info_text_for_frame(self, idx_meas_frame):
         """ Create a tex with information about the Frame nb indx"""
 
         frame = self.meas_frame[idx_meas_frame]
@@ -224,28 +225,28 @@ class EitMeasurementDataset(object):
             f"Sweepconfig:\tFmin = {self.dev_setup.get_freq_min()/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.get_freq_max()/1000:.3f} kHz",
             f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
             f"\tAmp = {self.dev_setup.get_exc_amp():.5f} A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
-            f"excitation:\t{self.dev_setup.get_exc_pattern()}"
+            f"excitation:\t{self.dev_setup.getExcPattern()}"
         ]
                 
-    def get_filling(self, idx_frame:int=0):
+    def getFilling(self, idx_frame:int=0):
         return self.rx_meas_frame[idx_frame].filling
 
-    def get_voltages_ref_frame(self, idx_freq:int=0)-> np.ndarray:
-        return self._frame_TD_ref[0].get_voltages(idx_freq)
+    def getVoltagesRefFrame(self, idx_freq:int=0)-> np.ndarray:
+        return self._frame_TD_ref[0].getVoltages(idx_freq)
     
-    def get_idx_ref_frame(self)-> int:
-        return self._frame_TD_ref[0].get_idx()
+    def getRefFrameIdx(self)-> int:
+        return self._frame_TD_ref[0].getIdx()
 
-    def get_idx_frame(self, idx_frame:int=0)-> int:
-        return self.meas_frame[idx_frame].get_idx()
+    def getFrameIdx(self, idx_frame:int=0)-> int:
+        return self.meas_frame[idx_frame].getIdx()
 
-    def get_voltages(self, idx_frame:int=0, idx_freq:int=0)-> np.ndarray:
+    def getVoltages(self, idx_frame:int=0, idx_freq:int=0)-> np.ndarray:
         """Return the measured voltage for the given frequency index"""
         try:
-            return self.meas_frame[idx_frame].get_voltages(idx_freq)
+            return self.meas_frame[idx_frame].getVoltages(idx_freq)
         except IndexError:
             print(f'try to access index {idx_frame} in meas_frame {self.meas_frame},{len(self.meas_frame)}')
-            return self.meas_frame[0].get_voltages(idx_freq)
+            return self.meas_frame[0].getVoltages(idx_freq)
            
     def get_freqs_list(self):
         return self.freqs_list
@@ -279,62 +280,62 @@ class EITFrame(object):
         self.idx= 0
         self.freqs_list= dev_setup.make_freqs_list()
         self.freq_steps= dev_setup.get_freq_steps()
-        self.meas_frame_nb=len(dev_setup.get_exc_pattern())*2 # for x excitation x*2 meas are send
+        self.meas_frame_nb=len(dev_setup.getExcPattern())*2 # for x excitation x*2 meas are send
         self.meas_frame_cnt=0 # cnt
         self.filling:int=0 # pourcentage of filling
         self.meas=[EITMeas(dev_setup) for i in range(self.freq_steps)] # Meas[Frequency_indx]
         self.info_text=''
         self.frame_path=''
     
-    def set_freq(self, data):
+    def __set_freq(self, data):
         """ set the frequence value in the corresponding Measuremeent object """
-        self.meas[data['freq_indx']].set_freq(self.freqs_list[data['freq_indx']])
+        self.meas[data['freq_indx']].setFreq(self.freqs_list[data['freq_indx']])
 
-    def add_voltages(self, data):
-        self.meas[data['freq_indx']].add_voltages(data)
+    def __add_voltages(self, data):
+        self.meas[data['freq_indx']].addVoltages(data)
 
-    def is_complete(self):
+    def __is_complete(self):
         """return if teh frame is complete"""
         return self.meas_frame_cnt == self.meas_frame_nb
 
-    def set_time_stamp(self, data):
+    def __set_time_stamp(self, data):
         """ not defined"""
         # if data['ch_group']==1:
         #     self.time_stamp= data['time_stamp']
         # elif self.time_stamp != data['time_stamp']:
         #     raise Exception(f'time_stamp error expected {self.time_stamp}, rx: {data["time_stamp"]}')
 
-    def add_data(self, data:dict, frame_cnt:int):
+    def addData(self, data:dict, frame_cnt:int):
         """ add rx data to this frame"""
-        if self.is_very_first_data(data):
+        if self.__is_very_first_data(data):
             self.idx= frame_cnt
-        self.set_time_stamp(data)
-        self.set_freq(data)
-        self.add_voltages(data)
-        if self.is_all_freqs_aquired(data):
+        self.__set_time_stamp(data)
+        self.__set_freq(data)
+        self.__add_voltages(data)
+        if self.__is_all_freqs_aquired(data):
             self.meas_frame_cnt += 1
-            self.compute_filling()
+            self.__compute_filling()
             
-    def compute_filling(self):
+    def __compute_filling(self):
         self.filling= int(self.meas_frame_cnt/(self.meas_frame_nb+1)*100)
 
-    def is_very_first_data(self, data):
+    def __is_very_first_data(self, data):
         """retrun if data is the very first one for this frame"""
         return data['ch_group']+data['freq_indx']+data['exc_indx']==1
 
-    def is_all_freqs_aquired(self, data):
+    def __is_all_freqs_aquired(self, data):
         """return if all meas for all freqs were aquired for this frame"""
         return data['freq_indx'] == self.freq_steps - 1
     
-    def get_voltages(self, idx_freq:int=0)-> np.ndarray:
+    def getVoltages(self, idx_freq:int=0)-> np.ndarray:
         """Return the measured voltage for the given frequency index"""
         try:
-            return self.meas[idx_freq].get_voltages()
+            return self.meas[idx_freq].getVoltages()
         except IndexError:
             print(f'try to access index {idx_freq} in meas {self.meas},{len(self.meas)}')
-            return self.meas[0].get_voltages()
+            return self.meas[0].getVoltages()
            
-    def get_idx(self)-> int:
+    def getIdx(self)-> int:
         return self.idx
 
 class EITMeas(object):
@@ -347,14 +348,14 @@ class EITMeas(object):
             for the frequency = frequency_val"""
     def __init__(self, dev_setup:SciospecSetup):
         # self.voltage_Z=[np.zeros(dev_setup.get_channel(),dtype=complex) for j in range(len(dev_setup.get_exc_pattern()))]
-        self.voltage_Z=np.zeros((len(dev_setup.get_exc_pattern()),dev_setup.get_channel()),dtype=complex)
+        self.voltage_Z=np.zeros((len(dev_setup.getExcPattern()),dev_setup.getChNum()),dtype=complex)
         # self.voltage_Z=[[0 for i in range(dev_setup.get_channel())] for j in range(len(dev_setup.get_exc_pattern()))]
         self.frequency=None # corresponding excitation frequency
 
-    def set_freq(self, freq_val):
+    def setFreq(self, freq_val):
         """set the frequency value for the actual measurements"""
         self.frequency=freq_val
-    def add_voltages(self, data):
+    def addVoltages(self, data):
         """add rx voltage to the voltages matrix"""
         n_ch_meas_per_frame= 16
         ch_group=data['ch_group']
@@ -367,7 +368,7 @@ class EITMeas(object):
         end_idx=(ch_group)*n_ch_meas_per_frame
         self.voltage_Z[exc_indx,start_idx:end_idx]= volt
 
-    def get_voltages(self)-> np.ndarray:
+    def getVoltages(self)-> np.ndarray:
         """Return the measured voltage"""
         return self.voltage_Z#np.array(self.voltage_Z)
 
@@ -385,7 +386,7 @@ if __name__ == '__main__':
     # p.daemon=True
     # p.start()
     d = EitMeasurementDataset()
-    d.load_dataset_dir()
+    d.loadDatasetDir()
     exit(app.exec_()) 
 
 

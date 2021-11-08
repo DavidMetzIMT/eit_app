@@ -89,15 +89,15 @@ class Buffer(object):
     def __init__(self, maxsize=None) -> None:
         self.buffer= Queue(maxsize=maxsize)
     
-    def is_full(self):
+    def isFull(self):
         return self.buffer.full()
-    def is_empty(self):
+    def isEmpty(self):
         return self.buffer.empty()
 
     def add(self, data):
         self.buffer.put(data)
         
-    def get_oldest(self):
+    def getOldest(self):
         try:
             return self.buffer.get_nowait()
         except Empty: # if empty then return empty ....
@@ -107,7 +107,7 @@ class Buffer(object):
         while not self.buffer.empty():
             self.buffer.get_nowait()
 
-    def rm_last(self):
+    def rmLast(self):
         tmp= Queue()
         while not self.buffer.empty():
             tmp.put_nowait(self.buffer.get_nowait())
@@ -131,17 +131,20 @@ class IOInterfaceSciospec(object):
     
     Regroup all informations, setup of the connected Sciospec EIT device
     and allow to interact with it according to is user guide.    """
-    def __init__(self,):
+    def __init__(self, dataset=EitMeasurementDataset()):
         """Constructor """
         self.queue_out_video_module=Queue()
         self.queue_out= Queue()
-        self.treat_rx_frame_worker=Poller(name='treat_rx_frame',pollfunc=self._get_last_rx_frame,sleeptime=0.01)
+        self.treat_rx_frame_worker=Poller(
+            name='treat_rx_frame',
+            pollfunc=self._get_last_rx_frame,
+            sleeptime=0.01)
         self.treat_rx_frame_worker.start()
         self.timeout_busy=CustomTimer(5.0,0.001) # max 5s timeout!
 
         self.channel = 32
         self.dataset:EitMeasurementDataset=EitMeasurementDataset()
-        self.rx_buffer= Queue(maxsize=256) # infine queue.... maybe handle only a certain number of data to reduce memory allocttions???
+        self.rx_buffer= Queue(maxsize=256)
         self.cmds_history=Buffer(maxsize=16)
         self.responses_history=Buffer(maxsize=16)
         self.available_devices = {}
@@ -154,10 +157,10 @@ class IOInterfaceSciospec(object):
         self.status_prompt = NO_DEVICE_CONNECTED_PROMPT
         self._build_callbacks()
 
-    def _reinit_after_diconnection(self):
+    def __reinit_after_diconnection(self):
         """ init the """
-        self.setup.reinit(self.channel)
-        self.interface.reinit()
+        self.setup.reInit(self.channel)
+        self.interface.reInit()
         self.status=StatusSWInterface.NOT_CONNECTED
         self.status_prompt = NO_DEVICE_CONNECTED_PROMPT
         while not self.rx_buffer.empty():
@@ -189,7 +192,7 @@ class IOInterfaceSciospec(object):
                 OP_FRAME_RATE.tag: self.setup.get_frame_rate,
                 OP_EXC_FREQUENCIES.tag: self.setup.get_freq_config,
                 OP_EXC_AMPLITUDE.tag: self.setup.get_exc_amp,
-                OP_EXC_PATTERN.tag: self.setup.get_exc_pattern
+                OP_EXC_PATTERN.tag: self.setup.getExcPattern
                 },
             CMD_GET_MEAS_SETUP.tag:{
                 # OP_RESET_SETUP.tag: None,
@@ -237,7 +240,7 @@ class IOInterfaceSciospec(object):
             # CMD_SET_CURRENT_SETTING.tag:{:},
             # CMD_GET_CURRENT_SETTING.tag:{:}
         }
-    def _wait_not_busy(self):
+    def __wait_not_busy(self):
         self.timeout_busy.reset()
         while self._is_waiting():
             if self.timeout_busy.increment():
@@ -247,54 +250,71 @@ class IOInterfaceSciospec(object):
             sleep(0.001)
             
     def getQueueOut(self):
+        """"""
         return self.queue_out
 
     def putQueueOut(self, data):
+        """"""
         self.queue_out.put(data)
 
-    def setAutosave(self, autosave:bool=True, save_img:bool=True):
+    def setAutosave(self,
+            autosave:bool=True,
+            save_img:bool=True):
+        """ """
         self.dataset.autosave.set(autosave)
         self.dataset.save_img.set(save_img and autosave)
-        logger.debug(f'Autosave: {self.dataset.autosave.is_set()}, save_img:{self.dataset.save_img.is_set()}')
+        logger.debug(
+            f'Autosave: {self.dataset.autosave.isSet()}, \
+            save_img:{self.dataset.save_img.isSet()}')
 
     ## =========================================================================
     ##  Methods for sending data/commands
     ## =========================================================================
     
-    def _send_cmd_frame(self,cmd:SciospecCmd, op:SciospecOption, cmd_append=True):
+    def __send_cmd_frame(
+            self,
+            cmd:SciospecCmd,
+            op:SciospecOption,
+            cmd_append=True):
         """Send a command frame to the device"""
-        # self.wait_until_not_busy()
+
         self.rx_ack= NONE_ACK # clear last recieved acknolegment
-        cmd_frame = self._make_cmd_frame(cmd, op)
+        cmd_frame = self.__make_cmd_frame(cmd, op)
         if cmd_append:
             self.cmds_history.add([cmd, op])
             self.status=StatusSWInterface.WAIT_FOR_DEVICE
         try:
             self.interface.write(cmd_frame)
-            logger.debug(f'TX_CMD : "{cmd.name}", OP: "{op.name}", cmd_frame :{cmd_frame}')
+            logger.debug(
+                f'TX_CMD : "{cmd.name}", OP: "{op.name}",\
+                cmd_frame :{cmd_frame}')
             return 1
         except SerialInterfaceError as error:
-            self.cmds_history.rm_last()
+            self.cmds_history.rmLast()
             self._update_status(oldest_cmd=(CMD_GET_DEVICE_INFOS, OP_NULL))
-            show_msgBox(error.__str__(), 'Communication with device -FAILED', "Critical")
+            show_msgBox(
+                error.__str__(),
+                'Communication with device -FAILED', "Critical")
             return 0
             
-    def _make_cmd_frame(self,cmd:SciospecCmd, op:SciospecOption):
-        """ Make the command frame to send according to the cmd and op parameters"""
+    def __make_cmd_frame(self,cmd:SciospecCmd, op:SciospecOption):
+        """ Make the command frame to send"""
         
         if op not in cmd.options:
-            raise SWInterfaceError(f'Command "{cmd.name}" ({cmd.tag}) not compatible with option "{op.name}"({op.tag})')
+            raise SWInterfaceError(
+                f'Command "{cmd.name}" ({cmd.tag}) \
+                not compatible with option "{op.name}"({op.tag})')
         
-        if cmd.type == CmdTypes.simple: # send simple cmd (without option)
+        if cmd.isSimpleCMD(): # send simple cmd (without option)
             cmd_frame = [cmd.tag, 0x00, cmd.tag]
         else:
-            LL_byte= op.LL_bytes[0] if cmd.type == CmdTypes.set_w_option else op.LL_bytes[1]
+            LL_byte= op.LL_bytes[0] if cmd.isSetCMD() else op.LL_bytes[1]
             if LL_byte == 0x00:
                 raise TypeError('not allowed option for the command')
             elif LL_byte== 0x01: # send cmd with option
                 cmd_frame = [cmd.tag, LL_byte ,op.tag ,cmd.tag]
             else: 
-                data= self._get_data_to_send(cmd, op)
+                data= self.__get_data_to_send(cmd, op)
                 if len(data)+1 == LL_byte: # send cmd with option and data
                     cmd_frame = [cmd.tag, LL_byte, op.tag]
                     for d in data:
@@ -304,13 +324,14 @@ class IOInterfaceSciospec(object):
                     raise TypeError('Data do not have right lenght')
         return cmd_frame
 
-    def _get_data_to_send(self,cmd:SciospecCmd, op:SciospecOption) -> bytearray:
+    def __get_data_to_send(self,cmd:SciospecCmd, op:SciospecOption) -> bytearray:
         """Provide the data to send corresponding to the cmd and option
-            >> call the correspoding function from the cllbcks catalog        """
+            >> call the correspoding function from the cllbcks catalog """
         try:
             return self.callbacks[cmd.tag][op.tag](True) or [0x00]
         except KeyError:
-            msg= f'Combination of Cmd:"{cmd.name}"({cmd.tag})/ Option:"{op.name}"({op.tag}) - NOT FOUND in callbacks catalog'
+            msg= f'Combination of Cmd:"{cmd.name}"({cmd.tag})/\
+                 Option:"{op.name}"({op.tag}) - NOT FOUND in callbacks catalog'
             logger.error(msg)
             raise  SWInterfaceError(msg)            
         
@@ -349,11 +370,8 @@ class IOInterfaceSciospec(object):
         
         if self._is_new_meas_frame():
             dataset=self.getDataset(mk_copy=True)
-            print('1HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
-            if self.dataset.save_img.is_set():
-                print('2HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
+            if self.dataset.save_img.isSet():
                 self.queue_out_video_module.put(dataset.meas_frame[0].frame_path)
-                print('3HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
             self.queue_out.put_nowait((dataset, 0, RecCMDs.rec))
             self.getDataset().flag_new_meas.clear()
 
@@ -431,8 +449,8 @@ class IOInterfaceSciospec(object):
         - return/delete odlest response from response history
         - do some logging        
         """
-        oldest_cmd= self.cmds_history.get_oldest()
-        oldest_response=self.responses_history.get_oldest()
+        oldest_cmd= self.cmds_history.getOldest()
+        oldest_response=self.responses_history.getOldest()
         if oldest_cmd[0].answer_type==Answer.WAIT_FOR_ANSWER_AND_ACK:
             msg=f'RX_ACK: {self.rx_ack.name} of ANSWER {oldest_response} from CMD {oldest_cmd[0].name}({oldest_cmd[1].name})- SUCCESS'
         elif oldest_cmd[0].answer_type==Answer.WAIT_FOR_ACK:
@@ -469,7 +487,7 @@ class IOInterfaceSciospec(object):
             logger.error(error)  
 
     def _update_status(self, oldest_cmd:SciospecCmd):
-        if self.cmds_history.is_empty() and oldest_cmd:
+        if self.cmds_history.isEmpty() and oldest_cmd:
             cmd, op= oldest_cmd[0], oldest_cmd[1]
             if cmd.tag == CMD_START_STOP_MEAS.tag and op.tag == OP_START_MEAS.tag:
                 self.status=StatusSWInterface.MEASURING
@@ -483,11 +501,11 @@ class IOInterfaceSciospec(object):
     def _not_connected(self):
         return self.status==StatusSWInterface.NOT_CONNECTED
     
-    def _if_measuring_stop(self, force_to_stop:bool=False)->None:
+    def __if_measuring_stop(self, force_to_stop:bool=False)->None:
 
         if self._is_measuring():
             if force_to_stop:
-                self.stop_meas()
+                self.stopMeasurements()
                 show_msgBox('Measurements have been stopped', 'Measurements still running!', "Information")
             else:
                 show_msgBox('Please stop measurements first', 'Measurements still running!', "Information")
@@ -508,7 +526,7 @@ class IOInterfaceSciospec(object):
         tmp=TmpBuffer(self.setup.device_infos)
         for port in ports:
             self.interface.open(port)
-            self.get_device_infos()
+            self.getDeviceInfos()
             if not self.rx_ack.is_nack():
                 device_name = f'Device (SN: {self.setup.get_sn()}) on serial port "{port}"'
                 self.available_devices[device_name]=port
@@ -536,7 +554,7 @@ class IOInterfaceSciospec(object):
             return
         self.treat_rx_frame_worker.start_polling()
         self.interface.open(self.available_devices[device_name], baudrate)
-        self.get_device_infos()               
+        self.getDeviceInfos()               
         self.status_prompt= f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" (b:{self.interface.get_actual_baudrate()} d:8 s:1 p:None) - CONNECTED'
         logger.info(self.status_prompt)
         self.device_name= device_name
@@ -544,82 +562,82 @@ class IOInterfaceSciospec(object):
     def disconnectSciospecDevice(self, stop_meas:bool=True)->None:
         """" Disconnect the sciopec device"""
         if stop_meas:
-            self._if_measuring_stop(force_to_stop=True)
+            self.__if_measuring_stop(force_to_stop=True)
         self.treat_rx_frame_worker.stop_polling()
         msg=f'Device (SN: {self.setup.get_sn()}) on serial port "{self.interface.get_actual_port_name()}" - DISCONNECTED'
         self.interface.close()
         logger.info(msg)
-        self._reinit_after_diconnection()
+        self.__reinit_after_diconnection()
         self.getAvailableSciospecDevices() # update the list of Sciospec devices available ????
 
-    def get_device_infos(self):
+    def getDeviceInfos(self):
         """Ask for the serial nummer of the Device """
-        self._if_measuring_stop(force_to_stop=False)
-        self._send_cmd_frame(CMD_GET_DEVICE_INFOS, OP_NULL)
-        self._wait_not_busy()
+        self.__if_measuring_stop(force_to_stop=False)
+        self.__send_cmd_frame(CMD_GET_DEVICE_INFOS, OP_NULL)
+        self.__wait_not_busy()
 
-    def start_meas(self, name_measurement:str='default_meas_name'):
+    def startMeasurements(self, name_measurement:str='default_meas_name'):
         """ Start measurements """
-        self._if_measuring_stop(force_to_stop=False)
+        self.__if_measuring_stop(force_to_stop=False)
         name, output_dir =self._prepare_dataset(name_measurement)
-        if self.dataset.autosave.is_set():
+        if self.dataset.autosave.isSet():
             self.save_setup(output_dir)
-        succeed = self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
-        self._wait_not_busy()
+        succeed = self.__send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
+        self.__wait_not_busy()
         succeed_word= 'SUCCEED' if succeed else 'FAILED' 
         logger.info( f'Start Measurements - {succeed_word}')
         return succeed
 
-    def stop_meas(self, append=True):
+    def stopMeasurements(self, append=True):
         """ Stop measurements """
-        self._send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS, cmd_append=append)
-        self._wait_not_busy()
+        self.__send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS, cmd_append=append)
+        self.__wait_not_busy()
         logger.info( 'Stop Measurements - done')
         
-    def set_setup(self):
+    def setSetup(self):
         """ Send the setup to the device """
-        self._if_measuring_stop(force_to_stop=False)
+        self.__if_measuring_stop(force_to_stop=False)
         logger.info('Setting device setup - start...')
-        self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
-        self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
-        self._send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_TIME_STAMP)
-        self._send_cmd_frame(CMD_SET_ETHERNET_CONFIG, OP_DHCP)
-        self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_RESET_SETUP)
-        self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_AMPLITUDE)
-        self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_BURST_COUNT)
-        self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_FRAME_RATE)
-        self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_FREQUENCIES)
-        for idx in range(len(self.setup.get_exc_pattern())):
+        self.__send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
+        self.__send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
+        self.__send_cmd_frame(CMD_SET_OUTPUT_CONFIG, OP_TIME_STAMP)
+        self.__send_cmd_frame(CMD_SET_ETHERNET_CONFIG, OP_DHCP)
+        self.__send_cmd_frame(CMD_SET_MEAS_SETUP, OP_RESET_SETUP)
+        self.__send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_AMPLITUDE)
+        self.__send_cmd_frame(CMD_SET_MEAS_SETUP, OP_BURST_COUNT)
+        self.__send_cmd_frame(CMD_SET_MEAS_SETUP, OP_FRAME_RATE)
+        self.__send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_FREQUENCIES)
+        for idx in range(len(self.setup.getExcPattern())):
             self.setup.set_exc_pattern_idx(idx)
-            self._send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_PATTERN)
-        self._wait_not_busy()
+            self.__send_cmd_frame(CMD_SET_MEAS_SETUP, OP_EXC_PATTERN)
+        self.__wait_not_busy()
         logger.info('Setting device setup - done')
 
-    def get_setup(self):
+    def getSetup(self):
         """ Get the setup of the device """
-        self._if_measuring_stop(force_to_stop=False)
+        self.__if_measuring_stop(force_to_stop=False)
         logger.info('Getting device setup - start...')
-        self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
-        self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)
-        self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_FRAME_RATE)
-        self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_FREQUENCIES)
-        self._send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_PATTERN)
-        self._send_cmd_frame(CMD_GET_OUTPUT_CONFIG, OP_EXC_STAMP)
-        self._send_cmd_frame(CMD_GET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
-        self._send_cmd_frame(CMD_GET_OUTPUT_CONFIG, OP_TIME_STAMP)
-        self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_IP_ADRESS)
-        self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_MAC_ADRESS)
-        self._send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_DHCP)
-        self._wait_not_busy()
+        self.__send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
+        self.__send_cmd_frame(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)
+        self.__send_cmd_frame(CMD_GET_MEAS_SETUP, OP_FRAME_RATE)
+        self.__send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_FREQUENCIES)
+        self.__send_cmd_frame(CMD_GET_MEAS_SETUP, OP_EXC_PATTERN)
+        self.__send_cmd_frame(CMD_GET_OUTPUT_CONFIG, OP_EXC_STAMP)
+        self.__send_cmd_frame(CMD_GET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
+        self.__send_cmd_frame(CMD_GET_OUTPUT_CONFIG, OP_TIME_STAMP)
+        self.__send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_IP_ADRESS)
+        self.__send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_MAC_ADRESS)
+        self.__send_cmd_frame(CMD_GET_ETHERNET_CONFIG, OP_DHCP)
+        self.__wait_not_busy()
         logger.info('Getting device setup - done')
 
-    def software_reset(self):
+    def softwareReset(self):
         """ Sofware reset the device
         Notes: a restart is needed after this method"""
         logger.info('Softreset of device - start...')
-        self._if_measuring_stop(force_to_stop=False)
-        self._send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
-        self._wait_not_busy()
+        self.__if_measuring_stop(force_to_stop=False)
+        self.__send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
+        self.__wait_not_busy()
         sleep(10)
         self.disconnectSciospecDevice()
         show_msgBox(
@@ -661,10 +679,10 @@ if __name__ == '__main__':
     dev= IOInterfaceSciospec()
     dev.getAvailableSciospecDevices()
     dev.connectSciospecDevice('Device (SN: 01-0019-0132-0A0C) on serial port "COM3"')
-    dev.get_setup()
-    dev.set_setup()
-    dev.start_meas()
+    dev.getSetup()
+    dev.setSetup()
+    dev.startMeasurements()
     sleep(10)
-    dev.stop_meas()
+    dev.stopMeasurements()
     dev.disconnectSciospecDevice()
 

@@ -73,8 +73,8 @@ class Imaging():
         freqs_val= [dataset.get_freq_val(idx_freq=_idx_freq) for _idx_freq in self.idx_freqs]
         idx_frames=[] 
         if self.ref_frame_idx is not None:
-            idx_frames.append(dataset.get_idx_ref_frame())
-        idx_frames.append(dataset.get_idx_frame(idx_frame=idx_frame))
+            idx_frames.append(dataset.getRefFrameIdx())
+        idx_frames.append(dataset.getFrameIdx(idx_frame=idx_frame))
 
         for key, func in DATA_TRANSFORMATIONS.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
             if func == self.transform_funcs[0]:
@@ -128,7 +128,7 @@ class AbsoluteImaging(Imaging):
         if len(self.idx_freqs)!=1:
             return np.array([])
 
-        voltages=dataset.get_voltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
+        voltages=dataset.getVoltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
         v=make_voltage_vector(eit_model, self.transform_funcs, voltages)
         return np.hstack((v, v))
     
@@ -173,8 +173,8 @@ class TimeDifferenceImaging(Imaging):
         if self.ref_frame_idx is None or len(self.idx_freqs)!=1:
             return np.array([]) 
             
-        v_t0=dataset.get_voltages_ref_frame(self.idx_freqs[0])
-        v_t1=dataset.get_voltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
+        v_t0=dataset.getVoltagesRefFrame(self.idx_freqs[0])
+        v_t1=dataset.getVoltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
         return np.hstack((
             make_voltage_vector(eit_model, self.transform_funcs, v_t0),
             make_voltage_vector(eit_model, self.transform_funcs, v_t1)))
@@ -219,8 +219,8 @@ class FrequenceDifferenceImaging(Imaging):
         if len(self.idx_freqs)!=2:
             return np.array([]) 
             
-        v_f0=dataset.get_voltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
-        v_f1=dataset.get_voltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[1])
+        v_f0=dataset.getVoltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
+        v_f1=dataset.getVoltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[1])
         return np.hstack((
             make_voltage_vector(eit_model, self.transform_funcs, v_f0),
             make_voltage_vector(eit_model, self.transform_funcs, v_f1)))

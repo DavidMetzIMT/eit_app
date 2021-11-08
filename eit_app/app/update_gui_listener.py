@@ -71,7 +71,7 @@ def handle_device_setup_event(app:Ui_MainWindow, device:IOInterfaceSciospec, set
     for sB in [app.sBd_freq_min, app.sBd_freq_max, app.sB_freq_steps]: 
         sB.setStyleSheet(f"background-color: {color}")
 
-    set_table_widget(app.tw_exc_pattern,device.setup.get_exc_pattern(),0)
+    set_table_widget(app.tw_exc_pattern,device.setup.getExcPattern(),0)
     update_freqs_list_meas(app, device.setup.get_freqs())
 
 
@@ -85,7 +85,7 @@ def update_freqs_list_meas(app:Ui_MainWindow, freqs:List[Any]):
         set_comboBox_items(cB, [f for f in freqs])
 
 def update_live_view_status(app:Ui_MainWindow, live_meas:CustomFlag):
-    if live_meas.is_set():
+    if live_meas.isSet():
         app.lab_live_meas_status.setText('MEASUREMENTS ON')
         app.lab_live_meas_status.setStyleSheet("background-color: green")
     else:
@@ -95,7 +95,7 @@ def update_live_view_status(app:Ui_MainWindow, live_meas:CustomFlag):
 
 
 def update_replay_status(app:Ui_MainWindow, replay:CustomFlag):
-    if replay.is_set():
+    if replay.isSet():
         app.lab_replay_status.setText('REPLAY ON')
         app.lab_replay_status.setStyleSheet("background-color: blue")
     else:
@@ -127,7 +127,7 @@ def update_progression_acquisition_single_frame(app:Ui_MainWindow, idx_frame:int
     app.meas_progress_bar.setValue(progression)
 
 def update_info_data_computed(app:Ui_MainWindow, live_meas:CustomFlag=CustomFlag, idx_frame:List[int]=0, info:str=''):
-    if live_meas.is_set():
+    if live_meas.isSet():
         set_comboBox_items(app.cB_current_idx_frame, [idx_frame], reset_box=False, set_index=-1, block=True ) 
     app.tE_frame_info.setText("\r\n".join(info))
     
