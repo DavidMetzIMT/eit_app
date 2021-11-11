@@ -46,13 +46,13 @@ from eit_app.utils.flag import CustomFlag
 
 class RecCMDs(Enum):
     initialize=auto()
-    rec=auto()
+    reconstruct=auto()
 
 class Reconstruction(ABC):
     """ Class for the EIT reconstruction with the package pyEIT """
     def __init__(self):
         self.initialized=CustomFlag()
-        self.cmd_func= {RecCMDs.initialize:self.initialize, RecCMDs.rec:self.reconstruct}
+        self.cmd_func= {RecCMDs.initialize:self.initialize, RecCMDs.reconstruct:self.reconstruct}
         self.__post_init__()
 
     def run(self, cmd:RecCMDs=None, *args, **kwargs):

@@ -118,7 +118,6 @@ class Buffer(object):
                 self.buffer.put_nowait(last)
         return last or []
 
-
 ################################################################################
 ## Class for Sciopec Device ####################################################
 ################################################################################
@@ -354,7 +353,7 @@ class IOInterfaceSciospec(object):
                 print('2HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
                 self.queue_out_video_module.put(dataset.meas_frame[0].frame_path)
                 print('3HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
-            self.queue_out.put_nowait((dataset, 0, RecCMDs.rec))
+            self.queue_out.put_nowait((dataset, 0, RecCMDs.reconstruct))
             self.getDataset().flag_new_meas.clear()
 
     def _verify_len_of_rx_frame(self,rx_frame:List[bytes]):

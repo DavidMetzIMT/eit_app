@@ -240,10 +240,14 @@ class VideoCaptureModule(object):
     def _meas(self):
         if self.queue_in.empty():
             return
-        path=self.queue_in.get()
-        QtImage=self.save_image_now(path)
-        logger.debug(f'Image saved in {path}')
-        self.queue_out.put(QtImage)
+        try:
+            path=self.queue_in.get()
+            QtImage=self.save_image_now(path)
+            logger.debug(f'Image saved in {path}')
+            self.queue_out.put(QtImage)
+        except NoCaptureDeviceSelected:
+            self.set_idle()
+            logger.warning('NoCaptureDeviceSelected')
 
     def _live_frame(self):
         try:

@@ -120,7 +120,9 @@ def update_imaging_inputs_field(app:Ui_MainWindow, imaging_type:Imaging):
         app.lab_freq_meas_1.setVisible(False)
 
 def update_plots_to_show_inputs(app:Ui_MainWindow):
-    pass
+    app.chB_Uplot.setEnabled(app.chB_plot_graph.isChecked())
+    app.chB_diff.setEnabled(app.chB_plot_graph.isChecked())
+    app.chB_y_log.setEnabled(app.chB_plot_graph.isChecked())
 
 def update_progression_acquisition_single_frame(app:Ui_MainWindow, idx_frame:int=0, progression:int=0):
     app.sB_actual_frame_cnt.setValue(idx_frame)

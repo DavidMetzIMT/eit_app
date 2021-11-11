@@ -25,6 +25,9 @@ from pyeit.eit.utils import eit_scan_lines
 from eit_app.eit.model import EITModelClass
 from eit_app.eit.rec_abs import RecCMDs, Reconstruction
 from eit_app.utils.flag import CustomFlag
+from logging import getLogger
+
+logger = getLogger(__name__)
 # from eit_app.io.sciospec.device import *
 # from eit_app.io.sciospec.interface.serial4sciospec import 
 # from eit_app.eit.meas_preprocessing import *
@@ -56,7 +59,7 @@ class ReconstructionPyEIT(Reconstruction):
 
         ex_mat = eit_scan_lines(ne=model.get_nd_elecs(), dist=1)
         
-        print('Initialisation of PyEIT')
+        logger.info(f'Initialisation of PyEIT; solver:{model.SolverType}')
         
         # if verbose>0:
         #     self._print_mesh_nodes_elemts(self.MeshObj)
@@ -84,7 +87,7 @@ class ReconstructionPyEIT(Reconstruction):
         model.fem.update_from_pyeit(MeshObj)
         self._print_mesh_nodes_elemts(MeshObj)
         self.initialized.set()
-        return model, U #np.hstack((f1.v, f0.v))
+        return model, np.hstack((np.reshape(f1.v,(f1.v.shape[0],1)), np.reshape(f0.v,(f0.v.shape[0],1))))
         
     def reconstruct(self,  model:EITModelClass, U):
         """ return the reconstructed reconstructed conductivities values for the FEM"""
@@ -94,8 +97,6 @@ class ReconstructionPyEIT(Reconstruction):
             MeshObj["perm"]=_inv_solve_eit(self.eit,U[:,1],U[:,0], True)
             model.fem.update_from_pyeit(MeshObj)
         return model, U
-
-
 
     def _construct_mesh(self, elec_nb, fem_refinement, bbox):
         MeshObj, ElecPos = mesh.create(n_el=elec_nb, h0=fem_refinement, bbox=bbox)

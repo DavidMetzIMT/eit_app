@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -1443,14 +1443,14 @@ p, li { white-space: pre-wrap; }
      <widget class="QTabWidget" name="tabW_reconstruction">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>10</x>
         <y>580</y>
         <width>411</width>
         <height>271</height>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_pyeit">
        <attribute name="title">
@@ -1573,7 +1573,7 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>10</x>
           <y>20</y>
-          <width>251</width>
+          <width>390</width>
           <height>23</height>
          </rect>
         </property>
@@ -1744,7 +1744,7 @@ p, li { white-space: pre-wrap; }
      <widget class="QPushButton" name="pB_set_reconstruction">
       <property name="geometry">
        <rect>
-        <x>279</x>
+        <x>290</x>
         <y>570</y>
         <width>131</width>
         <height>23</height>
@@ -1765,119 +1765,193 @@ p, li { white-space: pre-wrap; }
    <widget class="QTabWidget" name="tabW_display">
     <property name="geometry">
      <rect>
-      <x>440</x>
+      <x>450</x>
       <y>10</y>
       <width>1471</width>
       <height>1021</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_meas_voltages">
      <attribute name="title">
       <string>Measured voltages</string>
      </attribute>
-     <widget class="QWidget" name="verticalLayoutWidget_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>250</y>
-        <width>821</width>
-        <height>740</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="PlotLayout"/>
-     </widget>
-     <widget class="QLabel" name="video_frame_miniature">
-      <property name="geometry">
-       <rect>
-        <x>610</x>
-        <y>10</y>
-        <width>201</width>
-        <height>100</height>
-       </rect>
-      </property>
-      <property name="mouseTracking">
-       <bool>false</bool>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Live Video</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
      <widget class="QGroupBox" name="groupBox_2">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>501</width>
-        <height>101</height>
+        <width>781</width>
+        <height>510</height>
        </rect>
       </property>
       <property name="title">
-       <string>GroupBox</string>
+       <string>Reconstruction</string>
       </property>
-      <widget class="QWidget" name="gridLayoutWidget_3">
+      <widget class="QCheckBox" name="chB_plot_image_rec">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>391</width>
-         <height>65</height>
+         <width>50</width>
+         <height>17</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="1">
-         <widget class="QCheckBox" name="chB_Uplot">
-          <property name="text">
-           <string>Uplot</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QCheckBox" name="chB_diff">
-          <property name="text">
-           <string>Difference</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="chB_y_log">
-          <property name="text">
-           <string>y log</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="chB_plot_graph">
-          <property name="text">
-           <string>Graph</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QCheckBox" name="chB_plot_image_rec">
-          <property name="text">
-           <string>Image</string>
-          </property>
-         </widget>
-        </item>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Image</string>
+       </property>
+      </widget>
+      <widget class="QWidget" name="verticalLayoutWidget_3">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>10</y>
+         <width>680</width>
+         <height>491</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="layout_rec">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetFixedSize</enum>
+        </property>
        </layout>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_7">
+      <property name="geometry">
+       <rect>
+        <x>800</x>
+        <y>10</y>
+        <width>660</width>
+        <height>511</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Video</string>
+      </property>
+      <widget class="QLabel" name="video_frame">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>640</width>
+         <height>480</height>
+        </rect>
+       </property>
+       <property name="cursor">
+        <cursorShape>CrossCursor</cursorShape>
+       </property>
+       <property name="mouseTracking">
+        <bool>true</bool>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="text">
+        <string>Live Video</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_8">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>530</y>
+        <width>1450</width>
+        <height>460</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Graph</string>
+      </property>
+      <widget class="QWidget" name="verticalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>10</y>
+         <width>1350</width>
+         <height>430</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="layout_graphs"/>
+      </widget>
+      <widget class="QCheckBox" name="chB_y_log">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>130</y>
+         <width>48</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>y log</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_plot_graph">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>48</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Graph</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_diff">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>100</y>
+         <width>70</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Difference</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_Uplot">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>190</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Uplot</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
      </widget>
     </widget>
@@ -1988,29 +2062,20 @@ p, li { white-space: pre-wrap; }
      <attribute name="title">
       <string>video</string>
      </attribute>
-     <widget class="QLabel" name="video_frame">
+     <widget class="QLabel" name="video_frame_miniature">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>811</width>
-        <height>771</height>
+        <x>280</x>
+        <y>50</y>
+        <width>201</width>
+        <height>100</height>
        </rect>
       </property>
-      <property name="cursor">
-       <cursorShape>CrossCursor</cursorShape>
-      </property>
       <property name="mouseTracking">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="autoFillBackground">
        <bool>false</bool>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
       </property>
       <property name="text">
        <string>Live Video</string>

@@ -64,10 +64,13 @@ class ComputeMeas():
             dataset, idx_frame, cmd = data
             
             self.U, self.labels = self.preprocess(dataset, idx_frame)
-            if self.plots_to_show[0].is_visible:
-                    rec_result= self.rec.run(cmd, self.eit_model, self.U)
-                    if rec_result is not None:
-                        self.eit_model, self.U= rec_result
+            if self.plots_to_show[0].visible:
+                    self.eit_model, self.U= self.rec.run(cmd, self.eit_model, self.U)
+                    # if rec_result is not None:
+                        # self.eit_model, self.U= rec_result
+                    if dataset == 'random':
+                        logger.info(f'Dummy data - reconstructed (time {get_date_time()})')
+                    else:
                         logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - reconstructed (time {get_date_time()})')
             data_4_gui = { 
                 'dataset': dataset,
@@ -83,15 +86,16 @@ class ComputeMeas():
     def preprocess(self,dataset:EitMeasurementDataset, idx_frame:int):
 
         if not self.imaging_type or not self.eit_model or dataset == 'random':
-            lab= {  'title': 'random',
-                    'legend': ['random', 'random'],
-                    'xylabel': ['random', 'random']
-            }
+            lab= {  
+                'title': 'random',
+                'legend': ['random', 'random'],
+                'xylabel': ['random', 'random']}
             logger.debug('Random data - preproccessed')
-            return  np.random.rand(256,2), {    PlotType.Image_2D: lab,
-                                                PlotType.U_plot: lab,
-                                                PlotType.Diff_plot: lab
-                                            }
+            return  np.random.rand(256,2),\
+                    { 
+                        PlotType.Image_2D: lab,
+                        PlotType.U_plot: lab,
+                        PlotType.Diff_plot: lab}
 
         U, labels= self.imaging_type.process_data(
                         dataset=dataset,

@@ -53,6 +53,18 @@ logger = getLogger(__name__)
 ##  Class for the DataSet obtained from the EIT Device
 ## ======================================================================================================================================================
 
+class DatasetHandler(object):
+
+    def __init__(self):
+        pass
+
+
+    
+
+
+
+
+
 class EitMeasurementDataset(object):
     """ Class EITDataSet: regroups infos and frames of measurements """
     def __init__(self):

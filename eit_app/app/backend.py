@@ -35,7 +35,7 @@ from eit_app.eit.model import EITModelClass
 
 
 # from eit_app.app.newQlabel import MyLabel
-from eit_app.eit.plots import PlotImage2D, PlotDiffPlot, PlotUPlot, plot_measurements
+from eit_app.eit.plots import PlotImage2D, PlotDiffPlot, PlotUPlot, plot_measurements, plot_rec
 from eit_app.io.sciospec.device import IOInterfaceSciospec
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.utils.utils_path import createPath, get_date_time
@@ -89,11 +89,18 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         # Set app title
         self.setWindowTitle(_translate("MainWindow","EIT aquisition for Sciospec device "+ __version__))
         
-        self.figure = figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.toolbar = NavigationToolbar(self.canvas, self)
-        self.PlotLayout.addWidget(self.toolbar)
-        self.PlotLayout.addWidget(self.canvas)
+        self.figure_graphs = figure()
+        self.canvas_graphs = FigureCanvas(self.figure_graphs)
+        self.toolbar_graphs = NavigationToolbar(self.canvas_graphs, self)
+        self.layout_graphs.addWidget(self.toolbar_graphs)
+        self.layout_graphs.addWidget(self.canvas_graphs)
+
+        self.figure_rec = figure()
+        self.canvas_rec = FigureCanvas(self.figure_rec)
+        self.toolbar_rec = NavigationToolbar(self.canvas_rec, self)
+        self.layout_rec.addWidget(self.toolbar_rec)
+        self.layout_rec.addWidget(self.canvas_rec)
+
         self._init_main_objects()
 
         # link callbacks
@@ -121,6 +128,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
  
         createPath(MEAS_DIR,append_datetime=False)
         createPath(SNAPSHOT_DIR,append_datetime=False)
+
+        self.dataset = EitMeasurementDataset()
 
         self.io_interface = IOInterfaceSciospec()
         
@@ -204,7 +213,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self.scalePlot_vmax.valueChanged.connect(self._callback_ScalePlot)
         self.scalePlot_vmin.valueChanged.connect(self._callback_ScalePlot)
         self.normalize.toggled.connect(self._callback_ScalePlot) 
-        self.cB_solver.activated.connect(self._callback_set_reconstruction)
+        # self.cB_solver.activated.connect(self._callback_set_reconstruction)
 
         # eit imaging 
         self.cB_eit_imaging_type.activated.connect(self._callback_imaging_params_changed)
@@ -223,7 +232,6 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self.cB_img_size.activated.connect(self._callback_set_capture_device)
         self.cB_img_file_ext.activated.connect(self._callback_set_capture_device)
         
-        
 
     def _init_multithreading_workers(self):
         # to treat live view of measured data
@@ -241,8 +249,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             self.workers[key].progress.connect(data[2])
             self.workers[key].start()
             self.workers[key].start_polling()
-    def _update_log(self):
 
+    def _update_log(self):
         change_level(level=log_level[self.cB_log_level.currentText()])
 
     ## ======================================================================================================================================================
@@ -286,28 +294,13 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     def _poll_update(self):
         
         """ Called by UpdateGuiWorker
-
         In case that the device send the flag devDataUp (e.g. new data recieved)
             >> update the gui
         Also this poll report of device disconnection to the user  """ 
-        # self.updade_video()
 
-
-
-        # look if the recontruction is done
-        # self._listener_queue_in() 
         self.is_new_computed_data()
         self.is_new_captured_image()
 
-    # def _poll_capture(self):
-        
-    #     ret, frame = self.capture_device.capture_frame()
-    #     if not ret:
-    #         return
-    #     self.image=self.captured_img.get()
-    #     self.video_frame.setPixmap(QtGui.QPixmap.fromImage(self.image))
-    #     self.image_min=self.image.scaledToHeight(self.video_frame_miniature.height())
-    #     self.video_frame_miniature.setPixmap(QtGui.QPixmap.fromImage(self.image_min))
     
     def is_new_computed_data(self):
         """"""
@@ -319,6 +312,11 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             try:
                 dataset:EitMeasurementDataset=data['dataset']
                 idx_frame= data['idx_frame']
+
+                if dataset == 'random':
+                    self._update_canvas(data)
+                    return
+                
                 # print(f'plot{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}')
                 # print(f'plot{dataset.meas_frame[idx_frame].loaded_frame_path}, time {get_date_time()}')
                 self.up_events.post(
@@ -330,7 +328,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
                 )
 
                 self._update_canvas(data)
-            except AttributeError:
+            except AttributeError as e:
+                logger.error(f'new computed data not displayed : source ({e})')
                 pass
     
     def is_new_captured_image(self):
@@ -582,6 +581,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         #     self.compute_measurement()
 
     def _callback_plots_to_show(self):
+
         self.plots_to_show=[ 
             PlotImage2D(
                 is_visible=self.chB_plot_image_rec.isChecked()
@@ -595,8 +595,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
                 y_axis_log=self.chB_y_log.isChecked()
                 )
         ]
-        self.computing.set_plotings(self.plots_to_show, self.figure)
-        # self.up_events.post(UpdateEvents.plots_to_show, self)
+        self.computing.set_plotings(self.plots_to_show, self.figure_graphs)
+        self.up_events.post(UpdateEvents.plots_to_show, self)
 
     def _load_dataset(self, dir_path:str=None):
 
@@ -645,7 +645,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         #     show_msgBox('Directory empty', 'no File has been found in the selected directory', "Warning")
     
     def compute_frame(self, idx_frame:int=0):
-        self.io_interface.putQueueOut((self.get_dataset(),idx_frame, RecCMDs.rec))
+        self.io_interface.putQueueOut((self.get_dataset(),idx_frame, RecCMDs.reconstruct))
 
     def show_corresponding_image(self):
         path_image= self.get_dataset().rx_meas_frame[self.cB_current_idx_frame.currentIndex()].frame_path
@@ -689,7 +689,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         return self.get_dataset().get_frame_cnt()
 
     def _test_compute(self):
-        self.io_interface.putQueueOut(('random', 0, RecCMDs.rec))
+        self.io_interface.putQueueOut(('random', 0, RecCMDs.reconstruct))
 
     # def make_ploting(self, data_to_plot):
 
@@ -702,20 +702,24 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _update_canvas(self, data):
         """"""
-
         dataset:EitMeasurementDataset=data['dataset']
         idx_frame=data['idx_frame']
+
+        t = time.time()
+        self.figure_rec=plot_rec(self.plots_to_show, self.figure_rec, data['U'], data['labels'], data['eit_model'])
+        self.canvas_rec.draw()
+        self.figure_graphs = plot_measurements(self.plots_to_show, self.figure_graphs, data['U'], data['labels'], data['eit_model'])
+        self.canvas_graphs.draw()
+        elapsed = time.time() - t
+
+        if dataset=='random':
+            return
+
         voltages= dataset.get_voltages(idx_frame, 0)
         if voltages is not None:
             set_table_widget(self.tableWidgetvoltages_Z, voltages)
             # set_table_widget(self.tableWidgetvoltages_Z_real, np.real(voltages))
             # set_table_widget(self.tableWidgetvoltages_Z_imag, np.imag(voltages))
-
-        # print(f'plot of frame #')
-        t = time.time()
-        self.figure = plot_measurements(self.plots_to_show, self.figure, data['U'], data['labels'], data['eit_model'])
-        self.canvas.draw()
-        elapsed = time.time() - t
         
         if isinstance(dataset, EitMeasurementDataset):
             print(f'plot of frame #{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}, lasted {elapsed}')
@@ -755,8 +759,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     
     def display_image(self, image:QtGui.QImage):
         self.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
-        self.image_min=image.scaledToHeight(self.video_frame_miniature.height())
-        self.video_frame_miniature.setPixmap(QtGui.QPixmap.fromImage(self.image_min))
+        # self.image_min=image.scaledToHeight(self.video_frame_miniature.height())
+        # self.video_frame_miniature.setPixmap(QtGui.QPixmap.fromImage(self.image_min))
 
 # Step 1: Create a worker class
 # def _poll_process4reconstruction(queue_in=None, queue_out=None, rec:ReconstructionPyEIT=ReconstructionPyEIT()):

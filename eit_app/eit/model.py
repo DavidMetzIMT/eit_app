@@ -78,6 +78,19 @@ class FEM():
     gnd_node:int=0
     refinement:float=0.1
 
+    def set_perm(self, perm):
+        self.elems_data= perm
+
+    def set_mesh(self,pts,tri,perm):
+        self.nodes= pts
+        self.elems= tri
+        self.set_perm(perm)
+
+    def update_from_matlab(self, fwd_model:dict, perm):
+        self.nodes= fwd_model['nodes']
+        self.elems= fwd_model['elems']
+        self.elems_data= perm
+
     def get_pyeit_mesh(self):
         return {
             'node':self.nodes,

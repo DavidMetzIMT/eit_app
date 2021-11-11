@@ -2,7 +2,7 @@
 from time import sleep
 
 from PyQt5.QtCore import QThread, pyqtSignal
-from threading import Thread, Event
+from threading import Thread, Event, Timer
 
 class Poller(Thread):
     """ thread to repeatedly poll
@@ -126,3 +126,10 @@ class CustomWorker(QThread):
 #                 if ret:
 #                     self.image_update.emit(convert_frame_to_Qt_format(frame))
 #                 sleep(self.sleeptime)
+
+# class CustomTimer(Timer):
+#     def run(self):
+#         while not self.finis
+
+# a=CustomTimer()
+# a.

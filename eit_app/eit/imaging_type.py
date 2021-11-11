@@ -93,27 +93,6 @@ class Imaging():
     @abstractmethod
     def make_labels(self, metadata):
         """"""
-        
-        # freq_val, idx_frames, label_meas= metadata
-        # 
-        # return {
-                #     PlotType.Image_2D:{
-                #         'title': '',
-                #         'legend': ['',''],
-                #         'xylabel': ['','']
-                #     },
-                #     PlotType.U_plot:{
-                #         'title': '',
-                #         'legend': ['',''],
-                #         'xylabel': ['','']
-                #     },
-                #     PlotType.Diff_plot:{
-                #         'title': '',
-                #         'legend': ['',''],
-                #         'xylabel': ['','']
-                #     }
-                # }
-        # 
 
 class AbsoluteImaging(Imaging):
 
@@ -143,17 +122,17 @@ class AbsoluteImaging(Imaging):
 
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Absolute Imaging ({label_meas[1]})\nFrame #{idx_frames[0]} ({freqs_val[0]} Hz)',
+                        'title': f'Absolute Imaging ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz)',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]})\nFrequence: {freqs_val[0]} Hz ' ,
+                        'title': f'Voltages ({label_meas[0]}); Frequence: {freqs_val[0]} Hz ' ,
                         'legend': [f'Frame #{idx_frames[0]}',f'Frame #{idx_frames[0]}'],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltages ({label_meas[1]})\nFrame #{idx_frames[0]} ({freqs_val[0]} Hz)',
+                        'title': f'Voltages ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz)',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     }
@@ -167,7 +146,11 @@ class TimeDifferenceImaging(Imaging):
         self.ref_frame_idx=ref_frame_idx
         self.transform_funcs= transform_funcs
 
-    def pre_process_data(self, dataset:EitMeasurementDataset, eit_model:EITModelClass, idx_frame:int=0)->np.ndarray:
+    def pre_process_data(
+            self,
+            dataset:EitMeasurementDataset, 
+            eit_model:EITModelClass, 
+            idx_frame:int=0) -> np.ndarray:
         """"""
 
         if self.ref_frame_idx is None or len(self.idx_freqs)!=1:
@@ -190,17 +173,17 @@ class TimeDifferenceImaging(Imaging):
 
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Time difference Imaging ({label_meas[1]})\nFrame #{idx_frames[0]} - #{idx_frames[1]} ({freqs_val[0]} Hz)',
+                        'title': f'Time difference Imaging ({label_meas[1]}); Frame #{idx_frames[0]} - #{idx_frames[1]} ({freqs_val[0]} Hz)',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y', 'Z']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]})\nFrequence: {freqs_val[0]} Hz ' ,
+                        'title': f'Voltages ({label_meas[0]}); Frequence: {freqs_val[0]} Hz ' ,
                         'legend': [ f'Ref Frame #{idx_frames[0]}',f'Frame #{idx_frames[1]}'],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltage differences ({label_meas[1]})\nFrame #{idx_frames[0]} - #{idx_frames[1]} ({freqs_val[0]} Hz)',
+                        'title': f'Voltage differences ({label_meas[1]}); Frame #{idx_frames[0]} - #{idx_frames[1]} ({freqs_val[0]} Hz)',
                         'legend': ['',''],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     }
@@ -210,11 +193,17 @@ class FrequenceDifferenceImaging(Imaging):
 
     def __init__(self, idx_freqs:List[float], ref_frame_idx:int=0, transform_funcs:list=[]) -> None:
         self.label_imaging='\u0394U_f' #ΔU_f
-        self.detail_freqs=[{'Frequence (ref) in Hz' : idx_freqs[0]},{'Frequence in Hz' : idx_freqs[1]}]
+        self.detail_freqs=[
+            {'Frequence (ref) in Hz' : idx_freqs[0]},
+            {'Frequence in Hz' : idx_freqs[1]}]
         self.ref_frame_idx=None
         self.transform_funcs= transform_funcs
     
-    def pre_process_data(self, dataset:EitMeasurementDataset, eit_model:EITModelClass, idx_frame:int=0)->np.ndarray:
+    def pre_process_data(
+            self,
+            dataset:EitMeasurementDataset,
+            eit_model:EITModelClass,
+            idx_frame:int=0) -> np.ndarray:
         """"""
         if len(self.idx_freqs)!=2:
             return np.array([]) 
@@ -247,17 +236,17 @@ class FrequenceDifferenceImaging(Imaging):
 
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Frequency difference Imaging ({label_meas[1]})\nFrame #{idx_frames[0]} ({freqs_val[0]} Hz - {freqs_val[1]} Hz)',
+                        'title': f'Frequency difference Imaging ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz - {freqs_val[1]} Hz)',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y', 'Z']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]})\nFrame #{idx_frames[0]} ' ,
-                        'legend': [ f'Ref Frequence {freqs_val[0]} Hz', f'Frequence {freqs_val[1]} Hz'],
+                        'title': f'Voltages ({label_meas[0]}); Frame #{idx_frames[0]} ' ,
+                        'legend': [ f'Ref Frequence {freqs_val[0]} Hz',f'Frequence {freqs_val[1]} Hz'],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltage differences ({label_meas[1]})\nFrame #{idx_frames[0]} ({freqs_val[0]} Hz - {freqs_val[1]} Hz)',
+                        'title': f'Voltage differences ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz - {freqs_val[1]} Hz)',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },
