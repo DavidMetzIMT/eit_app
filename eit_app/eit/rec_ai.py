@@ -64,6 +64,8 @@ class ReconstructionAI(Reconstruction):
         self.eit=None
 
     def __post_init__(self):
+
+        
         """ for init"""
 
     def initialize(self, model:EITModelClass, U:np.ndarray, model_dirpath=None):
