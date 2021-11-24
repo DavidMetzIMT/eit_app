@@ -23,7 +23,7 @@ import os
 from logging import getLogger
 from queue import Queue
 from sys import argv
-from PyQt5.QtWidgets import QApplication
+
 
 import numpy as np
 from eit_app.app.dialog_boxes import show_msgBox
@@ -387,6 +387,7 @@ class EITMeas(object):
 
 if __name__ == '__main__':
     from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+    from PyQt5.QtWidgets import QApplication
     app = QApplication(argv)
     # # rec2ui_queue = NewQueue()
     # app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
