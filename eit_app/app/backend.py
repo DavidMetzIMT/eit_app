@@ -31,7 +31,7 @@ from eit_app.eit.rec_pyeit import ReconstructionPyEIT
 from eit_app.io.video.microcamera import MicroCam, VideoCaptureModule
 from eit_app.app.gui import Ui_MainWindow as app_gui
 from eit_app.app.dialog_boxes import show_msgBox, openFileNameDialog
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 
 
 # from eit_app.app.newQlabel import MyLabel
@@ -231,7 +231,6 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self.cB_video_devices.activated.connect(self._callback_set_capture_device)
         self.cB_img_size.activated.connect(self._callback_set_capture_device)
         self.cB_img_file_ext.activated.connect(self._callback_set_capture_device)
-        
 
     def _init_multithreading_workers(self):
         # to treat live view of measured data
@@ -304,33 +303,32 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     
     def is_new_computed_data(self):
         """"""
-        if not self.figure_to_plot.empty():
-        
-            while not self.figure_to_plot.empty():
-                data=self.figure_to_plot.get()
+        if self.figure_to_plot.empty():
+            return
             
-            try:
-                dataset:EitMeasurementDataset=data['dataset']
-                idx_frame= data['idx_frame']
+        while not self.figure_to_plot.empty():
+            data=self.figure_to_plot.get()
 
-                if dataset == 'random':
-                    self._update_canvas(data)
-                    return
-                
-                # print(f'plot{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}')
-                # print(f'plot{dataset.meas_frame[idx_frame].loaded_frame_path}, time {get_date_time()}')
-                self.up_events.post(
-                    UpdateEvents.info_data_computed,
-                    self,
-                    self.live_meas_status,
-                    dataset.get_idx_frame(idx_frame),
-                    dataset.get_info(idx_frame)
-                )
+        try:
+            dataset:EitMeasurementDataset=data['dataset']
+            idx_frame= data['idx_frame']
 
+            if dataset == 'random':
                 self._update_canvas(data)
-            except AttributeError as e:
-                logger.error(f'new computed data not displayed : source ({e})')
-                pass
+                return
+
+            # print(f'plot{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}')
+            # print(f'plot{dataset.meas_frame[idx_frame].loaded_frame_path}, time {get_date_time()}')
+            self.up_events.post(
+                UpdateEvents.info_data_computed,
+                self,
+                self.live_meas_status,
+                dataset.get_idx_frame(idx_frame),
+                dataset.get_info(idx_frame)
+            )
+            self._update_canvas(data)
+        except AttributeError as e:
+            logger.error(f'new computed data not displayed : source ({e})')
     
     def is_new_captured_image(self):
         """"""
@@ -453,7 +451,10 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _callback_set_reconstruction(self):
         # set some 
-        rec={0:ReconstructionPyEIT, 1:ReconstructionAI}
+        rec={
+            0:ReconstructionPyEIT,
+            1:ReconstructionAI
+        }
         self.eit_model.p=self.eit_p.value()
         self.eit_model.lamb=self.eit_lamda.value()
         self.eit_model.n=self.eit_n.value()
@@ -702,27 +703,30 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _update_canvas(self, data):
         """"""
-        dataset:EitMeasurementDataset=data['dataset']
-        idx_frame=data['idx_frame']
+        try :
+            dataset:EitMeasurementDataset=data['dataset']
+            idx_frame=data['idx_frame']
 
-        t = time.time()
-        self.figure_rec=plot_rec(self.plots_to_show, self.figure_rec, data['U'], data['labels'], data['eit_model'])
-        self.canvas_rec.draw()
-        self.figure_graphs = plot_measurements(self.plots_to_show, self.figure_graphs, data['U'], data['labels'], data['eit_model'])
-        self.canvas_graphs.draw()
-        elapsed = time.time() - t
+            t = time.time()
+            self.figure_rec=plot_rec(self.plots_to_show, self.figure_rec, data)
+            self.canvas_rec.draw()
+            self.figure_graphs = plot_measurements(self.plots_to_show, self.figure_graphs, data)
+            self.canvas_graphs.draw()
+            elapsed = time.time() - t
 
-        if dataset=='random':
-            return
+            if dataset=='random':
+                return
 
-        voltages= dataset.get_voltages(idx_frame, 0)
-        if voltages is not None:
-            set_table_widget(self.tableWidgetvoltages_Z, voltages)
-            # set_table_widget(self.tableWidgetvoltages_Z_real, np.real(voltages))
-            # set_table_widget(self.tableWidgetvoltages_Z_imag, np.imag(voltages))
-        
-        if isinstance(dataset, EitMeasurementDataset):
-            print(f'plot of frame #{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}, lasted {elapsed}')
+            voltages= dataset.get_voltages(idx_frame, 0)
+            if voltages is not None:
+                set_table_widget(self.tableWidgetvoltages_Z, voltages)
+                # set_table_widget(self.tableWidgetvoltages_Z_real, np.real(voltages))
+                # set_table_widget(self.tableWidgetvoltages_Z_imag, np.imag(voltages))
+            
+            if isinstance(dataset, EitMeasurementDataset):
+                print(f'plot of frame #{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}, lasted {elapsed}')
+        except BaseException as e:
+            logger.error(f'Error _update_canvas: {e}')
 
     ## ======================================================================================================================================================
     ##  Setter

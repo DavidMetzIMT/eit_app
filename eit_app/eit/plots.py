@@ -6,8 +6,9 @@ import matplotlib.figure as mfig
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 from numpy.lib.shape_base import tile
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 # from eit_app.eit.reconstruction import ReconstructionPyEIT
 from logging import getLogger
 
@@ -66,9 +67,6 @@ class CustomLabels():
     def get_axis(self)->List[str]:
         return self.label['axis']
 
-
-
-
     
 class PlotImage2D(CustomPlots):
 
@@ -77,17 +75,14 @@ class PlotImage2D(CustomPlots):
         self.name=PlotType.Image_2D
         self.visible=is_visible
     
-    def plot(self, fig, ax, model:EITModelClass, labels):
+    def plot(self, fig:Figure, ax:Axes, model:EITModelClass, labels):
         
         logger.debug('PlotImage2D')
 
         label = labels[self.name]
         pts, tri, data= model.fem.get_data_for_plots()
-
         ax.clear()
         im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(data), shading="flat")
-        # for i, e in enumerate(rec.ElecPos):
-        #     ax.annotate(str(i + 1), xy=(pts[e,0], pts[e,1]), color="r")   
         ax.axis("equal")
         ax.set_title(label['title'])
         ax.set_xlabel(label['xylabel'][0])
@@ -180,9 +175,12 @@ class PlotDiffPlot(CustomPlots):
 #         return fig, ax
 
 
-def plot_measurements(plot_to_show:List[CustomPlots], fig,  U, labels, model:EITModelClass):
+def plot_measurements(plot_to_show:List[CustomPlots], fig,  data):
     if not plot_to_show[1].is_visible() and not plot_to_show[2].is_visible():
         return fig
+    U=data['U']
+    labels=data['labels']
+    # eit_model=data['eit_model']
     fig= fig
     fig.clear()
     ax=[fig.add_subplot(2,1,1),fig.add_subplot(2,1,2)]
@@ -193,13 +191,16 @@ def plot_measurements(plot_to_show:List[CustomPlots], fig,  U, labels, model:EIT
     fig.set_tight_layout(True)
     return fig
 
-def plot_rec(plot_to_show:List[CustomPlots], fig,  U, labels, model:EITModelClass):
+def plot_rec(plot_to_show:List[CustomPlots], fig,  data):
     fig= fig
     if not plot_to_show[0].is_visible():
         return fig
+    # U=data['U']
+    labels=data['labels']
+    eit_model=data['eit_model']
     fig.clear()
     ax=[fig.add_subplot(1,1,1)]
-    fig, ax[0]= plot_to_show[0].plot(fig, ax[0], model, labels)
+    fig, ax[0]= plot_to_show[0].plot(fig, ax[0], eit_model, labels)
     return fig
 
 
