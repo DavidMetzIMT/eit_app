@@ -5,7 +5,7 @@ from typing import List
 from logging import getLogger
 import numpy as np
 from eit_app.eit.imaging_type import Imaging
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.plots import CustomPlots, PlotType
 from eit_app.eit.rec_abs import Reconstruction
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset

@@ -22,7 +22,7 @@ from pyeit.eit.interp2d import pts2sim, sim2pts
 from pyeit.eit.utils import eit_scan_lines
 
 
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.rec_abs import RecCMDs, Reconstruction
 from eit_app.utils.flag import CustomFlag
 from logging import getLogger

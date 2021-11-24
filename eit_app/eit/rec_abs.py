@@ -22,7 +22,7 @@ from pyeit.eit.interp2d import pts2sim, sim2pts
 from pyeit.eit.utils import eit_scan_lines
 
 
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 from eit_app.utils.flag import CustomFlag
 # from eit_app.io.sciospec.device import *
 # from eit_app.io.sciospec.interface.serial4sciospec import 

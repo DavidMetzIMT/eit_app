@@ -14,6 +14,8 @@ from eit_app.utils.constants import DEFAULT_DIR, \
                                     DEFAULT_INJECTIONS,\
                                     DEFAULT_ELECTRODES_CHIP_RING
 
+from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
+
 ## ======================================================================================================================================================
 ##  
 ## ======================================================================================================================================================
@@ -78,18 +80,29 @@ class FEM():
     gnd_node:int=0
     refinement:float=0.1
 
-    def set_perm(self, perm):
-        self.elems_data= perm
+    def set_perm(self, perm:np.ndarray) -> None:
 
+        if perm.ndim==2:
+            data_s1= perm.shape[1]
+            nodes_s0=self.nodes.shape[0]
+            elems_s0=self.elems.shape[0]
+            if data_s1 in [nodes_s0, elems_s0]:
+                perm= perm.T
+        self.elems_data= perm
+    
     def set_mesh(self,pts,tri,perm):
         self.nodes= pts
         self.elems= tri
         self.set_perm(perm)
 
-    def update_from_matlab(self, fwd_model:dict, perm):
-        self.nodes= fwd_model['nodes']
-        self.elems= fwd_model['elems']
-        self.elems_data= perm
+    def build_mesh_from_matlab(self, fwd_model:dict, perm:np.ndarray):
+        perm=format_inputs(fwd_model, perm)
+        tri, pts, data= get_elem_nodal_data(fwd_model, perm)
+        # model.fem.set_mesh(pts, tri, data['elems_data'])
+        self.set_mesh(pts, tri, data['elems_data'])
+        # self.nodes= fwd_model['nodes']
+        # self.elems= fwd_model['elems']
+        # self.set_perm(perm)
 
     def get_pyeit_mesh(self):
         return {
@@ -101,7 +114,7 @@ class FEM():
     def update_from_pyeit(self, mesh_obj:dict):
         self.nodes= mesh_obj['node']
         self.elems= mesh_obj['element']
-        self.elems_data= mesh_obj['perm']
+        self.set_perm(mesh_obj['perm'])
     
     def get_data_for_plots(self):
         return self.nodes, self.elems, self.elems_data
