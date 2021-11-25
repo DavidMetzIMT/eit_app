@@ -4,7 +4,6 @@ import os
 from eit_tf_workspace.train_utils.gen import Generators
 from eit_tf_workspace.train_utils.metadata import MetaData, reload_metadata
 import numpy as np
-import pyeit.mesh as mesh
 # from eit_app.io.sciospec.device import *
 # from eit_app.io.sciospec.interface.serial4sciospec import 
 from eit_app.eit.meas_preprocessing import *
@@ -50,29 +49,23 @@ class ReconstructionAI(Reconstruction):
     def initialize(self, model:EITModelClass, U:np.ndarray, model_dirpath:str=''):
         """ should initialize the reconstruction method and return some data to plot"""
         self.initialized.reset()
-
         self.metadata = reload_metadata(dir_path=model_dirpath)
-        raw_samples= reload_samples(MatlabSamples(),self.metadata)
         self.gen= select_gen(self.metadata)
         self.gen.load_model(self.metadata)
+        raw_samples= reload_samples(MatlabSamples(),self.metadata)
         self.gen.build_dataset(raw_samples, self.metadata)
-
         self.fwd_model=self.gen.getattr_dataset('fwd_model')
-        voltages, true_img_data=self.gen.extract_samples(dataset_part='test', idx_samples='all')
-
+        voltages, _=self.gen.extract_samples(dataset_part='test', idx_samples='all')
         perm_real=self.gen.get_prediction(metadata=self.metadata,single_X=voltages[2])
         model.fem.build_mesh_from_matlab(self.fwd_model, perm_real)
         self.initialized.set()
-
         return model, np.hstack((np.reshape(voltages,(-1,1)), np.reshape(voltages,(-1,1))))
 
-        
     def reconstruct(self, model:EITModelClass, U:np.ndarray):
         """ return the reconstructed reconstructed conductivities values for the FEM"""
         if self.initialized.is_set():
-            """ DO SOMETTHING and return data of reconstruction"""
-            d= U[:,1]-U[:,0]
-            perm_real=self.gen.get_prediction(metadata=self.metadata, single_X=d)
+            ds= U[:,1]-U[:,0]
+            perm_real=self.gen.get_prediction(metadata=self.metadata, single_X=ds)
             model.fem.build_mesh_from_matlab(self.fwd_model, perm_real)
         return model, U
     
