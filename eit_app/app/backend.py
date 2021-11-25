@@ -464,7 +464,6 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
         self.io_interface.putQueueOut(('random', 0, RecCMDs.initialize))
         
-
     def _callback_ScalePlot(self):
         print('ScalePlot', self.tabW_reconstruction.currentIndex())
     
