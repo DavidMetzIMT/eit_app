@@ -1,7 +1,4 @@
 
-
-
-
 from abc import ABC, abstractmethod
 import os
 from multiprocessing.queues import Queue
@@ -59,8 +56,8 @@ class Reconstruction(ABC):
         }
         self.__post_init__()
 
-    def run(self, cmd:RecCMDs=None, *args, **kwargs):
-        if cmd is None:
+    def run(self, cmd:RecCMDs, *args, **kwargs):
+        if not isinstance(cmd, RecCMDs):
             return None
         return self.cmd_func[cmd](*args, **kwargs)
 

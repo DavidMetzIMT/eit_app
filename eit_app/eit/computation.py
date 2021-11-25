@@ -11,7 +11,7 @@ from eit_app.eit.rec_abs import Reconstruction
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
 from eit_app.threads_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag
-from eit_app.utils.utils_path import get_date_time
+from glob_utils.pth.path_utils import get_datetime_s
 
 
 class Data4GUI():
@@ -69,9 +69,9 @@ class ComputeMeas():
                     # if rec_result is not None:
                         # self.eit_model, self.U= rec_result
                     if dataset == 'random':
-                        logger.info(f'Dummy data - reconstructed (time {get_date_time()})')
+                        logger.info(f'Dummy data - reconstructed (time {get_datetime_s()})')
                     else:
-                        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - reconstructed (time {get_date_time()})')
+                        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - reconstructed (time {get_datetime_s()})')
             data_4_gui = { 
                 'dataset': dataset,
                 'idx_frame':idx_frame,
@@ -102,5 +102,5 @@ class ComputeMeas():
                         eit_model=self.eit_model,
                         idx_frame=idx_frame,
                         extract_voltages=self.extract_voltages)
-        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - preproccessed (time {get_date_time()})')
+        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - preproccessed (time {get_datetime_s()})')
         return U, labels

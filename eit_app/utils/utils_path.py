@@ -26,60 +26,60 @@ class DataLoadedNotCompatibleError(Exception):
 class EmptyFileError(Exception):
     """"""
 
-def get_date_time():
-    _now = datetime.datetime.now()
-    return _now.strftime(FORMAT_DATE_TIME)
+# def get_datetime_s():
+#     _now = datetime.datetime.now()
+#     return _now.strftime(FORMAT_DATE_TIME)
 
-def get_time():
-    return time.time()
+# def get_time():
+#     return time.time()
 
-def append_date_time(s:str, datetime:str=None) -> str:
+# def append_date_time(s:str, datetime:str=None) -> str:
 
-    s= remove_date_time(s)
-    if datetime:
-        return f'{s}_{datetime}'
-    else:
-        return f'{s}_{get_date_time()}'
+#     s= remove_date_time(s)
+#     if datetime:
+#         return f'{s}_{datetime}'
+#     else:
+#         return f'{s}_{get_datetime_s()}'
 
-def remove_date_time(s:str)->str:
-    length= len(get_date_time())
-    if len(s)>= length:
-        try:
-            datetime.datetime.strptime(s[-length:], FORMAT_DATE_TIME)
-            datestring= s[:-length]
-            if not datestring:
-                s='default'
-        except ValueError:
-            pass
-    return s
+# def remove_date_time(s:str)->str:
+#     length= len(get_datetime_s())
+#     if len(s)>= length:
+#         try:
+#             datetime.datetime.strptime(s[-length:], FORMAT_DATE_TIME)
+#             datestring= s[:-length]
+#             if not datestring:
+#                 s='default'
+#         except ValueError:
+#             pass
+#     return s
 
-def get_POSIX_path(path:str):
+# def get_POSIX_path(path:str):
 
-    return path.replace('\\','/')
+#     return path.replace('\\','/')
 
 
-def mk_ouput_dir(name, default_out_dir= DEFAULT_OUTPUTS_DIR, verbose= False ):
-    """create and return the path of a folder "name" in the default_out_directory
+# def mk_ouput_dir(name, default_out_dir= DEFAULT_OUTPUTS_DIR, verbose= False ):
+#     """create and return the path of a folder "name" in the default_out_directory
 
-    Args:
-        name ([type]): [description]
-        verbose (bool, optional): [description]. Defaults to True.
-        default_out_dir (str, optional): [description]. Defaults to 'outputs'.
+#     Args:
+#         name ([type]): [description]
+#         verbose (bool, optional): [description]. Defaults to True.
+#         default_out_dir (str, optional): [description]. Defaults to 'outputs'.
 
-    Returns:
-        [type]: [description]
-    """
-    if not os.path.isdir(default_out_dir):
-        os.mkdir(default_out_dir)
+#     Returns:
+#         [type]: [description]
+#     """
+#     if not os.path.isdir(default_out_dir):
+#         os.mkdir(default_out_dir)
 
-    output_dir= os.path.join(default_out_dir, name)
+#     output_dir= os.path.join(default_out_dir, name)
 
-    if verbose:
-        print('\nResults are to found in:\n >> {}'.format(output_dir))
+#     if verbose:
+#         print('\nResults are to found in:\n >> {}'.format(output_dir))
 
-    os.mkdir(output_dir)
+#     os.mkdir(output_dir)
 
-    return output_dir
+#     return output_dir
 
 def get_dir(initialdir=None, title='Select a directory'):
     """[summary]
@@ -248,22 +248,22 @@ def print_loading_verbose(filename, classloaded= None, verbose=True):
         else:
             print('\nSome data were loaded from : ...{}'.format(filename[-50:]))
 
-def createPath(path:str, append_datetime=True) -> str:
-    """[summary]
+# def createPath(path:str, append_datetime=True) -> str:
+#     """[summary]
 
-    Args:
-        path (str): [description]
-        incrementDir (bool, optional): [description]. Defaults to False.
-        dateTime (bool, optional): [description]. Defaults to False.
+#     Args:
+#         path (str): [description]
+#         incrementDir (bool, optional): [description]. Defaults to False.
+#         dateTime (bool, optional): [description]. Defaults to False.
 
-    Returns:
-        [type]: [description]
-    """
-    if append_datetime:        
-        path= append_date_time(path)
-    if not os.path.exists(path):
-        os.mkdir(path)
-    return path
+#     Returns:
+#         [type]: [description]
+#     """
+#     if append_datetime:        
+#         path= append_date_time(path)
+#     if not os.path.exists(path):
+#         os.mkdir(path)
+#     return path
 
 def set_attributes(class2upload,loaded_class) -> None:
     if not isinstance(loaded_class, type(class2upload)):
@@ -279,8 +279,8 @@ if __name__ == "__main__":
     # print(search_for_file_with_ext(None, ext='.py'))
    
 #    import dateutil.parser
-#    datestring='aaaaa'#get_date_time()
-#    length= len(get_date_time())
+#    datestring='aaaaa'#get_datetime_s()
+#    length= len(get_datetime_s())
 #    if len(datestring)>= length:
 #         try:
 #            yourdate = datetime.datetime.strptime(datestring[-length:], FORMAT_DATE_TIME)

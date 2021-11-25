@@ -10,6 +10,7 @@ import os
 from  sys import argv, exit
 from logging import getLogger
 import time
+from glob_utils.pth.path_utils import mk_new_dir
 import matplotlib
 from matplotlib.pyplot import figure
 import numpy as np
@@ -38,7 +39,8 @@ from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.plots import PlotImage2D, PlotDiffPlot, PlotUPlot, plot_measurements, plot_rec
 from eit_app.io.sciospec.device import IOInterfaceSciospec
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
-from eit_app.utils.utils_path import createPath, get_date_time
+
+from glob_utils.pth.path_utils import get_datetime_s
 # from eit_app.eit.meas_preprocessing import *
 from eit_app.threads_process.threads_worker import CustomWorker
 from eit_app.utils.constants import EXT_TXT, MEAS_DIR, DEFAULT_IMG_SIZES,EXT_IMG, SNAPSHOT_DIR
@@ -125,9 +127,9 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _init_main_objects(self):
 
- 
-        createPath(MEAS_DIR,append_datetime=False)
-        createPath(SNAPSHOT_DIR,append_datetime=False)
+        mk_new_dir(dir_name=MEAS_DIR)
+        mk_new_dir(dir_name=SNAPSHOT_DIR)
+        # add dir in default dirs TODO
 
         self.dataset = EitMeasurementDataset()
 
@@ -317,8 +319,8 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
                 self._update_canvas(data)
                 return
 
-            # print(f'plot{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}')
-            # print(f'plot{dataset.meas_frame[idx_frame].loaded_frame_path}, time {get_date_time()}')
+            # print(f'plot{dataset.get_idx_frame(idx_frame)}, time {get_datetime_s()}')
+            # print(f'plot{dataset.meas_frame[idx_frame].loaded_frame_path}, time {get_datetime_s()}')
             self.up_events.post(
                 UpdateEvents.info_data_computed,
                 self,
@@ -533,7 +535,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _callback_capture_snapshot(self):
         """"""
-        self.capture_module.save_image_now(os.path.join(SNAPSHOT_DIR,f'Snapshot_{get_date_time()}'))
+        self.capture_module.save_image_now(os.path.join(SNAPSHOT_DIR,f'Snapshot_{get_datetime_s()}'))
         
     def _callback_refresh_capture_devices(self):
         capture_devices= self.capture_module.get_devices_available()
@@ -724,7 +726,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
                 # set_table_widget(self.tableWidgetvoltages_Z_imag, np.imag(voltages))
             
             if isinstance(dataset, EitMeasurementDataset):
-                print(f'plot of frame #{dataset.get_idx_frame(idx_frame)}, time {get_date_time()}, lasted {elapsed}')
+                print(f'plot of frame #{dataset.get_idx_frame(idx_frame)}, time {get_datetime_s()}, lasted {elapsed}')
         except BaseException as e:
             logger.error(f'Error _update_canvas: {e}')
 

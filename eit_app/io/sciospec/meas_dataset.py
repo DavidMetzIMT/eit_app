@@ -34,9 +34,11 @@ from eit_app.io.sciospec.utils import convertBytes2Int,convert4Bytes2Float
 from eit_app.io.video.microcamera import VideoCaptureModule
 from eit_app.utils.constants import EXT_PKL, MEAS_DIR
 from glob_utils.flags.flag import CustomFlag
-from eit_app.utils.utils_path import (CancelledError, append_date_time, get_date_time, get_dir, load_pickle,
-                                      mk_ouput_dir, save_as_pickle,
+from eit_app.utils.utils_path import (CancelledError, load_pickle,
+                                       save_as_pickle,
                                       search_for_file_with_ext, set_attributes)
+
+from glob_utils.pth.path_utils import append_date_time, get_datetime_s, get_dir, mk_new_dir
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -83,10 +85,10 @@ class EitMeasurementDataset(object):
         self.save_img=CustomFlag()
         
     def initForAquisition(self,dev_setup:SciospecSetup, name_measurement:str=None):
-        self.date_time= get_date_time()
+        self.date_time= get_datetime_s()
         if self.autosave.is_set():
             self.name= append_date_time(name_measurement, self.date_time)
-            self.output_dir=mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
+            self.output_dir=mk_new_dir(dir_name=self.name, parent_dir=MEAS_DIR)
         else:
             self.name= 'Not saved'
             self.output_dir=None
