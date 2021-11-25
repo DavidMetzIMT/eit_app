@@ -60,7 +60,7 @@ class DatasetHandler(object):
     def __init__(self):
         pass
 
-class EitMeasurementDataset(object):
+class EitMeasurementSet(object):
     """ Class EITDataSet: regroups infos and frames of measurements """
     def __init__(self):
         # self.queue_out_video_module:Queue=None
@@ -142,7 +142,7 @@ class EitMeasurementDataset(object):
         if path is None:
             self._frame_TD_ref[0] = self.meas_frame[idx]
         else:
-            dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(path)
+            dataset_tmp:EitMeasurementSet=self.load_dataset_single_frame(path)
             self._frame_TD_ref[0]=dataset_tmp.meas_frame[0]
     
     def save_dataset_single_frame(self, idx:int=0):
@@ -153,7 +153,7 @@ class EitMeasurementDataset(object):
         save_as_pickle(path, self)
 
     def load_single_frame(self, file_path):
-        dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(file_path)
+        dataset_tmp:EitMeasurementSet=self.load_dataset_single_frame(file_path)
         self.meas_frame[0]=dataset_tmp.meas_frame[0]
 
     def load_dataset_single_frame(self, file_path):
@@ -184,7 +184,7 @@ class EitMeasurementDataset(object):
         # print('filepaths', filenames)
         for i,filename in enumerate(filenames): # get all the frame data
             filepath=os.path.join(dir_path, filename)
-            dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(filepath)
+            dataset_tmp:EitMeasurementSet=self.load_dataset_single_frame(filepath)
             if i ==0:
                 set_attributes(self,dataset_tmp)
                 setattr(self, 'output_dir', dir_path)
@@ -382,7 +382,7 @@ class EITMeas(object):
 
 
 if __name__ == '__main__':
-    from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+    from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
     from PyQt5.QtWidgets import QApplication
     app = QApplication(argv)
     # # rec2ui_queue = NewQueue()
@@ -393,7 +393,7 @@ if __name__ == '__main__':
     # p = Process(target=_poll_process4reconstruction, args=(ui2rec_queue,rec2ui_queue,rec))
     # p.daemon=True
     # p.start()
-    d = EitMeasurementDataset()
+    d = EitMeasurementSet()
     d.load_dataset_dir()
     exit(app.exec_()) 
 

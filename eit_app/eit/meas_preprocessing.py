@@ -4,11 +4,11 @@ import numpy as np
 from matplotlib.cbook import flatten
 from matplotlib.pyplot import title
 
-from eit_app.io.sciospec.device import EitMeasurementDataset
+from eit_app.io.sciospec.device import EitMeasurementSet
 from eit_app.io.sciospec.meas_dataset import EITFrame
 
 
-def _voltages_preparation(dataset:EitMeasurementDataset, frameIndx, imagingParameters, EITModel, liveView=False):
+def _voltages_preparation(dataset:EitMeasurementSet, frameIndx, imagingParameters, EITModel, liveView=False):
     """
     Extract from the given dataset the corresponding voltages Values and 
     process them for plot/recontruction according to the required immagingData and imagingMode

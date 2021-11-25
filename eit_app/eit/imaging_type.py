@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Callable, List
 import numpy as np
 from eit_app.eit.plots import PlotType
-from eit_app.io.sciospec.device import EitMeasurementDataset
+from eit_app.io.sciospec.device import EitMeasurementSet
 
 from eit_app.eit.eit_model import EITModelClass
 
@@ -50,7 +50,7 @@ class Imaging():
     transform_funcs=[identity, identity]
     label_imaging:str=''
 
-    def process_data(self,dataset:EitMeasurementDataset, eit_model:EITModelClass, idx_frame:int=0,extract_voltages:bool=False):
+    def process_data(self,dataset:EitMeasurementSet, eit_model:EITModelClass, idx_frame:int=0,extract_voltages:bool=False):
         
         self.idx_freqs= [list(item.values())[0] for item in self.detail_freqs if item is not None]
         self.idx_freqs.reverse()
@@ -63,11 +63,11 @@ class Imaging():
         return meas_voltages, labels
 
     @abstractmethod
-    def pre_process_data(self, dataset:EitMeasurementDataset, eit_model:EITModelClass, idx_frame:int=0)->List[np.ndarray]:
+    def pre_process_data(self, dataset:EitMeasurementSet, eit_model:EITModelClass, idx_frame:int=0)->List[np.ndarray]:
         """"""
         # return meas_voltage
 
-    def get_metadata(self, dataset:EitMeasurementDataset, idx_frame:int=0):
+    def get_metadata(self, dataset:EitMeasurementSet, idx_frame:int=0):
         """provide all posible metadata for ploting """
 
         freqs_val= [dataset.get_freq_val(idx_freq=_idx_freq) for _idx_freq in self.idx_freqs]
@@ -102,7 +102,7 @@ class AbsoluteImaging(Imaging):
         self.ref_frame_idx=None
         self.transform_funcs= transform_funcs
     
-    def pre_process_data(self, dataset:EitMeasurementDataset, eit_model:EITModelClass, idx_frame:int=0)->np.ndarray:
+    def pre_process_data(self, dataset:EitMeasurementSet, eit_model:EITModelClass, idx_frame:int=0)->np.ndarray:
         """"""
         if len(self.idx_freqs)!=1:
             return np.array([])
@@ -148,7 +148,7 @@ class TimeDifferenceImaging(Imaging):
 
     def pre_process_data(
             self,
-            dataset:EitMeasurementDataset, 
+            dataset:EitMeasurementSet, 
             eit_model:EITModelClass, 
             idx_frame:int=0) -> np.ndarray:
         """"""
@@ -201,7 +201,7 @@ class FrequenceDifferenceImaging(Imaging):
     
     def pre_process_data(
             self,
-            dataset:EitMeasurementDataset,
+            dataset:EitMeasurementSet,
             eit_model:EITModelClass,
             idx_frame:int=0) -> np.ndarray:
         """"""

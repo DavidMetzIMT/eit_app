@@ -37,7 +37,7 @@ from eit_app.io.sciospec.hw_serial_interface import (HARDWARE_NOT_DETECTED,
                                                      SERIAL_BAUD_RATE_DEFAULT,
                                                      SerialInterface,
                                                      SerialInterfaceError)
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.threads_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag, CustomTimer
 from glob_utils.log.log import main_log
@@ -139,7 +139,7 @@ class IOInterfaceSciospec(object):
         self.timeout_busy=CustomTimer(5.0,0.001) # max 5s timeout!
 
         self.channel = 32
-        self.dataset:EitMeasurementDataset=EitMeasurementDataset()
+        self.dataset:EitMeasurementSet=EitMeasurementSet()
         self.rx_buffer= Queue(maxsize=256) # infine queue.... maybe handle only a certain number of data to reduce memory allocttions???
         self.cmds_history=Buffer(maxsize=16)
         self.responses_history=Buffer(maxsize=16)
@@ -164,7 +164,7 @@ class IOInterfaceSciospec(object):
         self.cmds_history.clear()
         self.responses_history.clear()
     
-    def getDataset(self, mk_copy:bool=False)-> EitMeasurementDataset:
+    def getDataset(self, mk_copy:bool=False)-> EitMeasurementSet:
         return deepcopy(self.dataset) if mk_copy else self.dataset
 
     def _prepare_dataset(self, meas_name:str):

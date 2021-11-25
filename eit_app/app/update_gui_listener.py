@@ -11,7 +11,7 @@ from eit_app.io.sciospec.device import StatusSWInterface, IOInterfaceSciospec
 from enum import Enum, auto
 
 from eit_app.eit.imaging_type import DATA_TRANSFORMATIONS, IMAGING_TYPE, Imaging
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 
 from glob_utils.flags.flag import CustomFlag
 
@@ -137,7 +137,7 @@ def update_autosave_changed(app:Ui_MainWindow):
     app.lE_meas_dataset_dir.setEnabled(app.chB_dataset_autoset.isChecked())
     app.chB_dataset_save_img.setEnabled(app.chB_dataset_autoset.isChecked())
 
-def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementDataset ):
+def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementSet ):
 
     app.tE_load_dataset_dir.setText(dataset.output_dir)
     nb_loaded_frame= dataset.frame_cnt

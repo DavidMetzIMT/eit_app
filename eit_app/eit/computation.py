@@ -8,7 +8,7 @@ from eit_app.eit.imaging_type import Imaging
 from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.plots import CustomPlots, PlotType
 from eit_app.eit.rec_abs import Reconstruction
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.threads_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import get_datetime_s
@@ -83,7 +83,7 @@ class ComputeMeas():
         except BaseException as error:
             logger.error(f'{error}\n {traceback.format_exc()}')
 
-    def preprocess(self,dataset:EitMeasurementDataset, idx_frame:int):
+    def preprocess(self,dataset:EitMeasurementSet, idx_frame:int):
 
         if not self.imaging_type or not self.eit_model or dataset == 'random':
             lab= {  

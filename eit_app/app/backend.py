@@ -33,7 +33,7 @@ from eit_app.eit.rec_ai import ReconstructionAI
 from eit_app.eit.rec_pyeit import ReconstructionPyEIT
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.io.sciospec.device import IOInterfaceSciospec
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset, MEAS_DIR
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet, MEAS_DIR
 from eit_app.io.video.microcamera import (DEFAULT_IMG_SIZES, EXT_IMG, SNAPSHOT_DIR,MicroCam,
                                           VideoCaptureModule)
 
@@ -65,15 +65,11 @@ __status__ = "Production"
 logger = getLogger(__name__)
 
 
-
-
 log_level={
     'DEBUG':logging.DEBUG,
     'INFO':logging.INFO,
     'WARNING':logging.WARNING
 }
-
-
 
 class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     
@@ -130,7 +126,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         mk_new_dir(dir_name=SNAPSHOT_DIR)
         # add dir in default dirs TODO
 
-        self.dataset = EitMeasurementDataset()
+        self.dataset = EitMeasurementSet()
 
         self.io_interface = IOInterfaceSciospec()
         
@@ -311,7 +307,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             data=self.figure_to_plot.get()
 
         try:
-            dataset:EitMeasurementDataset=data['dataset']
+            dataset:EitMeasurementSet=data['dataset']
             idx_frame= data['idx_frame']
 
             if dataset == 'random':
@@ -471,9 +467,6 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
 
     def _callback_ScalePlot(self):
         print('ScalePlot', self.tabW_reconstruction.currentIndex())
-        # self.queue_out.put({'cmd': 'setScalePlot', 'vmax':self.scalePlot_vmax.value(), 'vmin': self.scalePlot_vmin.value(), 'normalize':self.normalize.isChecked()})
-        # self.image_reconst.setScalePlot(self.scalePlot_vmax.value(), self.scalePlot_vmin.value())
-        # self.image_reconst.setNormalize(self.normalize.isChecked())
     
     def _callback_replay_play(self):
         self.replay.set()
@@ -608,44 +601,16 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         if self.live_meas_status.is_set():
             show_msgBox('Please stop measurements before loading dataset', 'Live measurements still running', 'Warning')
             return
-        # if not dirpath: # if dirpath not given then open dialog 
-        #     dirpath, cancel= openDirDialog(self,path=MEAS_DIR)
-        #     if cancel: # Cancelled
-        #         return
-
-        # #image >>lokk what for images are in the directory
-        # formats = list(EXT_IMG.values())
-        # errors=[0]*len(formats)
-        # for i, extension in enumerate(formats):
-        #     _, errors[i] =search_for_file_with_ext(dirpath, ext=extension)
-        
-        # if not any(errors):
-        #     self.donotdisplayloadedimage= True
         self.replay_status.clear()
         if not self.get_dataset().load_dataset_dir(dir_path):
             return
         self.replay_status.set()
         self.up_events.post(UpdateEvents.device_setup,self, self.io_interface)
         self.up_events.post(UpdateEvents.dataset_loaded,self, self.get_dataset())
-        # if not error:
-        #     #image >>look what for images are in the directory
-        #     formats = list(EXT_IMG.values())
-        #     errors=[0]*len(formats)
-        #     for i, extension in enumerate(formats):
-        #         _, errors[i] =search_for_file_with_ext(dirpath, ext=extension)
-        #     # only one sort of imge is save in on directory
-        #     try:
-        #         # setItems_comboBox(self, self.cB_Image_fille_format, items=None, handler=None, reset_box = False, set_index=errors.index(0))
-        #         self.cB_img_file_ext.setCurrentIndex(errors.index(0))
-        #         self._callback_set_cam()
-        #         self.displayloadedimage= True
-        #     except ValueError:
-        #         self.displayloadedimage= False
+
         
         self.compute_frame(idx_frame=0)
-        # else:
-        #     show_msgBox('Directory empty', 'no File has been found in the selected directory', "Warning")
-    
+
     def compute_frame(self, idx_frame:int=0):
         self.io_interface.putQueueOut((self.get_dataset(),idx_frame, RecCMDs.reconstruct))
 
@@ -657,9 +622,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     def init_gui_for_live_meas(self):
         self.up_events.post(UpdateEvents.info_data_computed,self, self.live_meas_status, 0, '')
         self.live_meas_status.set()
-        # self.frame_cnt_old=-1
-        # self._update_cB_freq(self.get_dataset().freqs_list) # update all comboBox of the frequencies
-        # self.save_actual_imgframe()
+
 
     def closeEvent(self, event):
         """Generate 'question' dialog on clicking 'X' button in title bar.
@@ -684,7 +647,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         for _, item in self.workers.items():
             item.quit()
 
-    def get_dataset(self)-> EitMeasurementDataset:
+    def get_dataset(self)-> EitMeasurementSet:
         return self.io_interface.getDataset()
     
     def get_current_frame_cnt(self)-> int:
@@ -693,19 +656,10 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
     def _test_compute(self):
         self.io_interface.putQueueOut(('random', 0, RecCMDs.reconstruct))
 
-    # def make_ploting(self, data_to_plot):
-
-    #     # 'self.U, self.labels=data_to_plot['U'], data_to_plot['labels']
-
-    #     if self.chB_plot_image_rec.isChecked() and self.labels.count('Random values')==0:
-    #         self.queue_out.put({'cmd': 'recpyEIT', 'v1':self.U[:,1], 'v0': self.U[:,0]})
-    #     else:
-    #         self._update_canvas()
-
     def _update_canvas(self, data):
         """"""
         try :
-            dataset:EitMeasurementDataset=data['dataset']
+            dataset:EitMeasurementSet=data['dataset']
             idx_frame=data['idx_frame']
 
             t = time.time()
@@ -724,35 +678,11 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
                 # set_table_widget(self.tableWidgetvoltages_Z_real, np.real(voltages))
                 # set_table_widget(self.tableWidgetvoltages_Z_imag, np.imag(voltages))
             
-            if isinstance(dataset, EitMeasurementDataset):
+            if isinstance(dataset, EitMeasurementSet):
                 print(f'plot of frame #{dataset.get_idx_frame(idx_frame)}, time {get_datetime_s()}, lasted {elapsed}')
         except BaseException as e:
             logger.error(f'Error _update_canvas: {e}')
-
-    ## ======================================================================================================================================================
-    ##  Setter
-    ## ======================================================================================================================================================
-    
-    # def _listener_queue_in(self):
-    #     if not self.queue_in.empty():
-    #         #print(self.queue_in.to_list())
-    #         data=self.queue_in.get()
-    #         print('CMD on queue:',data['cmd'])
-    #         if data['cmd']=='updatePlot':
-    #             print('updatePlot')
-    #             self.image_reconst =data['rec']
-    #             self._update_canvas()
-                
-    # def _update_cB_freq(self, freqs:List[float]):
-    #     [set_comboBox_items(cB, [f for f in freqs]) for cB in self.cB_FREQ_LIST]
-
-    # def _update_gui_data(self):
-    #     self.canvas.draw()
-    #     if not self.live_meas_status.is_set(): 
-    #         scrollbar = self.textEditlog.verticalScrollBar()
-    #         scrollbar.setValue(scrollbar.maximum())
-
-
+        
     def updade_video(self, path=None):
         if path is None:
             img, img_width, img_height= self.capture_module.getImage()
@@ -767,11 +697,6 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         # self.image_min=image.scaledToHeight(self.video_frame_miniature.height())
         # self.video_frame_miniature.setPixmap(QtGui.QPixmap.fromImage(self.image_min))
 
-# Step 1: Create a worker class
-# def _poll_process4reconstruction(queue_in=None, queue_out=None, rec:ReconstructionPyEIT=ReconstructionPyEIT()):
-#     while True :
-#         sleep(0.1)
-#         rec.pollCallback(queue_in=queue_in, queue_out=queue_out)
 
 def main():
     main_log()
