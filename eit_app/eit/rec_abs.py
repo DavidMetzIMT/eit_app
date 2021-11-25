@@ -49,10 +49,14 @@ class RecCMDs(Enum):
     reconstruct=auto()
 
 class Reconstruction(ABC):
-    """ Class for the EIT reconstruction with the package pyEIT """
+    """ Class for the EIT reconstruction """
+    
     def __init__(self):
         self.initialized=CustomFlag()
-        self.cmd_func= {RecCMDs.initialize:self.initialize, RecCMDs.reconstruct:self.reconstruct}
+        self.cmd_func= {
+            RecCMDs.initialize:self.initialize,
+            RecCMDs.reconstruct:self.reconstruct
+        }
         self.__post_init__()
 
     def run(self, cmd:RecCMDs=None, *args, **kwargs):
@@ -61,17 +65,17 @@ class Reconstruction(ABC):
         return self.cmd_func[cmd](*args, **kwargs)
 
     @abstractmethod
-    def __post_init__(self):
+    def __post_init__(self)-> None:
         """ for init"""
 
     @abstractmethod
-    def initialize(self, data):
+    def initialize(self, model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray] :
         """ should initialize the reconstruction method and return some data to plot"""
         self.initialized.reset()
         self.initialized.set()
         
     @abstractmethod
-    def reconstruct(self, data):
+    def reconstruct(self, model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray] :
         """ return the reconstructed reconstructed conductivities values for the FEM"""
         if self.initialized.is_set():
             """ DO SOMETTHING and return data of reconstruction"""

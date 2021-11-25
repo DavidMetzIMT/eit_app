@@ -3,50 +3,33 @@
 import os
 from eit_tf_workspace.train_utils.gen import Generators
 from eit_tf_workspace.train_utils.metadata import MetaData, reload_metadata
-import numpy as np
-# from eit_app.io.sciospec.device import *
-# from eit_app.io.sciospec.interface.serial4sciospec import 
-from eit_app.eit.meas_preprocessing import *
 from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.rec_abs import Reconstruction
 from eit_tf_workspace.raw_data.matlab import MatlabSamples
 from eit_tf_workspace.raw_data.raw_samples import reload_samples
 from eit_tf_workspace.train_utils.select_gen import select_gen
+import numpy as np
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from logging import getLogger
-from eit_app.utils.log import main_log
+
 
 logger = getLogger(__name__)
-## ======================================================================================================================================================
-##  Class for EIT Reconstruction
-## ======================================================================================================================================================
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+################################################################################
+# Class for EIT Reconstruction
+################################################################################
 class ReconstructionAI(Reconstruction):
     """ Class for the EIT reconstruction with the package pyEIT """
     def __post_init__(self):
-        
-        # self.EitModel = EITModelClass()
-        # self.MeshObj,self.ElecPos = mesh.create(16, h0=0.1)
-        # self.ElecNb = 16
-        # self.ElecPos = []
-        # self.FEMRefinement = 0.1
-        # self.ChamberLimit = [[-1, -1], [1, 1]]
-        # self.plot2Gui = False
-        # self.ax = ''
-        # self.verbose=0
-        # self.Normalize= False
-        # self.Scalevmin = None
-        # self.Scalevmax= None
-        # self.InitDone=False
-        # self.running= False
-        # self.eit=None
-
         self.metadata:MetaData=None
         self.gen:Generators=None
         self.fwd_model:dict=None
 
-
-    def initialize(self, model:EITModelClass, U:np.ndarray, model_dirpath:str=''):
+    def initialize(
+        self,
+        model:EITModelClass,
+        U:np.ndarray,
+        model_dirpath:str='') -> tuple[EITModelClass,np.ndarray] :
         """ should initialize the reconstruction method and return some data to plot"""
         self.initialized.reset()
         self.metadata = reload_metadata(dir_path=model_dirpath)
@@ -61,7 +44,10 @@ class ReconstructionAI(Reconstruction):
         self.initialized.set()
         return model, np.hstack((np.reshape(voltages,(-1,1)), np.reshape(voltages,(-1,1))))
 
-    def reconstruct(self, model:EITModelClass, U:np.ndarray):
+    def reconstruct(
+        self,
+        model:EITModelClass, 
+        U:np.ndarray)-> tuple[EITModelClass,np.ndarray] :
         """ return the reconstructed reconstructed conductivities values for the FEM"""
         if self.initialized.is_set():
             ds= U[:,1]-U[:,0]
@@ -73,13 +59,12 @@ class ReconstructionAI(Reconstruction):
     
 if __name__ == '__main__':
     import random
+    from glob_utils.log.log import main_log
     v=np.array([random.sample(range((1+i)*1000,(2+i)*1000), 256) for i in range(2)])/1000
     print(v, v.shape)
     main_log()
-    
     rec= ReconstructionAI()
     model= EITModelClass()
     rec.initialize(model,[])
-
     rec.reconstruct(model, v.T)
 

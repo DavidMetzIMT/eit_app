@@ -46,7 +46,7 @@ from serial import Serial,SerialException,PortNotOpenError # get from http://pys
 from eit_app.io.sciospec.com_constants import *
 # from eit_app.io.sciospec.hw_interfaces import HWInterface
 from eit_app.threads_process.threads_worker import Poller
-from eit_app.utils.log import main_log
+from glob_utils.log.log import main_log
 
 
 __author__ = "David Metz"

@@ -46,7 +46,7 @@ from eit_app.app.utils import set_comboBox_items, set_table_widget, set_slider
 from eit_app.app.update_gui_listener import setup_update_event_handlers, UpdateEvents
 from eit_app.utils.flag import CustomFlag, CustomTimer
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
-from eit_app.utils.log import change_level, main_log
+from glob_utils.log.log import change_level_logging, main_log
 
 
 # Ensure using PyQt5 backend
@@ -250,7 +250,7 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
             self.workers[key].start_polling()
 
     def _update_log(self):
-        change_level(level=log_level[self.cB_log_level.currentText()])
+        change_level_logging(level=log_level[self.cB_log_level.currentText()])
 
     ## ======================================================================================================================================================
     ##  Automatic update of log and detection of D 

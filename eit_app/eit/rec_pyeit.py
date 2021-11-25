@@ -47,7 +47,7 @@ class ReconstructionPyEIT(Reconstruction):
     def __post_init__(self):
         self.eit:EitBase=None
 
-    def initialize(self, model:EITModelClass, U):
+    def initialize(self, model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray]:
         """ should initialize the reconstruction method and return some data to plot"""
         self.initialized.reset()
         MeshObj, ElecPos= self._construct_mesh(
@@ -89,10 +89,9 @@ class ReconstructionPyEIT(Reconstruction):
         self.initialized.set()
         return model, np.hstack((np.reshape(f1.v,(f1.v.shape[0],1)), np.reshape(f0.v,(f0.v.shape[0],1))))
         
-    def reconstruct(self,  model:EITModelClass, U):
+    def reconstruct(self,  model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray]:
         """ return the reconstructed reconstructed conductivities values for the FEM"""
         if self.initialized.is_set():
-            """ DO SOMETTHING and return data of reconstruction"""
             MeshObj=model.fem.get_pyeit_mesh()
             MeshObj["perm"]=_inv_solve_eit(self.eit,U[:,1],U[:,0], True)
             model.fem.update_from_pyeit(MeshObj)
@@ -104,26 +103,24 @@ class ReconstructionPyEIT(Reconstruction):
         return MeshObj, ElecPos
 
     def _print_mesh_nodes_elemts(self, mesh_obj):
-
         pts = mesh_obj["node"]
         tri = mesh_obj["element"]
-        conduct= mesh_obj["perm"]
-        # # report the status of the 2D mesh
-        # quality.stats(pts, tri)
-        print("mesh status:")
-        print("%d nodes, %d elements, %d perm" % (pts.shape[0], tri.shape[0], conduct.shape[0]))
+        perm= mesh_obj["perm"]
+        logger.info(
+            f"mesh status:\n\
+            {pts.shape[0]} nodes, {tri.shape[0]} elements, {perm.shape[0]} perm")
         
-    def imageReconstruct(self, v1=None, v0=None):
-            if not self.running:
-                if self.InitDone:
-                    self._inv_solve_eit(U[:,1],U[:,0])
-                    # self._plot_conductivity_map(self.MeshObjMeas, perm_ds=False)
-                    return True
-                else:
-                    print('please Init the reconstruction')
-            else:
-                print('Reconstruction Busy')
-                return False
+    # def imageReconstruct(self, v1=None, v0=None):
+    #         if not self.running:
+    #             if self.InitDone:
+    #                 self._inv_solve_eit(U[:,1],U[:,0])
+    #                 # self._plot_conductivity_map(self.MeshObjMeas, perm_ds=False)
+    #                 return True
+    #             else:
+    #                 print('please Init the reconstruction')
+    #         else:
+    #             print('Reconstruction Busy')
+    #             return False
 
     # def setScalePlot(self, vmax, vmin):
     #     if vmax==0.0 and vmin == 0.0:
@@ -136,19 +133,19 @@ class ReconstructionPyEIT(Reconstruction):
     def setNormalize(self, normalize):
         self.Normalize= normalize
 
-    def pollCallback(self, queue_in:Queue, queue_out:Queue):
-        if not queue_in.empty():
-            data=queue_in.get()
-            if data['cmd']=='initpyEIT':
-                self.initPyeit(eit_model=data['eit_model'], plot2Gui=data['plot2Gui'])
-                queue_out.put({'cmd': 'updatePlot','rec': self})
-                print(data)
-            elif data['cmd']=='setScalePlot':  
-                self.setScalePlot(data['vmax'], data['vmin'])
-                self.setNormalize(data['normalize'])
-            elif data['cmd']=='recpyEIT':
-                self.imageReconstruct(data['v1'], data['v0'])
-                queue_out.put({'cmd': 'updatePlot','rec': self})
+    # def pollCallback(self, queue_in:Queue, queue_out:Queue):
+    #     if not queue_in.empty():
+    #         data=queue_in.get()
+    #         if data['cmd']=='initpyEIT':
+    #             self.initPyeit(eit_model=data['eit_model'], plot2Gui=data['plot2Gui'])
+    #             queue_out.put({'cmd': 'updatePlot','rec': self})
+    #             print(data)
+    #         elif data['cmd']=='setScalePlot':  
+    #             self.setScalePlot(data['vmax'], data['vmin'])
+    #             self.setNormalize(data['normalize'])
+    #         elif data['cmd']=='recpyEIT':
+    #             self.imageReconstruct(data['v1'], data['v0'])
+    #             queue_out.put({'cmd': 'updatePlot','rec': self})
 
     # def queue_wrapper(self, queue:Queue, cmd):
 
@@ -195,7 +192,7 @@ def _reconstruct_mesh_struct(mesh_obj):
     tri = mesh_obj["element"]
     perm= mesh_obj["perm"]
 
-    if not "ds" in mesh_obj:
+    if "ds" not in mesh_obj:
         mesh_obj["ds"]=2*np.ones_like(mesh_obj["perm"]) #
 
     ds= mesh_obj["ds"]

@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QApplication
 from eit_app.app.backend import UiBackEnd
 # from eit_app.eit.reconstruction import ReconstructionPyEIT
 from eit_app.threads_process.process_queue import NewQueue
-from eit_app.utils.log import main_log
+from glob_utils.log.log import main_log
 
 
 # def _poll_process4reconstruction(queue_in=None, queue_out=None, rec:ReconstructionPyEIT=ReconstructionPyEIT()):
