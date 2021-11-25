@@ -9,9 +9,10 @@ import pandas as pd
 from eit_app.app.dialog_boxes import show_msgBox
 from eit_app.io.sciospec.com_constants import *
 from eit_app.io.sciospec.utils import *
-from eit_app.utils.utils_path import (CancelledError,
-                                      DataLoadedNotCompatibleError, get_file,
-                                      load_pickle, save_as_pickle)
+# from eit_app.utils.utils_path import save_as_pickle
+from glob_utils.files.files import (DataLoadedNotCompatibleError, FileExt,
+                                    OpenDialogFileCancelledException,
+                                    dialog_get_file_with_ext, load_pickle_app, save_as_pickle)
 from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
                                        get_datetime_s, get_dir)
 
@@ -73,7 +74,8 @@ class SciospecSetup(object):
         """ Save the setup in pkl file"""
         try:
             if not dir:
-                dir= get_dir(title='Select a directory, where the setup will be saved')
+                dir= get_dir(
+                    title='Select a directory, where the setup will be saved')
             file=os.path.join(dir, f'setup_{get_datetime_s()}')
             save_as_pickle(file, self)
             logger.info(f'Setup: {self.__dict__} \n saved in file : {dir} ')
@@ -83,13 +85,13 @@ class SciospecSetup(object):
     def load(self):
         """ Load the setup out of a pkl file """
         try:
-            path, filename = get_file(filetypes=[(".pkl-files", "*.pkl")],)
-            load_pickle(os.path.join(path, filename),self)
+            file_path = dialog_get_file_with_ext(ext=FileExt.pkl)
+            load_pickle_app(file_path,self)
             # set_attributes(self,loaded_setup)
-            logger.info(f'Setup: {self.__dict__} \n loaded from file : {os.path.join(path, filename)} ')
-        except CancelledError:
+            logger.info(f'Setup: {self.__dict__} \n loaded from file : {file_path} ')
+        except OpenDialogFileCancelledException as e:
             # show_msgBox('Loading cancelled','', "I")
-             logger.debug('Loading cancelled')
+             logger.info(f'Loading cancelled {e}')
         except DataLoadedNotCompatibleError:
             show_msgBox('Please select a setup file', 'Not a setup file', "Warning")
             # print('wrong pickle file choosen!!!')
@@ -248,10 +250,11 @@ class SciospecSetup(object):
         if for_ser:
             data= value[DATA_START_INDX:-1]
             scale={OP_LINEAR.tag:OP_LINEAR.name, OP_LOG.tag:OP_LOG.name}
-            freq_max_enable, error=self.freq_config.set_data(   freq_min=convert4Bytes2Float(data[0:4]),
-                                                                freq_max=convert4Bytes2Float(data[4:8]),
-                                                                freq_steps=convertBytes2Int(data[8:10]),
-                                                                freq_scale=scale[data[10]])
+            freq_max_enable, error=self.freq_config.set_data(   
+                freq_min=convert4Bytes2Float(data[0:4]),
+                freq_max=convert4Bytes2Float(data[4:8]),
+                freq_steps=convertBytes2Int(data[8:10]),
+                freq_scale=scale[data[10]])
         else:
             freq_max_enable, error=self.freq_config.set_data(**kwargs)
 
@@ -340,7 +343,7 @@ class SciospecSetup(object):
             length = LENGTH_SERIAL_NUMBER
             self.device_infos.sn= rx_op_data[:length]
             ID= mkListOfHex(rx_op_data[:length])
-            self.device_infos.sn_formated= ID[0]+ '-' +ID[1] +ID[2] +'-' +ID[3] +ID[4]+ '-'+ID[5]+ ID[6]
+            self.device_infos.sn_formated= ID[0]+'-'+ID[1]+ID[2]+'-'+ID[3]+ID[4]+'-'+ID[5]+ID[6]
         else:
             raise Exception('Error in use of this method')
 

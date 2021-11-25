@@ -10,7 +10,7 @@ from eit_app.eit.plots import PlotType
 from eit_app.io.sciospec.device import EitMeasurementDataset
 
 from eit_app.eit.eit_model import EITModelClass
-from eit_app.utils.utils_path import print_loading_verbose
+
 
 
 def identity(x:np.ndarray)-> np.ndarray:

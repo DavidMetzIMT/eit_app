@@ -31,11 +31,12 @@ from eit_app.io.sciospec.device_setup import SciospecSetup
 from eit_app.io.sciospec.utils import convert4Bytes2Float, convertBytes2Int
 from eit_app.io.video.microcamera import VideoCaptureModule
 from eit_app.utils.constants import EXT_PKL, MEAS_DIR
-from eit_app.utils.utils_path import (CancelledError, load_pickle,
-                                      save_as_pickle, search_for_file_with_ext,
-                                      set_attributes)
+
+from glob_utils.files.files import set_attributes, load_pickle_app, save_as_pickle, search_for_file_with_ext
+
 from glob_utils.flags.flag import CustomFlag
-from glob_utils.pth.path_utils import (OpenDialogDirCancelledException, append_date_time, get_datetime_s,
+from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
+                                       append_date_time, get_datetime_s,
                                        get_dir, mk_new_dir)
 
 __author__ = "David Metz"
@@ -57,13 +58,6 @@ class DatasetHandler(object):
 
     def __init__(self):
         pass
-
-
-    
-
-
-
-
 
 class EitMeasurementDataset(object):
     """ Class EITDataSet: regroups infos and frames of measurements """
@@ -163,7 +157,7 @@ class EitMeasurementDataset(object):
 
     def load_dataset_single_frame(self, file_path):
         """Load Dataset file with single frame"""
-        return load_pickle(file_path)
+        return load_pickle_app(file_path)
 
     def load_dataset_dir(self, dir_path:str=None):
         """Load Dataset files """
@@ -172,8 +166,9 @@ class EitMeasurementDataset(object):
                 dir_path= get_dir(title='Select a directory of the measurement dataset you want to load') 
             filenames =search_for_file_with_ext(dir_path, ext=EXT_PKL)
             # print('filepaths', filenames)
-        except FileNotFoundError:
-            show_msgBox(f'No {EXT_PKL}-files in directory dirpath!', 'NO Files FOUND', 'Warning')
+        except FileNotFoundError as e :
+            logger.warning(f'FileNotFoundError: ({e})')
+            show_msgBox(f'{e}', 'FileNotFoundError', 'Warning')
             return
         except OpenDialogDirCancelledException as e:
             logger.info(f'Loading cancelled: ({e})')
