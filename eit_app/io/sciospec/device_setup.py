@@ -10,11 +10,10 @@ from eit_app.app.dialog_boxes import show_msgBox
 from eit_app.io.sciospec.com_constants import *
 from eit_app.io.sciospec.utils import *
 from eit_app.utils.utils_path import (CancelledError,
-                                      DataLoadedNotCompatibleError,
-                                      get_dir, get_file,
-                                      load_pickle, read_txt, save_as_pickle,
-                                      save_as_txt, set_attributes)
-from glob_utils.pth.path_utils import get_datetime_s
+                                      DataLoadedNotCompatibleError, get_file,
+                                      load_pickle, save_as_pickle)
+from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
+                                       get_datetime_s, get_dir)
 
 logger = getLogger(__name__)
 
@@ -78,8 +77,8 @@ class SciospecSetup(object):
             file=os.path.join(dir, f'setup_{get_datetime_s()}')
             save_as_pickle(file, self)
             logger.info(f'Setup: {self.__dict__} \n saved in file : {dir} ')
-        except CancelledError:
-            logger.debug('Saving setup cancelled')
+        except OpenDialogDirCancelledException as e:
+            logger.info(f'Saving setup cancelled:({e})')
 
     def load(self):
         """ Load the setup out of a pkl file """

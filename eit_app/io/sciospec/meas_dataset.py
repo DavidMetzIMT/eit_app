@@ -24,21 +24,19 @@ from logging import getLogger
 from queue import Queue
 from sys import argv
 
-
 import numpy as np
 from eit_app.app.dialog_boxes import show_msgBox
-
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.device_setup import SciospecSetup
-from eit_app.io.sciospec.utils import convertBytes2Int,convert4Bytes2Float
+from eit_app.io.sciospec.utils import convert4Bytes2Float, convertBytes2Int
 from eit_app.io.video.microcamera import VideoCaptureModule
 from eit_app.utils.constants import EXT_PKL, MEAS_DIR
-from glob_utils.flags.flag import CustomFlag
 from eit_app.utils.utils_path import (CancelledError, load_pickle,
-                                       save_as_pickle,
-                                      search_for_file_with_ext, set_attributes)
-
-from glob_utils.pth.path_utils import append_date_time, get_datetime_s, get_dir, mk_new_dir
+                                      save_as_pickle, search_for_file_with_ext,
+                                      set_attributes)
+from glob_utils.flags.flag import CustomFlag
+from glob_utils.pth.path_utils import (OpenDialogDirCancelledException, append_date_time, get_datetime_s,
+                                       get_dir, mk_new_dir)
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -177,8 +175,8 @@ class EitMeasurementDataset(object):
         except FileNotFoundError:
             show_msgBox(f'No {EXT_PKL}-files in directory dirpath!', 'NO Files FOUND', 'Warning')
             return
-        except CancelledError:
-            print('Loading cancelled')
+        except OpenDialogDirCancelledException as e:
+            logger.info(f'Loading cancelled: ({e})')
             return
         
         for filename in filenames:

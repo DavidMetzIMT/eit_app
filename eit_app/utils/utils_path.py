@@ -81,22 +81,22 @@ class EmptyFileError(Exception):
 
 #     return output_dir
 
-def get_dir(initialdir=None, title='Select a directory'):
-    """[summary]
+# def get_dir(initialdir=None, title='Select a directory'):
+#     """[summary]
 
-    Args:
-        initialdir ([type], optional): [description]. Defaults to os.getcwd().
-        title (str, optional): [description]. Defaults to 'Select a directory'.
+#     Args:
+#         initialdir ([type], optional): [description]. Defaults to os.getcwd().
+#         title (str, optional): [description]. Defaults to 'Select a directory'.
 
-    Returns:
-        [type]: [description]
-    """
-    Tk().withdraw()
-    initialdir = initialdir or os.getcwd()
-    path_dir = askdirectory(initialdir=initialdir, title= title)
-    if not path_dir:
-        raise CancelledError()
-    return path_dir
+#     Returns:
+#         [type]: [description]
+#     """
+#     Tk().withdraw()
+#     initialdir = initialdir or os.getcwd()
+#     path_dir = askdirectory(initialdir=initialdir, title= title)
+#     if not path_dir:
+#         raise CancelledError()
+#     return path_dir
 
 def get_file(filetypes=[("All files","*.*")], verbose= True, initialdir=None, title= 'Select a file'):
     """used to get select files using gui (multiple types of file can be set!)
