@@ -13,7 +13,7 @@ from enum import Enum, auto
 from eit_app.eit.imaging_type import DATA_TRANSFORMATIONS, IMAGING_TYPE, Imaging
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
 
-from eit_app.utils.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag
 
 
 

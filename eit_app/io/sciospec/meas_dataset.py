@@ -33,7 +33,7 @@ from eit_app.io.sciospec.device_setup import SciospecSetup
 from eit_app.io.sciospec.utils import convertBytes2Int,convert4Bytes2Float
 from eit_app.io.video.microcamera import VideoCaptureModule
 from eit_app.utils.constants import EXT_PKL, MEAS_DIR
-from eit_app.utils.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag
 from eit_app.utils.utils_path import (CancelledError, append_date_time, get_date_time, get_dir, load_pickle,
                                       mk_ouput_dir, save_as_pickle,
                                       search_for_file_with_ext, set_attributes)

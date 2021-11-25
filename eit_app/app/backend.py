@@ -44,7 +44,7 @@ from eit_app.threads_process.threads_worker import CustomWorker
 from eit_app.utils.constants import EXT_TXT, MEAS_DIR, DEFAULT_IMG_SIZES,EXT_IMG, SNAPSHOT_DIR
 from eit_app.app.utils import set_comboBox_items, set_table_widget, set_slider
 from eit_app.app.update_gui_listener import setup_update_event_handlers, UpdateEvents
-from eit_app.utils.flag import CustomFlag, CustomTimer
+from glob_utils.flags.flag import CustomFlag, CustomTimer
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
 from glob_utils.log.log import change_level_logging, main_log
 

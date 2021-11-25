@@ -23,7 +23,7 @@ from pyeit.eit.utils import eit_scan_lines
 
 
 from eit_app.eit.eit_model import EITModelClass
-from eit_app.utils.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag
 # from eit_app.io.sciospec.device import *
 # from eit_app.io.sciospec.interface.serial4sciospec import 
 # from eit_app.eit.meas_preprocessing import *

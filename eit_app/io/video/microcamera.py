@@ -30,7 +30,7 @@ from typing import Union
 import cv2
 import numpy as np
 from eit_app.threads_process.threads_worker import Poller
-from eit_app.utils.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag
 from eit_app.utils.constants import DEFAULT_IMG_SIZES, EXT_IMG
 from PyQt5.QtGui import QImage
 from logging import getLogger

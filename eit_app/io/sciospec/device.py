@@ -39,7 +39,7 @@ from eit_app.io.sciospec.hw_serial_interface import (HARDWARE_NOT_DETECTED,
                                                      SerialInterfaceError)
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
 from eit_app.threads_process.threads_worker import Poller
-from eit_app.utils.flag import CustomFlag, CustomTimer
+from glob_utils.flags.flag import CustomFlag, CustomTimer
 from glob_utils.log.log import main_log
 
 __author__ = "David Metz"

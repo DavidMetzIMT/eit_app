@@ -10,7 +10,7 @@ from eit_app.eit.plots import CustomPlots, PlotType
 from eit_app.eit.rec_abs import Reconstruction
 from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
 from eit_app.threads_process.threads_worker import Poller
-from eit_app.utils.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag
 from eit_app.utils.utils_path import get_date_time
 
 
