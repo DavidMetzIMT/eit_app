@@ -9,13 +9,17 @@ from numpy.core.shape_base import hstack
 from numpy.lib.arraysetops import ediff1d
 from numpy.lib.polynomial import RankWarning
 
-from eit_app.utils.constants import DEFAULT_DIR, \
-                                    DEFAULT_MEASUREMENTS,\
-                                    DEFAULT_INJECTIONS,\
-                                    DEFAULT_ELECTRODES_CHIP_RING
 
 from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
 
+DEFAULT_DIR= 'default'
+
+DEFAULT_INJECTIONS= {   'ad':'InjPattern_default_ad.txt',
+                        'op':'InjPattern_default_op.txt'}
+DEFAULT_MEASUREMENTS= { 'ad':'MeasPattern_default_ad.txt',
+                        'op':'MeasPattern_default_op.txt'}
+
+DEFAULT_ELECTRODES_CHIP_RING='Chip_Ring.txt'
 ## ======================================================================================================================================================
 ##  
 ## ======================================================================================================================================================

@@ -5,51 +5,50 @@
 """
 
 from __future__ import absolute_import, division, print_function
+
 import logging
 import os
-from  sys import argv, exit
-from logging import getLogger
 import time
-from glob_utils.pth.path_utils import mk_new_dir
+from logging import getLogger
+from queue import Queue
+from sys import argv, exit
+
 import matplotlib
-from matplotlib.pyplot import figure
 import numpy as np
-# from cv2 import *
+from eit_app.app.dialog_boxes import openFileNameDialog, show_msgBox
+from eit_app.app.event import CustomEvents
+from eit_app.app.gui import Ui_MainWindow as app_gui
+from eit_app.app.update_gui_listener import (UpdateEvents,
+                                             setup_update_event_handlers)
+from eit_app.app.utils import set_comboBox_items, set_slider, set_table_widget
+from eit_app.eit.computation import ComputeMeas
+from eit_app.eit.eit_model import EITModelClass
+from eit_app.eit.imaging_type import (DATA_TRANSFORMATIONS, IMAGING_TYPE,
+                                      Imaging)
+
+from eit_app.eit.plots import (PlotDiffPlot, PlotImage2D, PlotUPlot,
+                               plot_measurements, plot_rec)
+from eit_app.eit.rec_abs import RecCMDs
+from eit_app.eit.rec_ai import ReconstructionAI
+from eit_app.eit.rec_pyeit import ReconstructionPyEIT
+from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
+from eit_app.io.sciospec.device import IOInterfaceSciospec
+from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset, MEAS_DIR
+from eit_app.io.video.microcamera import (DEFAULT_IMG_SIZES, EXT_IMG, SNAPSHOT_DIR,MicroCam,
+                                          VideoCaptureModule)
+
+from eit_app.threads_process.threads_worker import CustomWorker
+from glob_utils.flags.flag import CustomFlag, CustomTimer
+from glob_utils.log.log import change_level_logging, main_log
+from glob_utils.pth.path_utils import get_datetime_s, mk_new_dir
+
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import \
     NavigationToolbar2QT as NavigationToolbar
+from matplotlib.pyplot import figure
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication    
-from eit_app.app.event import CustomEvents
-from eit_app.eit.computation import ComputeMeas
-from eit_app.eit.imaging_type import DATA_TRANSFORMATIONS, IMAGING_TYPE, Imaging
-
-from queue import Queue
-from eit_app.eit.rec_abs import RecCMDs
-from eit_app.eit.rec_ai import ReconstructionAI
-from eit_app.eit.rec_pyeit import ReconstructionPyEIT
-from eit_app.io.video.microcamera import MicroCam, VideoCaptureModule
-from eit_app.app.gui import Ui_MainWindow as app_gui
-from eit_app.app.dialog_boxes import show_msgBox, openFileNameDialog
-from eit_app.eit.eit_model import EITModelClass
-
-
-# from eit_app.app.newQlabel import MyLabel
-from eit_app.eit.plots import PlotImage2D, PlotDiffPlot, PlotUPlot, plot_measurements, plot_rec
-from eit_app.io.sciospec.device import IOInterfaceSciospec
-from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
-
-from glob_utils.pth.path_utils import get_datetime_s
-# from eit_app.eit.meas_preprocessing import *
-from eit_app.threads_process.threads_worker import CustomWorker
-from eit_app.utils.constants import EXT_TXT, MEAS_DIR, DEFAULT_IMG_SIZES,EXT_IMG, SNAPSHOT_DIR
-from eit_app.app.utils import set_comboBox_items, set_table_widget, set_slider
-from eit_app.app.update_gui_listener import setup_update_event_handlers, UpdateEvents
-from glob_utils.flags.flag import CustomFlag, CustomTimer
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
-from glob_utils.log.log import change_level_logging, main_log
-
+from PyQt5.QtWidgets import QApplication
 
 # Ensure using PyQt5 backend
 matplotlib.use('QT5Agg')

@@ -30,9 +30,9 @@ from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.device_setup import SciospecSetup
 from eit_app.io.sciospec.utils import convert4Bytes2Float, convertBytes2Int
 from eit_app.io.video.microcamera import VideoCaptureModule
-from eit_app.utils.constants import EXT_PKL, MEAS_DIR
 
-from glob_utils.files.files import set_attributes, load_pickle_app, save_as_pickle, search_for_file_with_ext
+
+from glob_utils.files.files import FileExt, set_attributes, load_pickle_app, save_as_pickle, search_for_file_with_ext
 
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
@@ -50,6 +50,7 @@ __status__ = "Production"
 
 logger = getLogger(__name__)
 
+MEAS_DIR='measurements'
 ## ======================================================================================================================================================
 ##  Class for the DataSet obtained from the EIT Device
 ## ======================================================================================================================================================
@@ -164,7 +165,7 @@ class EitMeasurementDataset(object):
         try:
             if not dir_path:
                 dir_path= get_dir(title='Select a directory of the measurement dataset you want to load') 
-            filenames =search_for_file_with_ext(dir_path, ext=EXT_PKL)
+            filenames =search_for_file_with_ext(dir_path, ext=FileExt.pkl)
             # print('filepaths', filenames)
         except FileNotFoundError as e :
             logger.warning(f'FileNotFoundError: ({e})')

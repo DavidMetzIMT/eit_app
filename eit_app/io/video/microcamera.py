@@ -18,26 +18,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
-# from typing import ValuesView
+import os
+import time
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-
-import os
-from queue import Empty, Queue
-import time
-from typing import Union
+from logging import getLogger
+from queue import Queue
 
 import cv2
 import numpy as np
 from eit_app.threads_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag
-from eit_app.utils.constants import DEFAULT_IMG_SIZES, EXT_IMG
 from PyQt5.QtGui import QImage
-from logging import getLogger
-# from matplotlib.cbook import flatten
-# from matplotlib.pyplot import title
-
-# from utils.eit_dataset import *
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -48,19 +40,17 @@ __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
 
-# initialize the camera
-
-# (1600,1200) (1280, 960) (800,600) (640,480)
-
-# DEFAULT_SIZES={  #'1600 x 1200':(1600,1200), 
-#         #'1280 x 960':(1280, 960),
-#         #'800 x 600':(800,600),
-#         '640 x 480':(640,480)
-#         }
-# DEFAULT_FILE_FORMATS= {'PNG': '.png', 'JPEG':'.jpg'}
-
 logger = getLogger(__name__)
 
+DEFAULT_IMG_SIZES={
+    '1600 x 1200':(1600,1200), 
+    '1280 x 960':(1280,960),
+    '800 x 600':(800,600),
+    '640 x 480':(640,480)
+}
+EXT_IMG= {'PNG': '.png', 'JPEG':'.jpg'}
+
+SNAPSHOT_DIR= 'snapshots'
 class NoCaptureDeviceSelected(Exception):
     """"""
 class CaptureFrameError(Exception):
