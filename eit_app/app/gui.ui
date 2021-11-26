@@ -23,8 +23,8 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>icons/EIT.png</normaloff>icons/EIT.png</iconset>
+   <iconset resource="../resource.qrc">
+    <normaloff>:/newPrefix/icons/EIT.png</normaloff>:/newPrefix/icons/EIT.png</iconset>
   </property>
   <property name="iconSize">
    <size>
@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -920,8 +920,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icon_end.png</normaloff>icon_end.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_end.png</normaloff>:/newPrefix/icons/icon_end.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -949,8 +949,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_play.png</normaloff>icons/icon_play.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_play.png</normaloff>:/newPrefix/icons/icon_play.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -978,8 +978,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_begin.png</normaloff>icons/icon_begin.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_begin.png</normaloff>:/newPrefix/icons/icon_begin.png</iconset>
        </property>
        <property name="checkable">
         <bool>false</bool>
@@ -1041,8 +1041,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_pause.png</normaloff>icons/icon_pause.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_pause.png</normaloff>:/newPrefix/icons/icon_pause.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -1073,8 +1073,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_stop.png</normaloff>icons/icon_stop.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_stop.png</normaloff>:/newPrefix/icons/icon_stop.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -2141,6 +2141,8 @@ p, li { white-space: pre-wrap; }
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

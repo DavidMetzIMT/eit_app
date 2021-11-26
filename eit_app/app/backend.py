@@ -71,7 +71,7 @@ log_level={
     'WARNING':logging.WARNING
 }
 
-class UiBackEnd(QtWidgets.QMainWindow, app_gui):
+class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     
     def __init__(   self):
         super().__init__()
@@ -361,48 +361,50 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         self.up_events.post(UpdateEvents.device_list_refreshed,self, self.io_interface)
     
     def _callback_connect_device(self):
-        """ Connect with selected sciospec device"""
+        """Connect with selected sciospec device"""
         device_name= str(self.cB_ports.currentText()) # get actual ComPort
         self.io_interface.connectSciospecDevice(device_name, baudrate=115200)
         self.up_events.post(UpdateEvents.device_status,self, self.io_interface)
                     
     def _callback_disconnect_device(self):
-        """ Disconnect the sciospec device"""
+        """Disconnect the sciospec device"""
         self.io_interface.disconnectSciospecDevice()
         self.up_events.post(UpdateEvents.device_status,self, self.io_interface)
 
     def _callback_get_device_setup(self):
-        """ Get setup of the sciospec device and display it"""
+        """Get setup of the sciospec device and display it"""
         self.io_interface.get_setup()
         self.up_events.post(UpdateEvents.device_setup,self, self.io_interface)
 
     def _callback_set_device_setup(self):
-        """ Set the displayed setup of the sciospec device"""
+        """Set the displayed setup of the sciospec device"""
         self._update_device_setup_from_gui()
         self.io_interface.set_setup()
         self._callback_get_device_setup()
 
     def _callback_softreset_device(self):
-        """ Reset the sciopec device"""
+        """Reset the sciopec device"""
         self.io_interface.software_reset()
         self.up_events.post(UpdateEvents.device_status,self, self.io_interface)
     
     def _callback_start_measurement(self):
-        """ Start measurements on sciopec device"""
+        """Start measurements on sciopec device"""
         self._callback_set_device_setup()
         if self.io_interface.start_meas(self.lE_meas_dataset_dir.text()):
             self.init_gui_for_live_meas()
 
     def _callback_stop_measurement(self):
-        """ Start measurements on sciopec device"""
+        """Start measurements on sciopec device"""
         self.io_interface.stop_meas()
         self.live_meas_status.clear()
         # self.frame_cnt_old =-1 # reset
     
     def _callback_save_setup(self):
+        """Save setup of sciopec device"""
         self.io_interface.save_setup(dir=None)
         
     def _callback_load_setup(self):
+        """Load setup of sciopec device"""
         self.io_interface.load_setup()
         self.up_events.post(UpdateEvents.device_setup,self, self.io_interface)
 
@@ -697,25 +699,6 @@ class UiBackEnd(QtWidgets.QMainWindow, app_gui):
         # self.video_frame_miniature.setPixmap(QtGui.QPixmap.fromImage(self.image_min))
 
 
-def main():
-    main_log()
-    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-    # rec= ReconstructionPyEIT()
-    # ui2rec_queue = NewQueue()
-    app = QApplication(argv)
-    # rec2ui_queue = NewQueue()
-    # app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
-    # ui = UiBackEnd(queue_in=rec2ui_queue, queue_out=ui2rec_queue, image_reconst=rec)
-    ui = UiBackEnd()
-    ui.show()
-    # p = Process(target=_poll_process4reconstruction, args=(ui2rec_queue,rec2ui_queue,rec))
-    # p.daemon=True
-    # p.start()
-    exit(app.exec_())  
-
 if __name__ == "__main__":
-    # from viztracer import VizTracer
-    
-    # with VizTracer() as tracer:
-    main()
-    # 
+    pass
+
