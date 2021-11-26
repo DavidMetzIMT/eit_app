@@ -15,6 +15,7 @@ from sys import argv, exit
 
 import matplotlib
 import numpy as np
+from default.set_default_dir import APP_DIRS, AppDirs, set_ai_default_dir
 from eit_app.app.dialog_boxes import openFileNameDialog, show_msgBox
 from eit_app.app.event import CustomEvents
 from eit_app.app.gui import Ui_MainWindow as app_gui
@@ -25,7 +26,6 @@ from eit_app.eit.computation import ComputeMeas
 from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.imaging_type import (DATA_TRANSFORMATIONS, IMAGING_TYPE,
                                       Imaging)
-
 from eit_app.eit.plots import (PlotDiffPlot, PlotImage2D, PlotUPlot,
                                plot_measurements, plot_rec)
 from eit_app.eit.rec_abs import RecCMDs
@@ -33,15 +33,13 @@ from eit_app.eit.rec_ai import ReconstructionAI
 from eit_app.eit.rec_pyeit import ReconstructionPyEIT
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.io.sciospec.device import IOInterfaceSciospec
-from eit_app.io.sciospec.meas_dataset import EitMeasurementSet, MEAS_DIR
-from eit_app.io.video.microcamera import (DEFAULT_IMG_SIZES, EXT_IMG, SNAPSHOT_DIR,MicroCam,
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
+from eit_app.io.video.microcamera import (DEFAULT_IMG_SIZES, EXT_IMG, MicroCam,
                                           VideoCaptureModule)
-
 from eit_app.threads_process.threads_worker import CustomWorker
 from glob_utils.flags.flag import CustomFlag, CustomTimer
 from glob_utils.log.log import change_level_logging, main_log
 from glob_utils.pth.path_utils import get_datetime_s, mk_new_dir
-
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import \
@@ -81,7 +79,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self._initilizated.set()
     
     def _post_init(self):
-        
+        set_ai_default_dir()
         _translate = QtCore.QCoreApplication.translate
         # Set app title
         self.setWindowTitle(_translate("MainWindow","EIT aquisition for Sciospec device "+ __version__))
@@ -122,14 +120,11 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
     def _init_main_objects(self):
 
-        mk_new_dir(dir_name=MEAS_DIR)
-        mk_new_dir(dir_name=SNAPSHOT_DIR)
+        # mk_new_dir(dir_name=MEAS_DIR)
+        # mk_new_dir(dir_name=SNAPSHOT_DIR)
         # add dir in default dirs TODO
-
         self.dataset = EitMeasurementSet()
-
         self.io_interface = IOInterfaceSciospec()
-        
         self.eit_model= EITModelClass()
         self.io_interface.setup.exc_pattern= self.eit_model.InjPattern
 
@@ -433,7 +428,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self._load_dataset()
 
     def _callback_loadRef4TD(self):
-        path, cancel= openFileNameDialog(self,path=MEAS_DIR)
+        path, cancel= openFileNameDialog(self,path=APP_DIRS.get(AppDirs.meas_set))
         if cancel: # Cancelled
             return
         self._callback_UpdateRef4TD(path=path)    
@@ -528,7 +523,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
     def _callback_capture_snapshot(self):
         """"""
-        self.capture_module.save_image_now(os.path.join(SNAPSHOT_DIR,f'Snapshot_{get_datetime_s()}'))
+        self.capture_module.save_image_now(os.path.join(APP_DIRS.get(AppDirs.snapshot),f'Snapshot_{get_datetime_s()}'))
         
     def _callback_refresh_capture_devices(self):
         capture_devices= self.capture_module.get_devices_available()

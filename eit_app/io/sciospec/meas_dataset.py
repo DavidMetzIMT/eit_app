@@ -25,6 +25,7 @@ from queue import Queue
 from sys import argv
 
 import numpy as np
+from default.set_default_dir import APP_DIRS, AppDirs
 from eit_app.app.dialog_boxes import show_msgBox
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.device_setup import SciospecSetup
@@ -50,7 +51,7 @@ __status__ = "Production"
 
 logger = getLogger(__name__)
 
-MEAS_DIR='measurements'
+# MEAS_DIR='measurements'
 ## ======================================================================================================================================================
 ##  Class for the DataSet obtained from the EIT Device
 ## ======================================================================================================================================================
@@ -81,7 +82,7 @@ class EitMeasurementSet(object):
         self.date_time= get_datetime_s()
         if self.autosave.is_set():
             self.name= append_date_time(name_measurement, self.date_time)
-            self.output_dir=mk_new_dir(dir_name=self.name, parent_dir=MEAS_DIR)
+            self.output_dir=mk_new_dir(dir_name=self.name, parent_dir=APP_DIRS.get(AppDirs.meas_set))
         else:
             self.name= 'Not saved'
             self.output_dir=None

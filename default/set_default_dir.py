@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 # management of global default directory
 ################################################################################
 
-DEFAULT_APP_DIR_FILE='default_dirs.txt'
+DEFAULT_APP_DIR_FILE='app_default_dirs.txt'
 APP_DIRS= DefaultDir()
 
 class AppDirs(Enum):
