@@ -1,13 +1,13 @@
 
 
 import os
-from eit_tf_workspace.train_utils.gen import Generators
-from eit_tf_workspace.train_utils.metadata import MetaData, reload_metadata
+from eit_ai.train_utils.gen import Generators
+from eit_ai.train_utils.metadata import MetaData, reload_metadata
 from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.rec_abs import Reconstruction
-from eit_tf_workspace.raw_data.matlab import MatlabSamples
-from eit_tf_workspace.raw_data.raw_samples import reload_samples
-from eit_tf_workspace.train_utils.select_gen import select_gen
+from eit_ai.raw_data.matlab import MatlabSamples
+from eit_ai.raw_data.raw_samples import reload_samples
+from eit_ai.train_utils.select_gen import select_gen
 import numpy as np
 
 from logging import getLogger

@@ -10,7 +10,7 @@ from numpy.lib.arraysetops import ediff1d
 from numpy.lib.polynomial import RankWarning
 
 
-from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
+from eit_ai.draw_data import format_inputs, get_elem_nodal_data
 
 DEFAULT_DIR= 'default'
 
