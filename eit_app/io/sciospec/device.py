@@ -348,11 +348,8 @@ class IOInterfaceSciospec(object):
         
         if self._is_new_meas_frame():
             dataset=self.getDataset(mk_copy=True)
-            print('1HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
             if self.dataset.save_img.is_set():
-                print('2HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
                 self.queue_out_video_module.put(dataset.meas_frame[0].frame_path)
-                print('3HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
             self.queue_out.put_nowait((dataset, 0, RecCMDs.reconstruct))
             self.getDataset().flag_new_meas.clear()
 
