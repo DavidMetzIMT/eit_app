@@ -143,7 +143,7 @@ class EitMeasurementSet(object):
         if path is None:
             self._frame_TD_ref[0] = self.meas_frame[idx]
         else:
-            dataset_tmp:EitMeasurementSet=self.load_dataset_single_frame(path)
+            dataset_tmp:EitMeasurementSet=self.load_single_frame_file(path)
             self._frame_TD_ref[0]=dataset_tmp.meas_frame[0]
     
     def save_dataset_single_frame(self, idx:int=0):
@@ -154,14 +154,14 @@ class EitMeasurementSet(object):
         save_as_pickle(path, self)
 
     def load_single_frame(self, file_path):
-        dataset_tmp:EitMeasurementSet=self.load_dataset_single_frame(file_path)
+        dataset_tmp:EitMeasurementSet=self.load_single_frame_file(file_path)
         self.meas_frame[0]=dataset_tmp.meas_frame[0]
 
-    def load_dataset_single_frame(self, file_path):
+    def load_single_frame_file(self, file_path):
         """Load Dataset file with single frame"""
         return load_pickle_app(file_path)
 
-    def load_dataset_dir(self, dir_path:str=None):
+    def load_meas_dir(self, dir_path:str=None):
         """Load Dataset files """
         try:
             if not dir_path:
@@ -185,7 +185,7 @@ class EitMeasurementSet(object):
         # print('filepaths', filenames)
         for i,filename in enumerate(filenames): # get all the frame data
             filepath=os.path.join(dir_path, filename)
-            dataset_tmp:EitMeasurementSet=self.load_dataset_single_frame(filepath)
+            dataset_tmp:EitMeasurementSet=self.load_single_frame_file(filepath)
             if i ==0:
                 set_attributes(self,dataset_tmp)
                 setattr(self, 'output_dir', dir_path)
@@ -395,7 +395,7 @@ if __name__ == '__main__':
     # p.daemon=True
     # p.start()
     d = EitMeasurementSet()
-    d.load_dataset_dir()
+    d.load_meas_dir()
     exit(app.exec_()) 
 
 
