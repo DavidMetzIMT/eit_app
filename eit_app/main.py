@@ -10,7 +10,7 @@ from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
 from eit_app.app.backend import UiBackEnd
 # from eit_app.eit.reconstruction import ReconstructionPyEIT
-from eit_app.threads_process.process_queue import NewQueue
+# from eit_app.threads_process.process_queue import NewQueue
 from glob_utils.log.log import main_log
 
 
