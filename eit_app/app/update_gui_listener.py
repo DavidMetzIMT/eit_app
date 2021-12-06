@@ -101,7 +101,7 @@ def update_replay_status(app:Ui_MainWindow, replay:CustomFlag):
     else:
         app.lab_replay_status.setText('REPLAY OFF')
         app.lab_replay_status.setStyleSheet("background-color: grey")
-        set_slider(app.slider_replay, slider_pos=0)
+        set_slider(app.slider_replay, set_pos=0)
 
 def update_imaging_inputs_field(app:Ui_MainWindow, imaging_type:Imaging):
     """"""
@@ -143,7 +143,7 @@ def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementSet ):
     nb_loaded_frame= dataset.frame_cnt
     set_comboBox_items(app.cB_current_idx_frame, [i for i in range(nb_loaded_frame)])
     set_comboBox_items(app.cB_ref_frame_idx, [i for i in range(nb_loaded_frame)])
-    set_slider(app.slider_replay,  slider_pos=0, pos_min=0, pos_max=nb_loaded_frame-1, single_step=1)
+    set_slider(app.slider_replay,  set_pos=0, pos_min=0, pos_max=nb_loaded_frame-1, single_step=1)
 
 
 class UpdateEvents(AutoName):
