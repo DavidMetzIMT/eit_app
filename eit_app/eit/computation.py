@@ -59,8 +59,15 @@ class ComputeMeas():
         logger.info(f'Recocntructions selected: {self.rec}')
 
     def get_last_rx_frame(self):
+
+        if self.queue_in.empty():
+            return
+            
         try:
-            data = self.queue_in.get(block=True)
+            # loosing some informations
+            while not self.queue_in.empty():
+                data = self.queue_in.get(block=True)
+
             dataset, idx_frame, cmd = data
             
             self.U, self.labels = self.preprocess(dataset, idx_frame)
