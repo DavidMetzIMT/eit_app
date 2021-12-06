@@ -73,8 +73,6 @@ class EITChamber():
         y=self.body.box.width/2
         z=self.body.box.height/2
         return [[-x,-y,-z],[x,y,z]] if z else [[-x,-y],[x,y]]
-
-
 @dataclass
 class FEM():
     nodes:np.ndarray=None
@@ -170,6 +168,7 @@ class EITModelClass(object):
         self.chamber:EITChamber=EITChamber()
         self.fem:FEM=FEM()
         self.stimulations:List[Stimulations]=[Stimulations()]
+        
 
     
     def set_solver(self, solver_type):

@@ -55,24 +55,16 @@ class ReconstructionPyEIT(Reconstruction):
                     model.get_fem_refinement(),
                     model.chamber.get_chamber_limit()
                 )
-        # model.fem.update_from_pyeit(self.MeshObj)
 
         ex_mat = eit_scan_lines(ne=model.get_nd_elecs(), dist=1)
         
         logger.info(f'Initialisation of PyEIT; solver:{model.SolverType}')
-        
-        # if verbose>0:
-        #     self._print_mesh_nodes_elemts(self.MeshObj)
-        #     self._plot_mesh()
-        #     self._plot_conductivity_map(self.MeshObj)
+    
     
         """ 1. problem setup """
-        anomaly = [{"x": 0.5, "y": 0.5, "d": 0.1, "perm": 2}]
-        MeshObjSim = mesh.set_perm(MeshObj, anomaly=anomaly,background=0.01)
+        anomaly = [{"x": 0.5, "y": 0.5, "d": 0.1, "perm": 10}]
+        MeshObjSim = mesh.set_perm(MeshObj, anomaly=anomaly,background=1.0)
         MeshObjSim= _reconstruct_mesh_struct(MeshObjSim)
-        # if verbose>0:
-        #     self._print_mesh_nodes_elemts(self.MeshObjSim)
-        #     self._plot_conductivity_map(self.MeshObjSim)
 
         """ 2. FEM simulation """
         # # calculate simulated data
@@ -81,7 +73,8 @@ class ReconstructionPyEIT(Reconstruction):
         f0 = fwd.solve_eit(ex_mat, step=step_solver, perm=MeshObj["perm"])
         f1 = fwd.solve_eit(ex_mat, step=step_solver, perm=MeshObjSim["perm"])
 
-        self.eit=get_solver_pyeit(model.SolverType,MeshObj, ElecPos, ex_mat,step_solver, model.p, model.lamb, model.n)
+        self.eit=get_solver_pyeit(
+            model.SolverType,MeshObj, ElecPos, ex_mat,step_solver, model.p, model.lamb, model.n)
         # ds=_inv_solve_eit(self.eit,f1.v, f0.v, True)
         MeshObj["perm"]=_inv_solve_eit(self.eit,f1.v, f0.v, True)
         model.fem.update_from_pyeit(MeshObj)
@@ -130,8 +123,8 @@ class ReconstructionPyEIT(Reconstruction):
     #         self.Scalevmin = vmin
     #         self.Scalevmax= vmax
 
-    def setNormalize(self, normalize):
-        self.Normalize= normalize
+    # def setNormalize(self, normalize):
+    #     self.Normalize= normalize
 
     # def pollCallback(self, queue_in:Queue, queue_out:Queue):
     #     if not queue_in.empty():
@@ -165,7 +158,15 @@ def _inv_solve_eit(eit:EitBase, v1, v0, normalize:bool=False):
         
     return ds
 
-def get_solver_pyeit(SolverType,MeshObj, ElecPos, ex_mat,step_solver, p:int=0.5, lamb:int=0.01, n:int=64):
+def get_solver_pyeit(
+    SolverType,
+    MeshObj,
+    ElecPos,
+    ex_mat,
+    step_solver,
+    p:int=0.5,
+    lamb:int=0.01,
+    n:int=64):
     """[summary]
 
     Args:
