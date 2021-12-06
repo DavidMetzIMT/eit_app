@@ -34,7 +34,7 @@ from eit_app.eit.rec_pyeit import ReconstructionPyEIT
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.io.sciospec.device import IOInterfaceSciospec
 from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
-from eit_app.io.video.microcamera import (DEFAULT_IMG_SIZES, EXT_IMG, MicroCam,
+from eit_app.io.video.microcamera import (IMG_SIZES, EXT_IMG, MicroCam,
                                           VideoCaptureModule)
 from eit_app.threads_process.threads_worker import CustomWorker
 from glob_utils.flags.flag import CustomFlag, CustomTimer
@@ -170,7 +170,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         set_comboBox_items(
             self.cB_transform_volt, list(DATA_TRANSFORMATIONS.keys())[:4])
         set_comboBox_items(
-            self.cB_img_size, list(DEFAULT_IMG_SIZES.keys()), set_index=-1)
+            self.cB_img_size, list(IMG_SIZES.keys()), set_index=-1)
         set_comboBox_items(
             self.cB_img_file_ext, list(EXT_IMG.keys()))
         set_comboBox_items(
@@ -211,7 +211,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.chB_y_log.toggled.connect(self._c_plots_to_show)
 
         # loading maesuremenst / replay
-        self.pB_load_meas_dataset.clicked.connect(self._c_load_meas_dataset)
+        self.pB_load_meas_dataset.clicked.connect(self._c_load_meas_set)
         self.pB_replay_back_begin.clicked.connect(self._c_replay_back_begin)
         self.pB_replay_goto_end.clicked.connect(self._c_replay_goto_end)
         self.pB_replay_play.clicked.connect(self._c_replay_play)
@@ -486,11 +486,74 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             error
         )
 
-    def _c_load_meas_dataset(self)->None:
-        """the callback has to be witouh arguments! """
-        self._load_meas_dataset()
+    ############################################################################
+    #### Replay of Measurements
+    ############################################################################
+    def _c_init_rec(self)->None:
+        """[summary]
+        """        
+        # set some 
+        rec={
+            0:ReconstructionPyEIT,
+            1:ReconstructionAI
+        }
+        self._c_set_eit_model_data()
+        self.U= np.random.rand(256,2)
+        self.labels= ['test','test','test','test']
+        self.computing.set_eit_model(self.eit_model)
+        self.computing.set_reconstruction(
+            rec[self.tabW_reconstruction.currentIndex()])
+
+        self.io_interface.put_queue_out(('random', 0, RecCMDs.initialize))
     
-    def _load_meas_dataset(self, dir_path:str=None)->None:
+    def _c_loadRef4TD(self)->None:
+        """[summary]
+        """        
+        path, cancel= openFileNameDialog(
+            self,path=APP_DIRS.get(AppDirs.meas_set))
+        if cancel: # Cancelled
+            return
+        self._c_UpdateRef4TD(path=path)    
+        
+    def _c_UpdateRef4TD(self, path=None)->None:
+        """[summary]
+
+        Args:
+            path ([type], optional): [description]. Defaults to None.
+        """        
+        if self.live_meas_status.is_set()==True:
+            # Frame to use is ._last_frame[0] is the last updated...
+            self.meas_dataset.set_frame_TD_ref() 
+        else:
+            self.meas_dataset.set_frame_TD_ref(
+                self.cB_current_idx_frame.currentIndex(), path= path)
+        
+    def _c_set_eit_model_data(self)->None:
+        """[summary]
+        """        
+        self.eit_model.p=self.eit_p.value()
+        self.eit_model.lamb=self.eit_lamda.value()
+        self.eit_model.n=self.eit_n.value()
+        self.eit_model.set_solver(self.cB_solver.currentText())
+        self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
+
+
+    ############################################################################
+    #### Replay of Measurements
+    ############################################################################
+    
+    def _c_autosave(self)->None:
+        """update selected autosave mode """        
+        self.io_interface.set_autosave(
+            self.chB_dataset_autoset.isChecked(),
+            self.chB_dataset_save_img.isChecked())
+        self.up_events.post(UpdateEvents.autosave_changed,self)
+    
+    def _c_load_meas_set(self)->None:
+        """the callback has to be witouh arguments! """
+        self._load_meas_set()
+    
+    def _load_meas_set(self, dir_path:str=None)->None:
         """[summary]
 
         Args:
@@ -517,63 +580,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.up_events.post(UpdateEvents.device_setup,self, self.io_interface)
         self.up_events.post(UpdateEvents.dataset_loaded,self, self.meas_dataset)
         self.compute_frame(idx_frame=0)
-
-    def _c_loadRef4TD(self)->None:
-        """[summary]
-        """        
-        path, cancel= openFileNameDialog(
-            self,path=APP_DIRS.get(AppDirs.meas_set))
-        if cancel: # Cancelled
-            return
-        self._c_UpdateRef4TD(path=path)    
-        
-    def _c_UpdateRef4TD(self, path=None)->None:
-        """[summary]
-
-        Args:
-            path ([type], optional): [description]. Defaults to None.
-        """        
-        if self.live_meas_status.is_set()==True:
-            # Frame to use is ._last_frame[0] is the last updated...
-            self.meas_dataset.set_frame_TD_ref() 
-        else:
-            self.meas_dataset.set_frame_TD_ref(
-                self.cB_current_idx_frame.currentIndex(), path= path)
-   
-    def _c_autosave(self)->None:
-        """update selected autosave mode """        
-        self.io_interface.set_autosave(
-            self.chB_dataset_autoset.isChecked(),
-            self.chB_dataset_save_img.isChecked())
-        self.up_events.post(UpdateEvents.autosave_changed,self)
-
-    def _c_init_rec(self)->None:
-        # set some 
-        rec={
-            0:ReconstructionPyEIT,
-            1:ReconstructionAI
-        }
-        self._c_set_eit_model_data()
-        self.U= np.random.rand(256,2)
-        self.labels= ['test','test','test','test']
-        self.computing.set_eit_model(self.eit_model)
-        self.computing.set_reconstruction(
-            rec[self.tabW_reconstruction.currentIndex()])
-
-        self.io_interface.put_queue_out(('random', 0, RecCMDs.initialize))
-        
-    def _c_set_eit_model_data(self)->None:
-        
-        self.eit_model.p=self.eit_p.value()
-        self.eit_model.lamb=self.eit_lamda.value()
-        self.eit_model.n=self.eit_n.value()
-        self.eit_model.set_solver(self.cB_solver.currentText())
-        self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
-
-
-    ############################################################################
-    #### Replay of Measurements
-    ############################################################################
 
     def _c_replay_play(self)->None:
         self.replay.set()
@@ -650,12 +656,10 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
     def _c_capture_snapshot(self)->None:
         """Save """
-        self.capture_module.save_image_now(
-            os.path.join(
-                APP_DIRS.get(AppDirs.snapshot),
-                f'Snapshot_{get_datetime_s()}'
-            )
+        path=os.path.join(
+                APP_DIRS.get(AppDirs.snapshot),f'Snapshot_{get_datetime_s()}'
         )
+        self.capture_module.save_image_now(path=path)
     
     def _c_refresh_capture_devices(self)->None:
         capture_devices= self.capture_module.get_devices_available()
@@ -740,15 +744,15 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             RecCMDs.reconstruct
         )
         self.io_interface.put_queue_out(data_for_queue)
+        self.get_picture(idx_frame=idx_frame) # 
 
     def get_picture(self, idx_frame:int)->None:
         if not self.replay_status.is_set(): # only in replay mode
             return
         path= self.meas_dataset.get_frame_path(idx_frame)
         path,_= os.path.splitext(path)
-        # Stopped here
         path= path + self.capture_module.image_file_ext
-        self.updade_video(path=path)
+        self.capture_module.load_image(path)
 
     def init_gui_for_live_meas(self)->None:
         self.up_events.post(
@@ -813,18 +817,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                 logger.debug(f'Plot Frame #{idx}, time {t}, lasted {elapsed}')
         except BaseException as e:
             logger.error(f'Error _update_canvas: {e}')
-        
-    def updade_video(self, path=None)->None:
-        if path is None:
-            img, img_width, img_height= self.capture_module.getImage()
-            logger.debug('updade_video')
-        else:
-            img, img_width, img_height= self.capture_module.load_image(path)
-        image = QtGui.QImage(
-            img.data,
-            img_width, img_height, 
-            QtGui.QImage.Format_RGB888).rgbSwapped()
-        self.display_image(image)
     
     def display_image(self, image:QtGui.QImage)->None:
         self.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))

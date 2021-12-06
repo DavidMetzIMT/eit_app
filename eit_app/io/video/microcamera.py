@@ -1,8 +1,7 @@
 #!C:\Anaconda3\envs\py38_app python
 # -*- coding: utf-8 -*-
 
-"""  Classes and function to interact with the Sciospec EIT device
-
+"""  
 Copyright (C) 2021  David Metz
 
 This program is free software: you can redistribute it and/or modify
@@ -24,8 +23,10 @@ from abc import ABC, abstractmethod
 from enum import Enum, auto
 from logging import getLogger
 from queue import Queue
+from typing import Any
 
 import cv2
+from glob_utils.files.files import is_file
 import numpy as np
 from eit_app.threads_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag
@@ -42,7 +43,7 @@ __status__ = "Production"
 
 logger = getLogger(__name__)
 
-DEFAULT_IMG_SIZES={
+IMG_SIZES={
     '1600 x 1200':(1600,1200), 
     '1280 x 960':(1280,960),
     '800 x 600':(800,600),
@@ -58,21 +59,47 @@ class CaptureFrameError(Exception):
     
 class CaptureDeviceType(ABC):
 
-    devices_available={}
-    device=None
-    init=CustomFlag()
+    devices_available:dict[str,Any]
+    device:Any
+    initializated:CustomFlag
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.devices_available={}
+        self.device=None
+        self.initializated=CustomFlag()
+        self._post_init_()
+
+    @abstractmethod   
+    def _post_init_(self)->None:
+        """Post init for specific object initialisation process"""
 
     @abstractmethod
-    def select_device(self, name:str):
+    def connect_device(self, name:str)-> None:
+        """Connect the device corresponding to the name given as arg
+
+        Args:
+            name (str): name of the device (one of the key returned by
+            self.get_devices_available)
+        """        
+    @abstractmethod
+    def get_devices_available(self)->dict:
+        """create and return a dictionary of availables devices:
+        self.devices_available= {
+            'name device1 ': specific data to connect to the device 1,
+            'name device2 ': specific data to connect to the device 2,
+        }
+
+        Returns:
+            dict: dictionary of availables devices
+        """        
+        
+    @abstractmethod
+    def set_properties(self, size)-> None:
         """"""
     @abstractmethod
-    def get_devices_available(self, name)->dict:
-        """"""
-    @abstractmethod
-    def set_properties(self, size):
-        """"""
-    @abstractmethod
-    def print_properties(self):
+    def print_properties(self)-> None:
         """"""
     @abstractmethod
     def capture_frame(self)-> np.ndarray:
@@ -84,20 +111,44 @@ class CaptureDeviceType(ABC):
     def load_frame(self, path:str)-> np.ndarray:#
         """"""
     @abstractmethod
-    def save_frame (self, frame:np.ndarray, path:str):
+    def save_frame (self, frame:np.ndarray, path:str)-> None:
         """"""
     
 
 class MicroCam(CaptureDeviceType):
 
-    def select_device(self, name):
-        self.init.clear()
+    def _post_init_(self)->None:
+
+        self.props=[
+            cv2.CAP_PROP_FRAME_WIDTH,
+            cv2.CAP_PROP_FRAME_HEIGHT,
+            # cv2.CAP_PROP_FPS,
+            # cv2.CAP_PROP_POS_MSEC,
+            # Fcv2.CAP_PROP_FRAME_COUNT,
+            # cv2.CAP_PROP_BRIGHTNESS,
+            # cv2.CAP_PROP_CONTRAST,
+            # cv2.CAP_PROP_SATURATION,
+            # cv2.CAP_PROP_HUE,
+            # cv2.CAP_PROP_GAIN,
+            # cv2.CAP_PROP_CONVERT_RGB
+        ]
+
+    def connect_device(self, name:str)-> None:
+
+        self.initializated.clear()
+        if name not in self.devices_available:
+            logger.error(f'Device "{name}" not available')
+            logger.debug(f'Availabe devices:{self.devices_available}')
+            raise NoCaptureDeviceSelected(f'Device "{name}" not available')
+
         self.devices_available[name]
-        self.device=cv2.VideoCapture(self.devices_available[name] ,cv2.CAP_DSHOW)
+        self.device=cv2.VideoCapture(
+            self.devices_available[name] ,cv2.CAP_DSHOW)
         if self.device.read()[0]:
-            self.init.set()
+            self.initializated.set()
 
     def get_devices_available(self)-> dict:
+
         for index, _ in enumerate(range(10)):
             cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
             if cap.read()[0]:
@@ -105,8 +156,11 @@ class MicroCam(CaptureDeviceType):
                 cap.release()
         return self.devices_available
 
-    def set_properties(self, size=list(DEFAULT_IMG_SIZES.keys())[-1]):
-        image_size= DEFAULT_IMG_SIZES[size]
+    def set_properties(self,size:str=None)-> None:
+
+        if size is None:
+            size= list(IMG_SIZES.keys())[-1] #default size (smaller one)
+        image_size= IMG_SIZES[size]
         self.device.set(cv2.CAP_PROP_FRAME_WIDTH,image_size[0])
         self.device.set(cv2.CAP_PROP_FRAME_HEIGHT,image_size[1])
         time.sleep(2)
@@ -120,26 +174,17 @@ class MicroCam(CaptureDeviceType):
         # self.device.set(cv2.CAP_PROP_HUE,hue)
         # self.device.set(cv2.CAP_PROP_CONVERT_RGB , 1)
         if self.device.read()[0]:
-            self.init.set()
+            self.initializated.set()
         self.print_properties()
 
-    def print_properties(self):
+    def print_properties(self)-> None:
 
-        logger.info(f"CV_CAP_PROP_FRAME_WIDTH: '{self.device.get(cv2.CAP_PROP_FRAME_WIDTH)}'")
-        logger.info(f"CV_CAP_PROP_FRAME_HEIGHT : '{self.device.get(cv2.CAP_PROP_FRAME_HEIGHT)}'")
-        # print("CAP_PROP_FPS : '{}'".format(capture.get(cv2.CAP_PROP_FPS)))
-        # print("CAP_PROP_POS_MSEC : '{}'".format(capture.get(cv2.CAP_PROP_POS_MSEC)))
-        # print("CAP_PROP_FRAME_COUNT  : '{}'".format(capture.get(cv2.CAP_PROP_FRAME_COUNT)))
-        # print("CAP_PROP_BRIGHTNESS : '{}'".format(capture.get(cv2.CAP_PROP_BRIGHTNESS)))
-        # print("CAP_PROP_CONTRAST : '{}'".format(capture.get(cv2.CAP_PROP_CONTRAST)))
-        # print("CAP_PROP_SATURATION : '{}'".format(capture.get(cv2.CAP_PROP_SATURATION)))
-        # print("CAP_PROP_HUE : '{}'".format(capture.get(cv2.CAP_PROP_HUE)))
-        # print("CAP_PROP_GAIN  : '{}'".format(capture.get(cv2.CAP_PROP_GAIN)))
-        # print("CAP_PROP_CONVERT_RGB : '{}'".format(capture.get(cv2.CAP_PROP_CONVERT_RGB)))
+        data={ prop.__name__: self.device.get(prop) for prop in self.props }
+        [logger.info(f'{k}: {v}') for k, v in data.items()]
 
-        
+    
     def capture_frame(self)-> np.ndarray:
-        if not self.init.is_set():
+        if not self.initializated.is_set():
             raise NoCaptureDeviceSelected()
         succeed, frame = self.device.read()
         if not succeed:
@@ -158,38 +203,43 @@ class MicroCam(CaptureDeviceType):
         """"""
         cv2.imwrite(path,frame)
 
-class CaptureModuleStatus(Enum):
+class CaptureStatus(Enum):
     live=auto()
     meas=auto()
     idle=auto()
 
 class VideoCaptureModule(object):
     """"""
-    def __init__(self, capture_type:CaptureDeviceType,queue_in:Queue,  queue_out:Queue) -> None:
+    def __init__(
+        self, 
+        capture_type:CaptureDeviceType,
+        queue_in:Queue,  
+        queue_out:Queue) -> None:
         super().__init__()
         self.queue_in= queue_in # recieve path were the frame has to be saved
         self.queue_out= queue_out # send the Qimage to dipslay
-        self.live_capture=Poller(name='live_capture',pollfunc=self._poll,sleeptime=0.05)
+        self.live_capture=Poller(
+            name='live_capture',pollfunc=self._poll,sleeptime=0.05)
         self.live_capture.start()
         self.live_capture.start_polling()
-        self.status=CaptureModuleStatus.idle
+        self.status=CaptureStatus.idle
         self.capture_type=capture_type
 
-        self.image_size= DEFAULT_IMG_SIZES[list(DEFAULT_IMG_SIZES.keys())[-1]]
+        self.image_size= IMG_SIZES[list(IMG_SIZES.keys())[-1]]
         self.image_file_ext= EXT_IMG[list(EXT_IMG.keys())[0]]
         self.save_image_path= ''
         self.last_frame=None
         self.callbacks={
-            CaptureModuleStatus.idle: self._idle,
-            CaptureModuleStatus.meas:self._meas,
-            CaptureModuleStatus.live:self._live_frame
+            CaptureStatus.idle: self._idle,
+            CaptureStatus.meas:self._meas,
+            CaptureStatus.live:self._live_frame
         }
 
     def change_capture_type(self,capture_type:CaptureDeviceType):
         self.capture_type=capture_type
 
     def select_device(self, name:str):
-        self.capture_type.select_device(name)
+        self.capture_type.connect_device(name)
         logger.info(f'Video capture device: {name} - CONNECTED')
         
     def get_devices_available(self)->dict:
@@ -205,29 +255,25 @@ class VideoCaptureModule(object):
         logger.debug(f'image_file_ext selected {self.image_file_ext}')
 
     def set_idle(self):
-        self.status=CaptureModuleStatus.idle
+        self.status=CaptureStatus.idle
         logger.debug('Idle mode')
 
     def set_meas(self):
-        self.status=CaptureModuleStatus.meas
+        self.status=CaptureStatus.meas
         logger.debug('Meas mode')
+
     def set_live(self):
-        self.status=CaptureModuleStatus.live
+        self.status=CaptureStatus.live
         logger.debug('Live mode')
-    # def start_live_capture(self):
-    #     self.live_capture.start_polling()
 
-    # def stop_live_capture(self):
-    #     self.live_capture.stop_polling()
-
-    def _poll(self):
+    def _poll(self)->None:
         """"""
         self.callbacks[self.status]()
 
-    def _idle(self):
+    def _idle(self)->None:
         pass
 
-    def _meas(self):
+    def _meas(self)->None:
         if self.queue_in.empty():
             return
         try:
@@ -239,7 +285,7 @@ class VideoCaptureModule(object):
             self.set_idle()
             logger.warning('NoCaptureDeviceSelected')
 
-    def _live_frame(self):
+    def _live_frame(self)->None:
         try:
             self.last_frame = self.capture_type.capture_frame()
             QtImage= self.capture_type.get_Qimage(self.last_frame)
@@ -250,16 +296,25 @@ class VideoCaptureModule(object):
         except CaptureFrameError:
             logger.error('capture frame failed')
         
-    def load_image(self,path)-> QImage:
+    def load_image(self,path:str=None)-> QImage:
+
+        if path is None:
+            self._live_frame() # capture actual frame
+
         _, ext =os.path.split(path)
-        if ext in list(EXT_IMG.values()):
-            QtImage = self.capture_type.load_frame(path)
-            logger.debug(f'\nImage loaded: {path}')
-            self.queue_out.put(QtImage)
+        if ext not in list(EXT_IMG.values()) and not is_file(path):
+            return None
+        frame = self.capture_type.load_frame(path)
+        QtImage= self.capture_type.get_Qimage(frame)
+        logger.debug(f'\nImage loaded: {path}')
+        self.queue_out.put(QtImage)
         return QtImage
 
-    def save_image_now(self,path):
+
+    def save_image_now(self,path:str=None)-> QImage:
         """read and save the actual frame """
+        if path is None:
+            self._live_frame() # capture actual frame
         path, _= os.path.splitext(path)
         path= path + self.image_file_ext
         frame= self.capture_type.capture_frame()
@@ -270,8 +325,11 @@ class VideoCaptureModule(object):
     def get_queue_in(self):
         return self.queue_in
 
-def convert_frame_to_Qt_format(frame):
-    return QImage(frame.data, frame.shape[1], frame.shape[0], QImage.Format_RGB888).rgbSwapped()
+def convert_frame_to_Qt_format(frame:np.ndarray)-> QImage:
+    return QImage(
+        frame.data,
+        frame.shape[1],
+        frame.shape[0], QImage.Format_RGB888).rgbSwapped()
 
 
 
