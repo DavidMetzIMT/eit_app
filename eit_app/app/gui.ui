@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -1312,145 +1312,17 @@ p, li { white-space: pre-wrap; }
      <attribute name="title">
       <string>EIT:_model</string>
      </attribute>
-     <widget class="QDoubleSpinBox" name="scalePlot_vmax">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>50</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmax">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>50</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>vmax</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmin">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>80</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>vmin</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="scalePlot_vmin">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>80</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="normalize">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>30</y>
-        <width>127</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Normalize</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="cB_verbose">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>430</y>
-        <width>70</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>verbose</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="eit_FEMRefinement">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>60</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>0.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>10.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.001000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.100000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_FEMRefinement">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>60</y>
-        <width>91</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>FEM Refinement</string>
-      </property>
-     </widget>
      <widget class="QTabWidget" name="tabW_reconstruction">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>580</y>
+        <y>290</y>
         <width>411</width>
         <height>271</height>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_pyeit">
        <attribute name="title">
@@ -1560,6 +1432,95 @@ p, li { white-space: pre-wrap; }
          </item>
         </layout>
        </widget>
+       <widget class="QLabel" name="label_FEMRefinement">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>20</y>
+          <width>91</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>FEM Refinement</string>
+        </property>
+       </widget>
+       <widget class="QDoubleSpinBox" name="eit_FEMRefinement">
+        <property name="geometry">
+         <rect>
+          <x>290</x>
+          <y>20</y>
+          <width>90</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="normalize">
+        <property name="geometry">
+         <rect>
+          <x>230</x>
+          <y>50</y>
+          <width>127</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Normalize</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_FEMRefinement_2">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>90</y>
+          <width>91</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>BackGround</string>
+        </property>
+       </widget>
+       <widget class="QDoubleSpinBox" name="dSB_pyeit_bckgrnd">
+        <property name="geometry">
+         <rect>
+          <x>290</x>
+          <y>90</y>
+          <width>90</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="tab_nn">
        <attribute name="title">
@@ -1587,7 +1548,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>150</y>
+        <y>10</y>
         <width>411</width>
         <height>261</height>
        </rect>
@@ -1740,12 +1701,76 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </widget>
+      <widget class="QDoubleSpinBox" name="scalePlot_vmax">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>200</y>
+         <width>90</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="decimals">
+        <number>4</number>
+       </property>
+       <property name="minimum">
+        <double>-1000000000000000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>1000000000000000.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_vmax">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>200</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>vmax</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="scalePlot_vmin">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>230</y>
+         <width>90</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="decimals">
+        <number>4</number>
+       </property>
+       <property name="minimum">
+        <double>-1000000000000000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>1000000000000000.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_vmin">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>230</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>vmin</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QPushButton" name="pB_set_reconstruction">
       <property name="geometry">
        <rect>
         <x>290</x>
-        <y>570</y>
+        <y>280</y>
         <width>131</width>
         <height>23</height>
        </rect>
