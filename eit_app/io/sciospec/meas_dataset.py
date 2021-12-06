@@ -23,6 +23,7 @@ import os
 from logging import getLogger
 from queue import Queue
 from sys import argv
+from typing import Union
 
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs
@@ -161,27 +162,31 @@ class EitMeasurementSet(object):
         """Load Dataset file with single frame"""
         return load_pickle_app(file_path)
 
-    def load_meas_dir(self, dir_path:str=None):
+    def load_meas_dir(self, dir_path:str=None)-> Union[list[str], None]:
         """Load Dataset files """
         try:
             if not dir_path:
-                dir_path= get_dir(title='Select a directory of the measurement dataset you want to load') 
+                title='Select a directory of the measurement dataset you want to load'
+                dir_path= get_dir(
+                    title=title,
+                    initialdir=APP_DIRS.get(AppDirs.meas_set)
+                    ) 
             filenames =search_for_file_with_ext(dir_path, ext=FileExt.pkl)
             # print('filepaths', filenames)
         except FileNotFoundError as e :
             logger.warning(f'FileNotFoundError: ({e})')
             show_msgBox(f'{e}', 'FileNotFoundError', 'Warning')
-            return
+            return None
         except OpenDialogDirCancelledException as e:
             logger.info(f'Loading cancelled: ({e})')
-            return
+            return None
         
         for filename in filenames:
             if 'setup' in filename:
                 filenames.remove(filename)
         if not filenames:
             show_msgBox('No frames-files in directory dirpath!', 'NO Files FOUND', 'Warning')
-            return
+            return None
         # print('filepaths', filenames)
         for i,filename in enumerate(filenames): # get all the frame data
             filepath=os.path.join(dir_path, filename)
@@ -189,7 +194,6 @@ class EitMeasurementSet(object):
             if i ==0:
                 set_attributes(self,dataset_tmp)
                 setattr(self, 'output_dir', dir_path)
-
             else:
                 # setattr(self, 'frame_cnt', getattr(dataset_tmp,'frame_cnt'))
                 self.meas_frame.append(dataset_tmp.meas_frame[0])
@@ -266,8 +270,19 @@ class EitMeasurementSet(object):
             print(f'try to access index {idx_freq} in fregs_list {self.freqs_list}')
             return self.freqs_list[0]
 
-    def get_info(self, idx_frame:int=0):
-        return self.meas_frame[idx_frame].info_text
+    def get_frame_info(self, idx:int=0):
+        return self.meas_frame[idx].info_text
+
+    def get_frame_path(self, idx:int=0)-> str:
+        """Return the path of the measured frame #idx 
+
+        Args:
+            idx (int, optional): index of the measured frame. Defaults to 0.
+
+        Returns:
+            str: path of the measured frame #idx
+        """        
+        return self.meas_frame[idx].frame_path
     
     def get_frame_cnt(self):
         return self.frame_cnt
