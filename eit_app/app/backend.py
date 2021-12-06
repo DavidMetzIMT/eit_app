@@ -137,7 +137,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.data_to_compute= Queue(maxsize=256)
         self.figure_to_plot= Queue(maxsize=256)
         self.computing=ComputeMeas(
-            self.io_interface.getQueueOut(),
+            self.io_interface.get_queue_out(),
             self.figure_to_plot
         )
 
@@ -403,19 +403,19 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
      
     def _c_refresh_device_list(self)->None:
         """Refresh the list of available sciospec devices"""
-        self.io_interface.getAvailableSciospecDevices()
+        self.io_interface.get_available_devices()
         self.up_events.post(
             UpdateEvents.device_list_refreshed,self, self.io_interface)
     
     def _c_connect_device(self)->None:
         """Connect with selected sciospec device"""
         device_name= str(self.cB_ports.currentText()) # get actual ComPort
-        self.io_interface.connectSciospecDevice(device_name, baudrate=115200)
+        self.io_interface.connect_device(device_name, baudrate=115200)
         self.up_events.post(UpdateEvents.device_status,self, self.io_interface)
                     
     def _c_disconnect_device(self)->None:
         """Disconnect the sciospec device"""
-        self.io_interface.disconnectSciospecDevice()
+        self.io_interface.disconnect_sciospec_device()
         self.up_events.post(UpdateEvents.device_status,self, self.io_interface)
 
     def _c_get_device_setup(self)->None:
@@ -486,11 +486,16 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             error
         )
 
-    def _c_load_meas_dataset(self)->None: 
-        # the call back has to be witouh arguments!!!
+    def _c_load_meas_dataset(self)->None:
+        """the callback has to be witouh arguments! """
         self._load_meas_dataset()
     
     def _load_meas_dataset(self, dir_path:str=None)->None:
+        """[summary]
+
+        Args:
+            dir_path (str, optional): [description]. Defaults to None.
+        """        
         if self.live_capture.is_set():
             self._c_live_capture_stop()
             show_msgBox(
@@ -514,6 +519,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.compute_frame(idx_frame=0)
 
     def _c_loadRef4TD(self)->None:
+        """[summary]
+        """        
         path, cancel= openFileNameDialog(
             self,path=APP_DIRS.get(AppDirs.meas_set))
         if cancel: # Cancelled
@@ -521,6 +528,11 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self._c_UpdateRef4TD(path=path)    
         
     def _c_UpdateRef4TD(self, path=None)->None:
+        """[summary]
+
+        Args:
+            path ([type], optional): [description]. Defaults to None.
+        """        
         if self.live_meas_status.is_set()==True:
             # Frame to use is ._last_frame[0] is the last updated...
             self.meas_dataset.set_frame_TD_ref() 
@@ -529,7 +541,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                 self.cB_current_idx_frame.currentIndex(), path= path)
    
     def _c_autosave(self)->None:
-        self.io_interface.setAutosave(
+        """update selected autosave mode """        
+        self.io_interface.set_autosave(
             self.chB_dataset_autoset.isChecked(),
             self.chB_dataset_save_img.isChecked())
         self.up_events.post(UpdateEvents.autosave_changed,self)
@@ -547,7 +560,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.computing.set_reconstruction(
             rec[self.tabW_reconstruction.currentIndex()])
 
-        self.io_interface.putQueueOut(('random', 0, RecCMDs.initialize))
+        self.io_interface.put_queue_out(('random', 0, RecCMDs.initialize))
         
     def _c_set_eit_model_data(self)->None:
         
@@ -607,6 +620,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
     ############################################################################
     #### Interaction with Microcam
+    ############################################################################
 
     def _c_live_capture_start(self, look_memory_flag:bool=False)->None:
         if self.live_meas_status.is_set():
@@ -650,7 +664,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
     def _c_set_capture_device(self)->None:
         self._c_set_capture_device2()
-        # self._c_set_capture_device2()
+
     def _c_set_capture_device2(self)->None:
         if self.live_meas_status.is_set():
             show_msgBox(
@@ -725,7 +739,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             idx_frame,
             RecCMDs.reconstruct
         )
-        self.io_interface.putQueueOut(data_for_queue)
+        self.io_interface.put_queue_out(data_for_queue)
 
     def get_picture(self, idx_frame:int)->None:
         if not self.replay_status.is_set(): # only in replay mode
@@ -775,7 +789,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         return self.meas_dataset.get_frame_cnt()
 
     def _test_compute(self)->None:
-        self.io_interface.putQueueOut(('random', 0, RecCMDs.reconstruct))
+        self.io_interface.put_queue_out(('random', 0, RecCMDs.reconstruct))
 
     def _update_canvas(self, data)->None:
         """"""
