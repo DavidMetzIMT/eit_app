@@ -34,7 +34,7 @@ from eit_app.eit.rec_pyeit import ReconstructionPyEIT
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.io.sciospec.device import IOInterfaceSciospec
 from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
-from eit_app.io.video.microcamera import (IMG_SIZES, EXT_IMG, MicroCam,
+from eit_app.io.video.microcamera import (IMG_SIZES, EXT_IMG, MicroUSBCamera,
                                           VideoCaptureModule)
 from eit_app.threads_process.threads_worker import CustomWorker
 from glob_utils.flags.flag import CustomFlag, CustomTimer
@@ -150,7 +150,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         # setting of the camera
         self.captured_imgs= Queue(maxsize=256)
         self.capture_module=VideoCaptureModule(
-            MicroCam(),
+            MicroUSBCamera(),
             self.io_interface.get_queue_video_module(),
             self.captured_imgs
         )
@@ -659,17 +659,14 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         path=os.path.join(
                 APP_DIRS.get(AppDirs.snapshot),f'Snapshot_{get_datetime_s()}'
         )
-        self.capture_module.save_image_now(path=path)
+        self.capture_module.snapshot(path=path)
     
     def _c_refresh_capture_devices(self)->None:
         capture_devices= self.capture_module.get_devices_available()
-        dev_names=list(capture_devices.keys())
-        set_comboBox_items(self.cB_video_devices,dev_names)
+        
+        set_comboBox_items(self.cB_video_devices,capture_devices)
 
     def _c_set_capture_device(self)->None:
-        self._c_set_capture_device2()
-
-    def _c_set_capture_device2(self)->None:
         if self.live_meas_status.is_set():
             show_msgBox(
                 'First stop measurement',
@@ -782,8 +779,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     def kill_workers(self)->None:
         """ Kill alls the running threads workers """        
         [item.quit() for _, item in self.workers.items()]
-            
-
+        
     @property
     def meas_dataset(self)-> EitMeasurementSet:
         """Return the measurement dataset from the IO_interface()"""
@@ -819,9 +815,10 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             logger.error(f'Error _update_canvas: {e}')
     
     def display_image(self, image:QtGui.QImage)->None:
+        if not isinstance(image, QtGui.QImage):
+            logger.error(f'{image=} is not an QtGui.QImage')
+            return
         self.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
-
-
 
 if __name__ == "__main__":
     pass
