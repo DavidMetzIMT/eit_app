@@ -1,7 +1,7 @@
 
 
 import os
-from eit_ai.train_utils.gen import Generators
+from eit_ai.train_utils.workspace import Generators
 from eit_ai.train_utils.metadata import MetaData, reload_metadata
 
 from matplotlib import pyplot as plt

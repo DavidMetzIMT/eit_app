@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -1785,120 +1785,184 @@ p, li { white-space: pre-wrap; }
        <string>Set reconstruction</string>
       </property>
      </widget>
+     <widget class="QLabel" name="lab_log_level">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>640</y>
+        <width>64</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>log level</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="cB_log_level">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>640</y>
+        <width>130</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="statusTip">
+       <string>Available serial port list</string>
+      </property>
+     </widget>
     </widget>
    </widget>
-   <widget class="QTabWidget" name="tabW_display">
+   <widget class="QGroupBox" name="groupBox_7">
+    <property name="geometry">
+     <rect>
+      <x>1240</x>
+      <y>20</y>
+      <width>660</width>
+      <height>511</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Video</string>
+    </property>
+    <widget class="QLabel" name="video_frame">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>640</width>
+       <height>480</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="mouseTracking">
+      <bool>true</bool>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="text">
+      <string>Live Video</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="video_frame_miniature">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>60</y>
+      <width>201</width>
+      <height>100</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>false</bool>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="text">
+     <string>Live Video</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pB_somahey">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>130</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
       <x>450</x>
       <y>10</y>
+      <width>781</width>
+      <height>510</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Reconstruction</string>
+    </property>
+    <widget class="QCheckBox" name="chB_plot_image_rec">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>50</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Image</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="verticalLayoutWidget_3">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>10</y>
+       <width>680</width>
+       <height>491</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="layout_rec">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetFixedSize</enum>
+      </property>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QTabWidget" name="tabW_rec">
+    <property name="geometry">
+     <rect>
+      <x>450</x>
+      <y>530</y>
       <width>1471</width>
-      <height>1021</height>
+      <height>501</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_meas_voltages">
      <attribute name="title">
       <string>Measured voltages</string>
      </attribute>
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>781</width>
-        <height>510</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Reconstruction</string>
-      </property>
-      <widget class="QCheckBox" name="chB_plot_image_rec">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>20</y>
-         <width>50</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Image</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="verticalLayoutWidget_3">
-       <property name="geometry">
-        <rect>
-         <x>90</x>
-         <y>10</y>
-         <width>680</width>
-         <height>491</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="layout_rec">
-        <property name="sizeConstraint">
-         <enum>QLayout::SetFixedSize</enum>
-        </property>
-       </layout>
-      </widget>
-     </widget>
-     <widget class="QGroupBox" name="groupBox_7">
-      <property name="geometry">
-       <rect>
-        <x>800</x>
-        <y>10</y>
-        <width>660</width>
-        <height>511</height>
-       </rect>
-      </property>
-      <property name="title">
-       <string>Video</string>
-      </property>
-      <widget class="QLabel" name="video_frame">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>20</y>
-         <width>640</width>
-         <height>480</height>
-        </rect>
-       </property>
-       <property name="cursor">
-        <cursorShape>CrossCursor</cursorShape>
-       </property>
-       <property name="mouseTracking">
-        <bool>true</bool>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
-       <property name="text">
-        <string>Live Video</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </widget>
      <widget class="QGroupBox" name="groupBox_8">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>530</y>
+        <x>0</x>
+        <y>10</y>
         <width>1450</width>
         <height>460</height>
        </rect>
@@ -1912,7 +1976,7 @@ p, li { white-space: pre-wrap; }
          <x>90</x>
          <y>10</y>
          <width>1350</width>
-         <height>430</height>
+         <height>441</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="layout_graphs"/>
@@ -1987,14 +2051,14 @@ p, li { white-space: pre-wrap; }
      <widget class="QTabWidget" name="tabW_values">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>10</x>
         <y>10</y>
         <width>661</width>
-        <height>591</height>
+        <height>461</height>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_Z">
        <attribute name="title">
@@ -2006,7 +2070,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>10</y>
           <width>651</width>
-          <height>551</height>
+          <height>421</height>
          </rect>
         </property>
         <column>
@@ -2031,7 +2095,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>10</y>
           <width>651</width>
-          <height>551</height>
+          <height>421</height>
          </rect>
         </property>
         <column>
@@ -2056,7 +2120,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>10</y>
           <width>651</width>
-          <height>551</height>
+          <height>421</height>
          </rect>
         </property>
         <column>
@@ -2083,75 +2147,6 @@ p, li { white-space: pre-wrap; }
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_video_2">
-     <attribute name="title">
-      <string>video</string>
-     </attribute>
-     <widget class="QLabel" name="video_frame_miniature">
-      <property name="geometry">
-       <rect>
-        <x>280</x>
-        <y>50</y>
-        <width>201</width>
-        <height>100</height>
-       </rect>
-      </property>
-      <property name="mouseTracking">
-       <bool>false</bool>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Live Video</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_somahey">
-      <property name="geometry">
-       <rect>
-        <x>50</x>
-        <y>270</y>
-        <width>75</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>PushButton</string>
-      </property>
-     </widget>
-    </widget>
-   </widget>
-   <widget class="QComboBox" name="cB_log_level">
-    <property name="geometry">
-     <rect>
-      <x>800</x>
-      <y>0</y>
-      <width>130</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string/>
-    </property>
-    <property name="statusTip">
-     <string>Available serial port list</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lab_log_level">
-    <property name="geometry">
-     <rect>
-      <x>730</x>
-      <y>0</y>
-      <width>64</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>log level</string>
-    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
