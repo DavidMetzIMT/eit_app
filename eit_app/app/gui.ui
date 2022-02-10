@@ -1231,7 +1231,7 @@ p, li { white-space: pre-wrap; }
        <rect>
         <x>20</x>
         <y>660</y>
-        <width>181</width>
+        <width>231</width>
         <height>23</height>
        </rect>
       </property>
@@ -1242,7 +1242,7 @@ p, li { white-space: pre-wrap; }
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>Export meas vs </string>
+       <string>Export measurements vs EIDORS to CSV</string>
       </property>
      </widget>
     </widget>

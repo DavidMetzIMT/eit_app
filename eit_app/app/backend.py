@@ -572,17 +572,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         """ export the actual raw data in csv from"""
         frame, freq= self.slider_replay.sliderPosition(), self.cB_freq_meas_0.currentIndex()
         data= {
-            'measurement':np.real(self.meas_dataset.get_voltages(frame, freq)[:,0:16]).flatten(),
-            'eidors': self.eidors_sol.flatten()
+            'measurement':np.real(self.meas_dataset.get_voltages(frame, freq)[:,0:16]),
+            'eidors': self.eidors_sol
         }
-
-        # print(np.real(self.meas_dataset.get_voltages(frame, freq)).reshape((1,-1)))
-        # print(self.eidors_sol.reshape((1,-1)))
-
-        save_as_csv(
-            file_path=os.path.join(self.meas_dataset.output_dir, f'eidorsvsmeas#{frame}_freq{freq}'),
-            data=data
-        )
+        file_path=os.path.join(
+            self.meas_dataset.output_dir, f'eidorsvsmeas#{frame}_freq{freq}')
+        save_as_csv(file_path, data)
+        logger.debug(f'Measurements VS Eidors exported as CSV in : {file_path}')
         
 
     ############################################################################
@@ -674,15 +670,14 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     def _c_export_meas_csv(self)-> None:
         """Export the actual measurments frames in csv"""
         idx_freq=  self.cB_freq_meas_0.currentIndex()
-
         n=self.meas_dataset.get_frame_cnt()
         data= { 
             f'frame{i}':np.real(
-                self.meas_dataset.get_voltages(i, idx_freq)[:,0:16]).flatten() for i in range(n) }
+                self.meas_dataset.get_voltages(i, idx_freq)[:,0:16]) for i in range(n) }
         freq= self.meas_dataset.get_freq_val(idx_freq)
-        # print(np.real(self.meas_dataset.get_voltages(frame, freq)).reshape((1,-1)))
-        # print(self.eidors_sol.reshape((1,-1)))
-        file_path=os.path.join(self.meas_dataset.output_dir, f'Meas#1-{n}_freq{freq}Hz')
+
+        file_path=os.path.join(
+            self.meas_dataset.output_dir, f'Meas#1-{n}_freq{freq}Hz')
         save_as_csv(file_path,data)
         logger.debug(f'Measurements exported as CSV in : {file_path}')
         
