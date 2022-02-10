@@ -119,15 +119,15 @@ class EitMeasurementSet(object):
     def extract_data(self,rx_frame):
         """extract the single data out of the rx_frame, convert them if applicable
         return them as a dict"""
-        data={}
         rx_data= rx_frame[OPTION_BYTE_INDX:-1]
-        data['ch_group']= rx_data[0]
         excitation=rx_data[1:3]
-        data['exc_indx']= self._find_excitation_indx(excitation)
-        data['freq_indx']= convertBytes2Int(rx_data[3:5])
-        data['time_stamp']= convertBytes2Int(rx_data[5:9]) 
-        data['voltages'] = self.convert_meas_data(rx_data[9:])
-        return data
+        return {
+            'ch_group': rx_data[0],
+            'exc_indx': self._find_excitation_indx(excitation),
+            'freq_indx': convertBytes2Int(rx_data[3:5]),
+            'time_stamp':convertBytes2Int(rx_data[5:9]),
+            'voltages':self.convert_meas_data(rx_data[9:])
+        }
     
     def convert_meas_data(self, meas_data):
         """return float voltages values () corresponding to meas data (bytes single float) """
@@ -215,6 +215,7 @@ class EitMeasurementSet(object):
 
     def latch_rx_frame_to_meas(self, idx_rx_frame:int=0, idx_meas_frame:int=0):
 
+
         self.meas_frame[idx_meas_frame]=self.rx_meas_frame[idx_rx_frame]
         if self.autosave.is_set():
             self.meas_frame[idx_meas_frame].frame_path= os.path.join(self.output_dir, f'Frame{self.frame_cnt:02}.pkl')
@@ -259,7 +260,7 @@ class EitMeasurementSet(object):
         except IndexError:
             print(f'try to access index {idx_frame} in meas_frame {self.meas_frame},{len(self.meas_frame)}')
             return self.meas_frame[0].get_voltages(idx_freq)
-           
+
     def get_freqs_list(self):
         return self.freqs_list
 
@@ -285,11 +286,13 @@ class EitMeasurementSet(object):
         return self.meas_frame[idx].frame_path
     
     def get_frame_cnt(self):
+        self.frame_cnt = len(self.meas_frame)
         return self.frame_cnt
     
+    def set_voltages(self, U:np.ndarray, idx_frame:int=0, idx_freq:int=0)->None:
+        self.meas_frame[idx_frame].set_voltages(U, idx_freq)
+
     
-
-
 class EITFrame(object):
     """ Class Frame: regroup the voltages values for all frequencies at timestamps
     for all excitation and for one frequency
@@ -299,14 +302,14 @@ class EITFrame(object):
     e.g. Meas[2] the measured voltages on each channel (VS a commmon GROUND) for the frequency_nb 2
             for the frequency = frequency_val"""
     def __init__(self, dev_setup:SciospecSetup):
-        self.time_stamp=0 
+        self.time_stamp=0
         self.idx= 0
         self.freqs_list= dev_setup.make_freqs_list()
         self.freq_steps= dev_setup.get_freq_steps()
         self.meas_frame_nb=len(dev_setup.get_exc_pattern())*2 # for x excitation x*2 meas are send
         self.meas_frame_cnt=0 # cnt
         self.filling:int=0 # pourcentage of filling
-        self.meas=[EITMeas(dev_setup) for i in range(self.freq_steps)] # Meas[Frequency_indx]
+        self.meas = [EITMeas(dev_setup) for _ in range(self.freq_steps)]
         self.info_text=''
         self.frame_path=''
     
@@ -360,6 +363,9 @@ class EITFrame(object):
            
     def get_idx(self)-> int:
         return self.idx
+        
+    def set_voltages(self, U:np.ndarray, idx_freq:int=0)->None:
+        self.meas[idx_freq].set_voltages(U)
 
 class EITMeas(object):
     """ Class measurement: regroup the voltage values of all channels of the EIT device
@@ -395,6 +401,9 @@ class EITMeas(object):
         """Return the measured voltage"""
         return self.voltage_Z#np.array(self.voltage_Z)
 
+    def set_voltages(self, U:np.ndarray)->None:
+        self.voltage_Z[0:16,0:16] = U
+        print(f'{self.voltage_Z}')
 
 
 if __name__ == '__main__':

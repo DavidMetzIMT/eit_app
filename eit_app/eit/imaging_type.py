@@ -27,6 +27,7 @@ DATA_TRANSFORMATIONS={
 
 def make_voltage_vector(eit_model:EITModelClass,transform_funcs, voltages:np.ndarray):
     tmp= make_voltage_from_meas_pattern(eit_model, voltages)
+    print(f'{tmp=}')
     return transform_data(tmp, transform_funcs)
 
 def transform_data(x:np.ndarray, transform_funcs=[])-> np.ndarray:
@@ -41,6 +42,7 @@ def transform_data(x:np.ndarray, transform_funcs=[])-> np.ndarray:
 
 def make_voltage_from_meas_pattern(eit_model:EITModelClass, voltages:np.ndarray)->np.ndarray:
     meas_voltage=voltages[:,:eit_model.n_el] # get only the voltages of used electrode (0-n_el)
+    print(f'{eit_model.meas_pattern=}')
     return eit_model.meas_pattern.dot(meas_voltage.T).flatten() #get the volgate corresponding to the meas_pattern and flatten
 
 
@@ -108,7 +110,9 @@ class AbsoluteImaging(Imaging):
             return np.array([])
 
         voltages=dataset.get_voltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
+        print(f'{voltages=}')
         v=make_voltage_vector(eit_model, self.transform_funcs, voltages)
+        print(f'{v=}') 
         return np.hstack((v, v))
     
     def make_labels(self, metadata):

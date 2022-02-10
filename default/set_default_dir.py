@@ -18,6 +18,7 @@ class AppDirs(Enum):
     meas_set='Measurement Sets'
     snapshot='Snapshot'
     export='Export'
+    
 
 def set_ai_default_dir(reset:bool= False):
     local_dir= pathlib.Path(__file__).parent.resolve()

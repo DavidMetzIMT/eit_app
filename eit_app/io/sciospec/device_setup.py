@@ -250,11 +250,13 @@ class SciospecSetup(object):
         if for_ser:
             data= value[DATA_START_INDX:-1]
             scale={OP_LINEAR.tag:OP_LINEAR.name, OP_LOG.tag:OP_LOG.name}
-            freq_max_enable, error=self.freq_config.set_data(   
-                freq_min=convert4Bytes2Float(data[0:4]),
+            freq_max_enable, error = self.freq_config.set_data(
+                freq_min=convert4Bytes2Float(data[:4]),
                 freq_max=convert4Bytes2Float(data[4:8]),
                 freq_steps=convertBytes2Int(data[8:10]),
-                freq_scale=scale[data[10]])
+                freq_scale=scale[data[10]],
+            )
+
         else:
             freq_max_enable, error=self.freq_config.set_data(**kwargs)
 
@@ -279,9 +281,7 @@ class SciospecSetup(object):
         - from a List for simple set """
         if for_ser:
             data= value[DATA_START_INDX:-1]
-            self.exc_pattern=[]
-            for i in range(len(data)//2):
-                self.exc_pattern.append(data[i*2:(i+1)*2])
+            self.exc_pattern = [data[i*2:(i+1)*2] for i in range(len(data)//2)]
         else:
             self.exc_pattern=value
 

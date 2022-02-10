@@ -34,12 +34,13 @@ from eit_app.eit.rec_pyeit import ReconstructionPyEIT
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.io.sciospec.device import IOInterfaceSciospec
 from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
-from eit_app.io.video.microcamera import (IMG_SIZES, EXT_IMG, MicroUSBCamera,
+from eit_app.io.video.microcamera import (EXT_IMG, IMG_SIZES, MicroUSBCamera,
                                           VideoCaptureModule)
 from eit_app.threads_process.threads_worker import CustomWorker
 from glob_utils.flags.flag import CustomFlag, CustomTimer
 from glob_utils.log.log import change_level_logging, main_log
 from glob_utils.pth.path_utils import get_datetime_s, mk_new_dir
+from glob_utils.files.files import save_as_csv
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import \
@@ -47,6 +48,8 @@ from matplotlib.backends.backend_qt5agg import \
 from matplotlib.pyplot import figure
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication
+
+import eit_ai.raw_data.load_eidors as matlab
 
 # Ensure using PyQt5 backend
 matplotlib.use('QT5Agg')
@@ -78,17 +81,17 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self._post_init()
         self._initilizated.set()
     
-    def _post_init(self)->None:
+    def _post_init(self) -> None:
         set_ai_default_dir()
         _translate = QtCore.QCoreApplication.translate
         # Set app title
         self.setWindowTitle(
             _translate(
-                "MainWindow",
-                "EIT aquisition for Sciospec device "+ __version__
+                "MainWindow", f'EIT aquisition for Sciospec device {__version__}'
             )
         )
-        
+
+
         self.figure_graphs = figure()
         self.canvas_graphs = FigureCanvas(self.figure_graphs)
         self.toolbar_graphs = NavigationToolbar(self.canvas_graphs, self)
@@ -121,7 +124,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             UpdateEvents.live_meas_status, self, self.live_meas_status)
         self.up_events.post(
             UpdateEvents.replay_status, self, self.replay_status)
-    
+
         self._init_multithreading_workers()
         
     def _init_main_objects(self)->None:
@@ -219,6 +222,11 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.pB_replay_stop.clicked.connect(self._c_replay_stop)
         self.sB_replay_time.valueChanged.connect(self._c_replay_time_changed)
         self.slider_replay.valueChanged.connect(self._c_replay_slider_changed)
+        self.pB_export_meas_csv.clicked.connect(self._c_export_meas_csv)
+
+        self.pB_load_eidors_fwd_solution.clicked.connect(self._c_load_eidors_fwd_solution)
+        self.sB_eidors_factor.valueChanged.connect(self._c_eidors_reload)
+        self.pB_export_data_meas_vs_eidors.clicked.connect(self._c_export_data_meas_vs_eidors)
 
         #EIT reconstruction
         self.pB_set_reconstruction.clicked.connect(self._c_init_rec)
@@ -342,6 +350,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                     dataset.get_idx_frame(idx_frame),
                     dataset.get_frame_info(idx_frame)
                 )
+            print(data['U'])
             self._update_canvas(data)
         except AttributeError as e:
             logger.error(f'new computed data not displayed : source ({e})')
@@ -537,6 +546,44 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.eit_model.set_solver(self.cB_solver.currentText())
         self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
 
+    def _c_load_eidors_fwd_solution(self)->None: # for Jiawei master thesis
+        """load eidors foward solution(voltages) out of an mat-file"""
+       
+        sol = matlab.load_mat_var(initialdir=os.getcwd(),  var_name="X")
+        U, _ = sol[0]
+        volt= np.array(U).reshape((16,16))
+
+        self.eidors_sol= volt
+        volt=volt*self.sB_eidors_factor.value()
+        self.meas_dataset.set_voltages(volt,0,0)
+        self.meas_dataset.set_frame_TD_ref(0)
+        self._c_replay_slider_changed()
+        # print(f"{self.meas_dataset.get_voltages(0,0)}")
+
+    def _c_eidors_reload(self)->None: # for Jiawei master thesis
+        """replot the data witha different scaling factor"""
+        volt= self.eidors_sol
+        volt=volt*self.sB_eidors_factor.value()
+        self.meas_dataset.set_voltages(volt,0,0)
+        self.meas_dataset.set_frame_TD_ref(0)
+        self._c_replay_slider_changed()
+
+    def _c_export_data_meas_vs_eidors(self)-> None:
+        """ export the actual raw data in csv from"""
+        frame, freq= self.slider_replay.sliderPosition(), self.cB_freq_meas_0.currentIndex()
+        data= {
+            'measurement':np.real(self.meas_dataset.get_voltages(frame, freq)[:,0:16]).flatten(),
+            'eidors': self.eidors_sol.flatten()
+        }
+
+        # print(np.real(self.meas_dataset.get_voltages(frame, freq)).reshape((1,-1)))
+        # print(self.eidors_sol.reshape((1,-1)))
+
+        save_as_csv(
+            file_path=os.path.join(self.meas_dataset.output_dir, f'eidorsvsmeas#{frame}_freq{freq}'),
+            data=data
+        )
+        
 
     ############################################################################
     #### Replay of Measurements
@@ -623,6 +670,22 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             )
             return
         self.compute_frame(idx_frame)
+    
+    def _c_export_meas_csv(self)-> None:
+        """Export the actual measurments frames in csv"""
+        idx_freq=  self.cB_freq_meas_0.currentIndex()
+
+        n=self.meas_dataset.get_frame_cnt()
+        data= { 
+            f'frame{i}':np.real(
+                self.meas_dataset.get_voltages(i, idx_freq)[:,0:16]).flatten() for i in range(n) }
+        freq= self.meas_dataset.get_freq_val(idx_freq)
+        # print(np.real(self.meas_dataset.get_voltages(frame, freq)).reshape((1,-1)))
+        # print(self.eidors_sol.reshape((1,-1)))
+        file_path=os.path.join(self.meas_dataset.output_dir, f'Meas#1-{n}_freq{freq}Hz')
+        save_as_csv(file_path,data)
+        logger.debug(f'Measurements exported as CSV in : {file_path}')
+        
 
     ############################################################################
     #### Interaction with Microcam
@@ -821,5 +884,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
 
 if __name__ == "__main__":
-    pass
+    """"""
+
 

@@ -337,6 +337,7 @@ class IOInterfaceSciospec(object):
         if rx_frame==[HARDWARE_NOT_DETECTED]:
             self.disconnect_sciospec_device(stop_meas=False)
             return
+            
         rx_frame=self._verify_len_of_rx_frame(rx_frame)
 
         if self._is_ack(rx_frame):          

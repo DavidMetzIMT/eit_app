@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -222,7 +222,7 @@
          <x>10</x>
          <y>60</y>
          <width>241</width>
-         <height>421</height>
+         <height>411</height>
         </rect>
        </property>
        <layout class="QFormLayout" name="LayoutParameters">
@@ -528,7 +528,7 @@
         <rect>
          <x>260</x>
          <y>60</y>
-         <width>131</width>
+         <width>134</width>
          <height>421</height>
         </rect>
        </property>
@@ -614,7 +614,7 @@
         <x>20</x>
         <y>20</y>
         <width>391</width>
-        <height>19</height>
+        <height>27</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
@@ -659,7 +659,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>340</y>
+        <y>360</y>
         <width>401</width>
         <height>270</height>
        </rect>
@@ -876,7 +876,7 @@
         <x>10</x>
         <y>130</y>
         <width>401</width>
-        <height>190</height>
+        <height>221</height>
        </rect>
       </property>
       <property name="title">
@@ -1156,6 +1156,94 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;dirpath&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
+      <widget class="QPushButton" name="pB_export_meas_csv">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>190</y>
+         <width>181</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Load measurements from a selected directory</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Export measurements to CSV</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="pB_load_eidors_fwd_solution">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>630</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="statusTip">
+       <string>Load measurements from a selected directory</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Load EIDORS fwd solution</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="sB_eidors_factor">
+      <property name="geometry">
+       <rect>
+        <x>270</x>
+        <y>630</y>
+        <width>91</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="decimals">
+       <number>3</number>
+      </property>
+      <property name="minimum">
+       <double>-1000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>1000000.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pB_export_data_meas_vs_eidors">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>660</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="statusTip">
+       <string>Load measurements from a selected directory</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Export meas vs </string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_video">
@@ -1356,8 +1444,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>20</x>
           <y>70</y>
-          <width>167</width>
-          <height>80</height>
+          <width>238</width>
+          <height>95</height>
          </rect>
         </property>
         <layout class="QFormLayout" name="formLayout">
@@ -1574,8 +1662,8 @@ p, li { white-space: pre-wrap; }
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>381</width>
-         <height>61</height>
+         <width>387</width>
+         <height>81</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -1681,7 +1769,7 @@ p, li { white-space: pre-wrap; }
          <x>10</x>
          <y>90</y>
          <width>260</width>
-         <height>51</height>
+         <height>60</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
