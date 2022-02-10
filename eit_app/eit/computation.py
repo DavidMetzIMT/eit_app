@@ -5,13 +5,13 @@ from typing import List
 from logging import getLogger
 import numpy as np
 from eit_app.eit.imaging_type import Imaging
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.plots import CustomPlots, PlotType
 from eit_app.eit.rec_abs import Reconstruction
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.threads_process.threads_worker import Poller
-from eit_app.utils.flag import CustomFlag
-from eit_app.utils.utils_path import get_date_time
+from glob_utils.flags.flag import CustomFlag
+from glob_utils.pth.path_utils import get_datetime_s
 
 
 class Data4GUI():
@@ -59,16 +59,26 @@ class ComputeMeas():
         logger.info(f'Recocntructions selected: {self.rec}')
 
     def get_last_rx_frame(self):
+
+        if self.queue_in.empty():
+            return
+            
         try:
-            data = self.queue_in.get(block=True)
+            # loosing some informations
+            while not self.queue_in.empty():
+                data = self.queue_in.get(block=True)
+
             dataset, idx_frame, cmd = data
             
             self.U, self.labels = self.preprocess(dataset, idx_frame)
-            if self.plots_to_show[0].is_visible:
-                    rec_result= self.rec.run(cmd, self.eit_model, self.U)
-                    if rec_result is not None:
-                        self.eit_model, self.U= rec_result
-                        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - reconstructed (time {get_date_time()})')
+            if self.plots_to_show[0].visible:
+                    self.eit_model, self.U= self.rec.run(cmd, self.eit_model, self.U)
+                    # if rec_result is not None:
+                        # self.eit_model, self.U= rec_result
+                    if dataset == 'random':
+                        logger.info(f'Dummy data - reconstructed (time {get_datetime_s()})')
+                    else:
+                        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - reconstructed (time {get_datetime_s()})')
             data_4_gui = { 
                 'dataset': dataset,
                 'idx_frame':idx_frame,
@@ -80,23 +90,24 @@ class ComputeMeas():
         except BaseException as error:
             logger.error(f'{error}\n {traceback.format_exc()}')
 
-    def preprocess(self,dataset:EitMeasurementDataset, idx_frame:int):
+    def preprocess(self,dataset:EitMeasurementSet, idx_frame:int):
 
         if not self.imaging_type or not self.eit_model or dataset == 'random':
-            lab= {  'title': 'random',
-                    'legend': ['random', 'random'],
-                    'xylabel': ['random', 'random']
-            }
+            lab= {  
+                'title': 'random',
+                'legend': ['random', 'random'],
+                'xylabel': ['random', 'random']}
             logger.debug('Random data - preproccessed')
-            return  np.random.rand(256,2), {    PlotType.Image_2D: lab,
-                                                PlotType.U_plot: lab,
-                                                PlotType.Diff_plot: lab
-                                            }
+            return  np.random.rand(256,2),\
+                    { 
+                        PlotType.Image_2D: lab,
+                        PlotType.U_plot: lab,
+                        PlotType.Diff_plot: lab}
 
         U, labels= self.imaging_type.process_data(
                         dataset=dataset,
                         eit_model=self.eit_model,
                         idx_frame=idx_frame,
                         extract_voltages=self.extract_voltages)
-        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - preproccessed (time {get_date_time()})')
+        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - preproccessed (time {get_datetime_s()})')
         return U, labels

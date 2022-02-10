@@ -47,7 +47,7 @@
 # from eit_app.io.sciospec.com_constants import *
 # #from eit_app.io.sciospec.device import SciospecDevice
 # from eit_app.threads_process.threads_worker import HardwarePoller, Worker
-# from eit_app.utils.log import main_log
+# from glob_utils.log.log import main_log
 
 # from abc import ABC, abstractmethod
 

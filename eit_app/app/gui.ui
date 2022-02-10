@@ -23,8 +23,8 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset>
-    <normaloff>icons/EIT.png</normaloff>icons/EIT.png</iconset>
+   <iconset resource="../resource.qrc">
+    <normaloff>:/newPrefix/icons/EIT.png</normaloff>:/newPrefix/icons/EIT.png</iconset>
   </property>
   <property name="iconSize">
    <size>
@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -222,7 +222,7 @@
          <x>10</x>
          <y>60</y>
          <width>241</width>
-         <height>421</height>
+         <height>411</height>
         </rect>
        </property>
        <layout class="QFormLayout" name="LayoutParameters">
@@ -528,7 +528,7 @@
         <rect>
          <x>260</x>
          <y>60</y>
-         <width>131</width>
+         <width>134</width>
          <height>421</height>
         </rect>
        </property>
@@ -614,7 +614,7 @@
         <x>20</x>
         <y>20</y>
         <width>391</width>
-        <height>19</height>
+        <height>27</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
@@ -659,7 +659,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>340</y>
+        <y>360</y>
         <width>401</width>
         <height>270</height>
        </rect>
@@ -876,7 +876,7 @@
         <x>10</x>
         <y>130</y>
         <width>401</width>
-        <height>190</height>
+        <height>221</height>
        </rect>
       </property>
       <property name="title">
@@ -920,8 +920,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icon_end.png</normaloff>icon_end.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_end.png</normaloff>:/newPrefix/icons/icon_end.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -949,8 +949,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_play.png</normaloff>icons/icon_play.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_play.png</normaloff>:/newPrefix/icons/icon_play.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -978,8 +978,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_begin.png</normaloff>icons/icon_begin.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_begin.png</normaloff>:/newPrefix/icons/icon_begin.png</iconset>
        </property>
        <property name="checkable">
         <bool>false</bool>
@@ -1041,8 +1041,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_pause.png</normaloff>icons/icon_pause.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_pause.png</normaloff>:/newPrefix/icons/icon_pause.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -1073,8 +1073,8 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>icons/icon_stop.png</normaloff>icons/icon_stop.png</iconset>
+        <iconset resource="../resource.qrc">
+         <normaloff>:/newPrefix/icons/icon_stop.png</normaloff>:/newPrefix/icons/icon_stop.png</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -1156,6 +1156,94 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;dirpath&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
+      <widget class="QPushButton" name="pB_export_meas_csv">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>190</y>
+         <width>181</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="statusTip">
+        <string>Load measurements from a selected directory</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Export measurements to CSV</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="pB_load_eidors_fwd_solution">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>630</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="statusTip">
+       <string>Load measurements from a selected directory</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Load EIDORS fwd solution</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="sB_eidors_factor">
+      <property name="geometry">
+       <rect>
+        <x>270</x>
+        <y>630</y>
+        <width>91</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+      <property name="suffix">
+       <string/>
+      </property>
+      <property name="decimals">
+       <number>3</number>
+      </property>
+      <property name="minimum">
+       <double>-1000000.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>1000000.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.100000000000000</double>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pB_export_data_meas_vs_eidors">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>660</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="statusTip">
+       <string>Load measurements from a selected directory</string>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Export meas vs </string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_video">
@@ -1312,139 +1400,11 @@ p, li { white-space: pre-wrap; }
      <attribute name="title">
       <string>EIT:_model</string>
      </attribute>
-     <widget class="QDoubleSpinBox" name="scalePlot_vmax">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>50</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmax">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>50</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>vmax</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_vmin">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>80</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>vmin</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="scalePlot_vmin">
-      <property name="geometry">
-       <rect>
-        <x>290</x>
-        <y>80</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>-1000000000000000.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>1000000000000000.000000000000000</double>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="normalize">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>30</y>
-        <width>127</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Normalize</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="cB_verbose">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>430</y>
-        <width>70</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>verbose</string>
-      </property>
-     </widget>
-     <widget class="QDoubleSpinBox" name="eit_FEMRefinement">
-      <property name="geometry">
-       <rect>
-        <x>120</x>
-        <y>60</y>
-        <width>90</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="decimals">
-       <number>4</number>
-      </property>
-      <property name="minimum">
-       <double>0.000000000000000</double>
-      </property>
-      <property name="maximum">
-       <double>10.000000000000000</double>
-      </property>
-      <property name="singleStep">
-       <double>0.001000000000000</double>
-      </property>
-      <property name="value">
-       <double>0.100000000000000</double>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_FEMRefinement">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>60</y>
-        <width>91</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>FEM Refinement</string>
-      </property>
-     </widget>
      <widget class="QTabWidget" name="tabW_reconstruction">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>580</y>
+        <x>10</x>
+        <y>290</y>
         <width>411</width>
         <height>271</height>
        </rect>
@@ -1484,8 +1444,8 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>20</x>
           <y>70</y>
-          <width>167</width>
-          <height>80</height>
+          <width>238</width>
+          <height>95</height>
          </rect>
         </property>
         <layout class="QFormLayout" name="formLayout">
@@ -1560,6 +1520,95 @@ p, li { white-space: pre-wrap; }
          </item>
         </layout>
        </widget>
+       <widget class="QLabel" name="label_FEMRefinement">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>20</y>
+          <width>91</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>FEM Refinement</string>
+        </property>
+       </widget>
+       <widget class="QDoubleSpinBox" name="eit_FEMRefinement">
+        <property name="geometry">
+         <rect>
+          <x>290</x>
+          <y>20</y>
+          <width>90</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
+       <widget class="QCheckBox" name="normalize">
+        <property name="geometry">
+         <rect>
+          <x>230</x>
+          <y>50</y>
+          <width>127</width>
+          <height>17</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Normalize</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_FEMRefinement_2">
+        <property name="geometry">
+         <rect>
+          <x>200</x>
+          <y>90</y>
+          <width>91</width>
+          <height>23</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>BackGround</string>
+        </property>
+       </widget>
+       <widget class="QDoubleSpinBox" name="dSB_pyeit_bckgrnd">
+        <property name="geometry">
+         <rect>
+          <x>290</x>
+          <y>90</y>
+          <width>90</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="decimals">
+         <number>4</number>
+        </property>
+        <property name="minimum">
+         <double>0.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.001000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.100000000000000</double>
+        </property>
+       </widget>
       </widget>
       <widget class="QWidget" name="tab_nn">
        <attribute name="title">
@@ -1573,7 +1622,7 @@ p, li { white-space: pre-wrap; }
          <rect>
           <x>10</x>
           <y>20</y>
-          <width>251</width>
+          <width>390</width>
           <height>23</height>
          </rect>
         </property>
@@ -1587,7 +1636,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>150</y>
+        <y>10</y>
         <width>411</width>
         <height>261</height>
        </rect>
@@ -1613,8 +1662,8 @@ p, li { white-space: pre-wrap; }
         <rect>
          <x>10</x>
          <y>20</y>
-         <width>381</width>
-         <height>61</height>
+         <width>387</width>
+         <height>81</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout">
@@ -1720,7 +1769,7 @@ p, li { white-space: pre-wrap; }
          <x>10</x>
          <y>90</y>
          <width>260</width>
-         <height>51</height>
+         <height>60</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
@@ -1740,12 +1789,76 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </widget>
+      <widget class="QDoubleSpinBox" name="scalePlot_vmax">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>200</y>
+         <width>90</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="decimals">
+        <number>4</number>
+       </property>
+       <property name="minimum">
+        <double>-1000000000000000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>1000000000000000.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_vmax">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>200</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>vmax</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="scalePlot_vmin">
+       <property name="geometry">
+        <rect>
+         <x>100</x>
+         <y>230</y>
+         <width>90</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="decimals">
+        <number>4</number>
+       </property>
+       <property name="minimum">
+        <double>-1000000000000000.000000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>1000000000000000.000000000000000</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_vmin">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>230</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>vmin</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QPushButton" name="pB_set_reconstruction">
       <property name="geometry">
        <rect>
-        <x>279</x>
-        <y>570</y>
+        <x>290</x>
+        <y>280</y>
         <width>131</width>
         <height>23</height>
        </rect>
@@ -1760,124 +1873,262 @@ p, li { white-space: pre-wrap; }
        <string>Set reconstruction</string>
       </property>
      </widget>
+     <widget class="QLabel" name="lab_log_level">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>640</y>
+        <width>64</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>log level</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="cB_log_level">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>640</y>
+        <width>130</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="statusTip">
+       <string>Available serial port list</string>
+      </property>
+     </widget>
     </widget>
    </widget>
-   <widget class="QTabWidget" name="tabW_display">
+   <widget class="QGroupBox" name="groupBox_7">
     <property name="geometry">
      <rect>
-      <x>440</x>
+      <x>1240</x>
+      <y>20</y>
+      <width>660</width>
+      <height>511</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Video</string>
+    </property>
+    <widget class="QLabel" name="video_frame">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>640</width>
+       <height>480</height>
+      </rect>
+     </property>
+     <property name="cursor">
+      <cursorShape>CrossCursor</cursorShape>
+     </property>
+     <property name="mouseTracking">
+      <bool>true</bool>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="text">
+      <string>Live Video</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="video_frame_miniature">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>60</y>
+      <width>201</width>
+      <height>100</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>false</bool>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="text">
+     <string>Live Video</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pB_somahey">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>130</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_2">
+    <property name="geometry">
+     <rect>
+      <x>450</x>
       <y>10</y>
+      <width>781</width>
+      <height>510</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Reconstruction</string>
+    </property>
+    <widget class="QCheckBox" name="chB_plot_image_rec">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>20</y>
+       <width>50</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Image</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="verticalLayoutWidget_3">
+     <property name="geometry">
+      <rect>
+       <x>90</x>
+       <y>10</y>
+       <width>680</width>
+       <height>491</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="layout_rec">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetFixedSize</enum>
+      </property>
+     </layout>
+    </widget>
+   </widget>
+   <widget class="QTabWidget" name="tabW_rec">
+    <property name="geometry">
+     <rect>
+      <x>450</x>
+      <y>530</y>
       <width>1471</width>
-      <height>1021</height>
+      <height>501</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_meas_voltages">
      <attribute name="title">
       <string>Measured voltages</string>
      </attribute>
-     <widget class="QWidget" name="verticalLayoutWidget_2">
+     <widget class="QGroupBox" name="groupBox_8">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>250</y>
-        <width>821</width>
-        <height>740</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="PlotLayout"/>
-     </widget>
-     <widget class="QLabel" name="video_frame_miniature">
-      <property name="geometry">
-       <rect>
-        <x>610</x>
+        <x>0</x>
         <y>10</y>
-        <width>201</width>
-        <height>100</height>
-       </rect>
-      </property>
-      <property name="mouseTracking">
-       <bool>false</bool>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Live Video</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QGroupBox" name="groupBox_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>501</width>
-        <height>101</height>
+        <width>1450</width>
+        <height>460</height>
        </rect>
       </property>
       <property name="title">
-       <string>GroupBox</string>
+       <string>Graph</string>
       </property>
-      <widget class="QWidget" name="gridLayoutWidget_3">
+      <widget class="QWidget" name="verticalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>10</y>
+         <width>1350</width>
+         <height>441</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="layout_graphs"/>
+      </widget>
+      <widget class="QCheckBox" name="chB_y_log">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>20</y>
-         <width>391</width>
-         <height>65</height>
+         <y>130</y>
+         <width>48</width>
+         <height>17</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="1">
-         <widget class="QCheckBox" name="chB_Uplot">
-          <property name="text">
-           <string>Uplot</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <widget class="QCheckBox" name="chB_diff">
-          <property name="text">
-           <string>Difference</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QCheckBox" name="chB_y_log">
-          <property name="text">
-           <string>y log</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QCheckBox" name="chB_plot_graph">
-          <property name="text">
-           <string>Graph</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QCheckBox" name="chB_plot_image_rec">
-          <property name="text">
-           <string>Image</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <property name="text">
+        <string>y log</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_plot_graph">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>48</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Graph</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_diff">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>100</y>
+         <width>70</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Difference</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="chB_Uplot">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>190</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Uplot</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
       </widget>
      </widget>
     </widget>
@@ -1888,14 +2139,14 @@ p, li { white-space: pre-wrap; }
      <widget class="QTabWidget" name="tabW_values">
       <property name="geometry">
        <rect>
-        <x>0</x>
+        <x>10</x>
         <y>10</y>
         <width>661</width>
-        <height>591</height>
+        <height>461</height>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_Z">
        <attribute name="title">
@@ -1907,7 +2158,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>10</y>
           <width>651</width>
-          <height>551</height>
+          <height>421</height>
          </rect>
         </property>
         <column>
@@ -1932,7 +2183,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>10</y>
           <width>651</width>
-          <height>551</height>
+          <height>421</height>
          </rect>
         </property>
         <column>
@@ -1957,7 +2208,7 @@ p, li { white-space: pre-wrap; }
           <x>0</x>
           <y>10</y>
           <width>651</width>
-          <height>551</height>
+          <height>421</height>
          </rect>
         </property>
         <column>
@@ -1984,71 +2235,6 @@ p, li { white-space: pre-wrap; }
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="tab_video_2">
-     <attribute name="title">
-      <string>video</string>
-     </attribute>
-     <widget class="QLabel" name="video_frame">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>811</width>
-        <height>771</height>
-       </rect>
-      </property>
-      <property name="cursor">
-       <cursorShape>CrossCursor</cursorShape>
-      </property>
-      <property name="mouseTracking">
-       <bool>true</bool>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Plain</enum>
-      </property>
-      <property name="text">
-       <string>Live Video</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </widget>
-   </widget>
-   <widget class="QComboBox" name="cB_log_level">
-    <property name="geometry">
-     <rect>
-      <x>800</x>
-      <y>0</y>
-      <width>130</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string/>
-    </property>
-    <property name="statusTip">
-     <string>Available serial port list</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="lab_log_level">
-    <property name="geometry">
-     <rect>
-      <x>730</x>
-      <y>0</y>
-      <width>64</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>log level</string>
-    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -2063,6 +2249,8 @@ p, li { white-space: pre-wrap; }
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resource.qrc"/>
+ </resources>
  <connections/>
 </ui>

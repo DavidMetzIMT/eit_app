@@ -23,20 +23,23 @@ import os
 from logging import getLogger
 from queue import Queue
 from sys import argv
-from PyQt5.QtWidgets import QApplication
+from typing import Union
 
 import numpy as np
+from default.set_default_dir import APP_DIRS, AppDirs
 from eit_app.app.dialog_boxes import show_msgBox
-
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.device_setup import SciospecSetup
-from eit_app.io.sciospec.utils import convertBytes2Int,convert4Bytes2Float
+from eit_app.io.sciospec.utils import convert4Bytes2Float, convertBytes2Int
 from eit_app.io.video.microcamera import VideoCaptureModule
-from eit_app.utils.constants import EXT_PKL, MEAS_DIR
-from eit_app.utils.flag import CustomFlag
-from eit_app.utils.utils_path import (CancelledError, append_date_time, get_date_time, get_dir, load_pickle,
-                                      mk_ouput_dir, save_as_pickle,
-                                      search_for_file_with_ext, set_attributes)
+
+
+from glob_utils.files.files import FileExt, set_attributes, load_pickle_app, save_as_pickle, search_for_file_with_ext
+
+from glob_utils.flags.flag import CustomFlag
+from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
+                                       append_date_time, get_datetime_s,
+                                       get_dir, mk_new_dir)
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -49,11 +52,17 @@ __status__ = "Production"
 
 logger = getLogger(__name__)
 
+# MEAS_DIR='measurements'
 ## ======================================================================================================================================================
 ##  Class for the DataSet obtained from the EIT Device
 ## ======================================================================================================================================================
 
-class EitMeasurementDataset(object):
+class DatasetHandler(object):
+
+    def __init__(self):
+        pass
+
+class EitMeasurementSet(object):
     """ Class EITDataSet: regroups infos and frames of measurements """
     def __init__(self):
         # self.queue_out_video_module:Queue=None
@@ -71,10 +80,10 @@ class EitMeasurementDataset(object):
         self.save_img=CustomFlag()
         
     def initForAquisition(self,dev_setup:SciospecSetup, name_measurement:str=None):
-        self.date_time= get_date_time()
+        self.date_time= get_datetime_s()
         if self.autosave.is_set():
             self.name= append_date_time(name_measurement, self.date_time)
-            self.output_dir=mk_ouput_dir(self.name, default_out_dir=MEAS_DIR)
+            self.output_dir=mk_new_dir(dir_name=self.name, parent_dir=APP_DIRS.get(AppDirs.meas_set))
         else:
             self.name= 'Not saved'
             self.output_dir=None
@@ -110,15 +119,15 @@ class EitMeasurementDataset(object):
     def extract_data(self,rx_frame):
         """extract the single data out of the rx_frame, convert them if applicable
         return them as a dict"""
-        data={}
         rx_data= rx_frame[OPTION_BYTE_INDX:-1]
-        data['ch_group']= rx_data[0]
         excitation=rx_data[1:3]
-        data['exc_indx']= self._find_excitation_indx(excitation)
-        data['freq_indx']= convertBytes2Int(rx_data[3:5])
-        data['time_stamp']= convertBytes2Int(rx_data[5:9]) 
-        data['voltages'] = self.convert_meas_data(rx_data[9:])
-        return data
+        return {
+            'ch_group': rx_data[0],
+            'exc_indx': self._find_excitation_indx(excitation),
+            'freq_indx': convertBytes2Int(rx_data[3:5]),
+            'time_stamp':convertBytes2Int(rx_data[5:9]),
+            'voltages':self.convert_meas_data(rx_data[9:])
+        }
     
     def convert_meas_data(self, meas_data):
         """return float voltages values () corresponding to meas data (bytes single float) """
@@ -135,7 +144,7 @@ class EitMeasurementDataset(object):
         if path is None:
             self._frame_TD_ref[0] = self.meas_frame[idx]
         else:
-            dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(path)
+            dataset_tmp:EitMeasurementSet=self.load_single_frame_file(path)
             self._frame_TD_ref[0]=dataset_tmp.meas_frame[0]
     
     def save_dataset_single_frame(self, idx:int=0):
@@ -146,41 +155,45 @@ class EitMeasurementDataset(object):
         save_as_pickle(path, self)
 
     def load_single_frame(self, file_path):
-        dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(file_path)
+        dataset_tmp:EitMeasurementSet=self.load_single_frame_file(file_path)
         self.meas_frame[0]=dataset_tmp.meas_frame[0]
 
-    def load_dataset_single_frame(self, file_path):
+    def load_single_frame_file(self, file_path):
         """Load Dataset file with single frame"""
-        return load_pickle(file_path)
+        return load_pickle_app(file_path)
 
-    def load_dataset_dir(self, dir_path:str=None):
+    def load_meas_dir(self, dir_path:str=None)-> Union[list[str], None]:
         """Load Dataset files """
         try:
             if not dir_path:
-                dir_path= get_dir(title='Select a directory of the measurement dataset you want to load') 
-            filenames =search_for_file_with_ext(dir_path, ext=EXT_PKL)
+                title='Select a directory of the measurement dataset you want to load'
+                dir_path= get_dir(
+                    title=title,
+                    initialdir=APP_DIRS.get(AppDirs.meas_set)
+                    ) 
+            filenames =search_for_file_with_ext(dir_path, ext=FileExt.pkl)
             # print('filepaths', filenames)
-        except FileNotFoundError:
-            show_msgBox(f'No {EXT_PKL}-files in directory dirpath!', 'NO Files FOUND', 'Warning')
-            return
-        except CancelledError:
-            print('Loading cancelled')
-            return
+        except FileNotFoundError as e :
+            logger.warning(f'FileNotFoundError: ({e})')
+            show_msgBox(f'{e}', 'FileNotFoundError', 'Warning')
+            return None
+        except OpenDialogDirCancelledException as e:
+            logger.info(f'Loading cancelled: ({e})')
+            return None
         
         for filename in filenames:
             if 'setup' in filename:
                 filenames.remove(filename)
         if not filenames:
             show_msgBox('No frames-files in directory dirpath!', 'NO Files FOUND', 'Warning')
-            return
+            return None
         # print('filepaths', filenames)
         for i,filename in enumerate(filenames): # get all the frame data
             filepath=os.path.join(dir_path, filename)
-            dataset_tmp:EitMeasurementDataset=self.load_dataset_single_frame(filepath)
+            dataset_tmp:EitMeasurementSet=self.load_single_frame_file(filepath)
             if i ==0:
                 set_attributes(self,dataset_tmp)
                 setattr(self, 'output_dir', dir_path)
-
             else:
                 # setattr(self, 'frame_cnt', getattr(dataset_tmp,'frame_cnt'))
                 self.meas_frame.append(dataset_tmp.meas_frame[0])
@@ -201,6 +214,7 @@ class EitMeasurementDataset(object):
         return indx
 
     def latch_rx_frame_to_meas(self, idx_rx_frame:int=0, idx_meas_frame:int=0):
+
 
         self.meas_frame[idx_meas_frame]=self.rx_meas_frame[idx_rx_frame]
         if self.autosave.is_set():
@@ -246,7 +260,7 @@ class EitMeasurementDataset(object):
         except IndexError:
             print(f'try to access index {idx_frame} in meas_frame {self.meas_frame},{len(self.meas_frame)}')
             return self.meas_frame[0].get_voltages(idx_freq)
-           
+
     def get_freqs_list(self):
         return self.freqs_list
 
@@ -257,15 +271,28 @@ class EitMeasurementDataset(object):
             print(f'try to access index {idx_freq} in fregs_list {self.freqs_list}')
             return self.freqs_list[0]
 
-    def get_info(self, idx_frame:int=0):
-        return self.meas_frame[idx_frame].info_text
+    def get_frame_info(self, idx:int=0):
+        return self.meas_frame[idx].info_text
+
+    def get_frame_path(self, idx:int=0)-> str:
+        """Return the path of the measured frame #idx 
+
+        Args:
+            idx (int, optional): index of the measured frame. Defaults to 0.
+
+        Returns:
+            str: path of the measured frame #idx
+        """        
+        return self.meas_frame[idx].frame_path
     
     def get_frame_cnt(self):
+        self.frame_cnt = len(self.meas_frame)
         return self.frame_cnt
     
+    def set_voltages(self, U:np.ndarray, idx_frame:int=0, idx_freq:int=0)->None:
+        self.meas_frame[idx_frame].set_voltages(U, idx_freq)
+
     
-
-
 class EITFrame(object):
     """ Class Frame: regroup the voltages values for all frequencies at timestamps
     for all excitation and for one frequency
@@ -275,14 +302,14 @@ class EITFrame(object):
     e.g. Meas[2] the measured voltages on each channel (VS a commmon GROUND) for the frequency_nb 2
             for the frequency = frequency_val"""
     def __init__(self, dev_setup:SciospecSetup):
-        self.time_stamp=0 
+        self.time_stamp=0
         self.idx= 0
         self.freqs_list= dev_setup.make_freqs_list()
         self.freq_steps= dev_setup.get_freq_steps()
         self.meas_frame_nb=len(dev_setup.get_exc_pattern())*2 # for x excitation x*2 meas are send
         self.meas_frame_cnt=0 # cnt
         self.filling:int=0 # pourcentage of filling
-        self.meas=[EITMeas(dev_setup) for i in range(self.freq_steps)] # Meas[Frequency_indx]
+        self.meas = [EITMeas(dev_setup) for _ in range(self.freq_steps)]
         self.info_text=''
         self.frame_path=''
     
@@ -336,6 +363,9 @@ class EITFrame(object):
            
     def get_idx(self)-> int:
         return self.idx
+        
+    def set_voltages(self, U:np.ndarray, idx_freq:int=0)->None:
+        self.meas[idx_freq].set_voltages(U)
 
 class EITMeas(object):
     """ Class measurement: regroup the voltage values of all channels of the EIT device
@@ -371,10 +401,14 @@ class EITMeas(object):
         """Return the measured voltage"""
         return self.voltage_Z#np.array(self.voltage_Z)
 
+    def set_voltages(self, U:np.ndarray)->None:
+        self.voltage_Z[0:16,0:16] = U
+        print(f'{self.voltage_Z}')
 
 
 if __name__ == '__main__':
-    from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+    from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
+    from PyQt5.QtWidgets import QApplication
     app = QApplication(argv)
     # # rec2ui_queue = NewQueue()
     # app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
@@ -384,8 +418,8 @@ if __name__ == '__main__':
     # p = Process(target=_poll_process4reconstruction, args=(ui2rec_queue,rec2ui_queue,rec))
     # p.daemon=True
     # p.start()
-    d = EitMeasurementDataset()
-    d.load_dataset_dir()
+    d = EitMeasurementSet()
+    d.load_meas_dir()
     exit(app.exec_()) 
 
 

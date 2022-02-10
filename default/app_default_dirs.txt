@@ -1,0 +1,8 @@
+Dictionary form:
+{"Measurement Sets": "E:/Software_dev/Python/eit_app/measurements", "Snapshot": "E:/Software_dev/Python/eit_app/snapshots", "Export": "E:/Software_dev/Python/eit_app/exports"}
+
+
+Single attributes:
+Measurement Sets = E:/Software_dev/Python/eit_app/measurements,
+Snapshot = E:/Software_dev/Python/eit_app/snapshots,
+Export = E:/Software_dev/Python/eit_app/exports,

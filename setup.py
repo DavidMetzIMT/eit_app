@@ -16,7 +16,7 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version="0.0.1",
     description="Python Electrical Impedance Tomography Aplication",
-    url="https://github.com/DavidMetzIMT/eit_tf_workspace",
+    url="https://github.com/DavidMetzIMT/eit_ai",
     # Author details
     author="David Metz",
     author_email="david.metz67@gmail.com",

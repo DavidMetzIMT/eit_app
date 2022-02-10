@@ -37,10 +37,10 @@ from eit_app.io.sciospec.hw_serial_interface import (HARDWARE_NOT_DETECTED,
                                                      SERIAL_BAUD_RATE_DEFAULT,
                                                      SerialInterface,
                                                      SerialInterfaceError)
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.threads_process.threads_worker import Poller
-from eit_app.utils.flag import CustomFlag, CustomTimer
-from eit_app.utils.log import main_log
+from glob_utils.flags.flag import CustomFlag, CustomTimer
+from glob_utils.log.log import main_log
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -118,7 +118,6 @@ class Buffer(object):
                 self.buffer.put_nowait(last)
         return last or []
 
-
 ################################################################################
 ## Class for Sciopec Device ####################################################
 ################################################################################
@@ -140,7 +139,7 @@ class IOInterfaceSciospec(object):
         self.timeout_busy=CustomTimer(5.0,0.001) # max 5s timeout!
 
         self.channel = 32
-        self.dataset:EitMeasurementDataset=EitMeasurementDataset()
+        self.dataset:EitMeasurementSet=EitMeasurementSet()
         self.rx_buffer= Queue(maxsize=256) # infine queue.... maybe handle only a certain number of data to reduce memory allocttions???
         self.cmds_history=Buffer(maxsize=16)
         self.responses_history=Buffer(maxsize=16)
@@ -149,7 +148,7 @@ class IOInterfaceSciospec(object):
         self.flag_new_data=CustomFlag()
         self.setup=SciospecSetup(self.channel)
         self.interface= SerialInterface()
-        self.interface.register_callback(self.appendToRxBuffer)
+        self.interface.register_callback(self.append_to_rx_buffer)
         self.status=StatusSWInterface.NOT_CONNECTED
         self.status_prompt = NO_DEVICE_CONNECTED_PROMPT
         self._build_callbacks()
@@ -165,7 +164,7 @@ class IOInterfaceSciospec(object):
         self.cmds_history.clear()
         self.responses_history.clear()
     
-    def getDataset(self, mk_copy:bool=False)-> EitMeasurementDataset:
+    def getDataset(self, mk_copy:bool=False)-> EitMeasurementSet:
         return deepcopy(self.dataset) if mk_copy else self.dataset
 
     def _prepare_dataset(self, meas_name:str):
@@ -246,13 +245,13 @@ class IOInterfaceSciospec(object):
                 self.status=StatusSWInterface.IDLE
             sleep(0.001)
             
-    def getQueueOut(self):
+    def get_queue_out(self):
         return self.queue_out
 
-    def putQueueOut(self, data):
+    def put_queue_out(self, data):
         self.queue_out.put(data)
 
-    def setAutosave(self, autosave:bool=True, save_img:bool=True):
+    def set_autosave(self, autosave:bool=True, save_img:bool=True):
         self.dataset.autosave.set(autosave)
         self.dataset.save_img.set(save_img and autosave)
         logger.debug(f'Autosave: {self.dataset.autosave.is_set()}, save_img:{self.dataset.save_img.is_set()}')
@@ -318,7 +317,7 @@ class IOInterfaceSciospec(object):
     ##  Methods for recieved data
     ## =========================================================================
 
-    def appendToRxBuffer(self,rx_frame:List[bytes]):
+    def append_to_rx_buffer(self,rx_frame:List[bytes]):
         """ Called by the SerialInterface """
         self.rx_buffer.put_nowait(rx_frame)
 
@@ -336,8 +335,9 @@ class IOInterfaceSciospec(object):
         """ Sort the recieved frames between ACKNOWLEGMENT,MEASURING, RESPONSE 
         and treat them accordingly"""
         if rx_frame==[HARDWARE_NOT_DETECTED]:
-            self.disconnectSciospecDevice(stop_meas=False)
+            self.disconnect_sciospec_device(stop_meas=False)
             return
+            
         rx_frame=self._verify_len_of_rx_frame(rx_frame)
 
         if self._is_ack(rx_frame):          
@@ -349,12 +349,9 @@ class IOInterfaceSciospec(object):
         
         if self._is_new_meas_frame():
             dataset=self.getDataset(mk_copy=True)
-            print('1HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
             if self.dataset.save_img.is_set():
-                print('2HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
                 self.queue_out_video_module.put(dataset.meas_frame[0].frame_path)
-                print('3HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH save_img', self.dataset.save_img.is_set(),dataset.meas_frame[0].frame_path)
-            self.queue_out.put_nowait((dataset, 0, RecCMDs.rec))
+            self.queue_out.put_nowait((dataset, 0, RecCMDs.reconstruct))
             self.getDataset().flag_new_meas.clear()
 
     def _verify_len_of_rx_frame(self,rx_frame:List[bytes]):
@@ -499,7 +496,7 @@ class IOInterfaceSciospec(object):
     ##  Methods excecuting task on the device
     ## =========================================================================
 
-    def getAvailableSciospecDevices(self):
+    def get_available_devices(self):
         """Lists the available Sciospec device is available
         - Device infos are ask and if an ack is get: it is a Sciospec device..."""
         ports=self.interface.get_ports_available()
@@ -520,7 +517,7 @@ class IOInterfaceSciospec(object):
 
         return self.available_devices
         
-    def connectSciospecDevice(self, device_name:str, baudrate=SERIAL_BAUD_RATE_DEFAULT):
+    def connect_device(self, device_name:str, baudrate=SERIAL_BAUD_RATE_DEFAULT):
         """" Connect a sciopec device"""
         if not self.available_devices:
             show_msgBox(
@@ -541,7 +538,7 @@ class IOInterfaceSciospec(object):
         logger.info(self.status_prompt)
         self.device_name= device_name
 
-    def disconnectSciospecDevice(self, stop_meas:bool=True)->None:
+    def disconnect_sciospec_device(self, stop_meas:bool=True)->None:
         """" Disconnect the sciopec device"""
         if stop_meas:
             self._if_measuring_stop(force_to_stop=True)
@@ -550,7 +547,7 @@ class IOInterfaceSciospec(object):
         self.interface.close()
         logger.info(msg)
         self._reinit_after_diconnection()
-        self.getAvailableSciospecDevices() # update the list of Sciospec devices available ????
+        self.get_available_devices() # update the list of Sciospec devices available ????
 
     def get_device_infos(self):
         """Ask for the serial nummer of the Device """
@@ -621,7 +618,7 @@ class IOInterfaceSciospec(object):
         self._send_cmd_frame(CMD_SOFT_RESET,OP_NULL)
         self._wait_not_busy()
         sleep(10)
-        self.disconnectSciospecDevice()
+        self.disconnect_sciospec_device()
         show_msgBox(
                 'Reset done',
                 'Device reset ', "Information")
@@ -659,12 +656,12 @@ if __name__ == '__main__':
     main_log()
 
     dev= IOInterfaceSciospec()
-    dev.getAvailableSciospecDevices()
-    dev.connectSciospecDevice('Device (SN: 01-0019-0132-0A0C) on serial port "COM3"')
+    dev.get_available_devices()
+    dev.connect_device('Device (SN: 01-0019-0132-0A0C) on serial port "COM3"')
     dev.get_setup()
     dev.set_setup()
     dev.start_meas()
     sleep(10)
     dev.stop_meas()
-    dev.disconnectSciospecDevice()
+    dev.disconnect_sciospec_device()
 

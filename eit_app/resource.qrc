@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>icons/EIT.png</file>
+    <file>icons/icon_begin.png</file>
+    <file>icons/icon_end.png</file>
+    <file>icons/icon_pause.png</file>
+    <file>icons/icon_play.png</file>
+    <file>icons/icon_stop.png</file>
+  </qresource>
+</RCC>

@@ -20,18 +20,17 @@ from pyeit.eit.fem import Forward
 from pyeit.eit.interp2d import pts2sim, sim2pts
 from pyeit.eit.utils import eit_scan_lines
 
-
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 # from eit_app.io.sciospec.device import *
 # from eit_app.io.sciospec.interface.serial4sciospec import 
 # from eit_app.eit.meas_preprocessing import *
 
-# from eit_tf_workspace.path_utils import get_dir
-# from eit_tf_workspace.train_models import ModelGenerator
-# from eit_tf_workspace.train_utils import TrainInputs
-# from eit_tf_workspace.constants import TRAIN_INPUT_FILENAME
-# from eit_tf_workspace.dataset import get_XY_from_MalabDataSet, dataloader, extract_samples
-# from eit_tf_workspace.draw_data import format_inputs, get_elem_nodal_data
+# from eit_ai.path_utils import get_dir
+# from eit_ai.train_models import ModelGenerator
+# from eit_ai.train_utils import TrainInputs
+# from eit_ai.constants import TRAIN_INPUT_FILENAME
+# from eit_ai.dataset import get_XY_from_MalabDataSet, dataloader, extract_samples
+# from eit_ai.draw_data import format_inputs, get_elem_nodal_data
 ## ======================================================================================================================================================
 ##  Class for EIT Reconstruction
 ## ======================================================================================================================================================

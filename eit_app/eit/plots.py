@@ -6,9 +6,13 @@ import matplotlib.figure as mfig
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 from numpy.lib.shape_base import tile
-from eit_app.eit.model import EITModelClass
+from eit_app.eit.eit_model import EITModelClass
 # from eit_app.eit.reconstruction import ReconstructionPyEIT
+from logging import getLogger
+
+logger = getLogger(__name__)
 class PlotType(Enum):
     Image_2D='Image_2D'
     Image_3D='Image_3D'
@@ -18,9 +22,12 @@ class PlotType(Enum):
 class CustomPlots(ABC):
     """ descripe a sort of plot"""
 
-    is_visible:bool=False
+    visible:bool=False
     def __init__(self) -> None:
         super().__init__()
+    
+    def is_visible(self):
+        return self.visible
 
     @abstractmethod
     def plot():
@@ -36,25 +43,29 @@ class CustomLabels():
 
     def set_title(self, title:str=''):
         self.label['title']=title
+
     def set_legend(self, legend:List[str]=['', '']):
         self.label['legend']= legend
+
     def set_axis(self, axis:List[str]=['', '']):
         self.label['axis']= axis
+
     def set(self, title:str='', legend:List[str]=['', ''], axis:List[str]=['', '']):
         self.set_title(title)
         self.set_legend(legend)
         self.set_axis(axis)
+
     def get(self)-> dict:
         return self.label
+
     def get_title(self)->str:
         return self.label['title']
+
     def get_legend(self)->List[str]:
         return self.label['legend']
+
     def get_axis(self)->List[str]:
         return self.label['axis']
-
-
-
 
     
 class PlotImage2D(CustomPlots):
@@ -62,17 +73,16 @@ class PlotImage2D(CustomPlots):
     def __init__(self, is_visible:bool=False) -> None:
         super().__init__()
         self.name=PlotType.Image_2D
-        self.is_visible=is_visible
+        self.visible=is_visible
     
-    def plot(self, fig, ax, model:EITModelClass, labels):
+    def plot(self, fig:Figure, ax:Axes, model:EITModelClass, labels):
+        
+        logger.debug('PlotImage2D')
 
         label = labels[self.name]
         pts, tri, data= model.fem.get_data_for_plots()
-
         ax.clear()
         im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(data), shading="flat")
-        # for i, e in enumerate(rec.ElecPos):
-        #     ax.annotate(str(i + 1), xy=(pts[e,0], pts[e,1]), color="r")   
         ax.axis("equal")
         ax.set_title(label['title'])
         ax.set_xlabel(label['xylabel'][0])
@@ -89,7 +99,7 @@ class PlotUPlot(CustomPlots):
     def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
         super().__init__()
         self.name=PlotType.U_plot
-        self.is_visible=is_visible
+        self.visible=is_visible
         self.y_axis_log=y_axis_log
 
     def plot(self, fig, ax, U:np.ndarray, labels):
@@ -115,7 +125,7 @@ class PlotDiffPlot(CustomPlots):
     def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
         super().__init__()
         self.name=PlotType.Diff_plot
-        self.is_visible=is_visible
+        self.visible=is_visible
         self.y_axis_log=y_axis_log
 
     def plot(self, fig, ax, U:np.ndarray, labels):
@@ -165,35 +175,32 @@ class PlotDiffPlot(CustomPlots):
 #         return fig, ax
 
 
-def plot_measurements(plot_to_show:List[CustomPlots], fig,  U, labels, model:EITModelClass):
-    # figure.clear()???
+def plot_measurements(plot_to_show:List[CustomPlots], fig,  data):
+    if not plot_to_show[1].is_visible() and not plot_to_show[2].is_visible():
+        return fig
+    U=data['U']
+    labels=data['labels']
+    # eit_model=data['eit_model']
     fig= fig
     fig.clear()
     ax=[fig.add_subplot(2,1,1),fig.add_subplot(2,1,2)]
-    # plot_visible = [p for p in plot_to_show if p.is_visible] # get rid of the plost we dont need
-
-    # nb_sub_plots = len(plot_visible)
-    # if nb_sub_plots==0:
-    #     ax=fig.add_subplot(111)
-    #     ax.set_title('Select the type of plot you want!')
-    #     return fig
-    
-    # if isinstance(plot_visible[0], PlotImage2D) and nb_sub_plots>1:
-    #     ax.append(fig.add_subplot(nb_sub_plots+1,1,(1,2)))
-    #     for indx in range(nb_sub_plots-1):
-    #         ax.append(fig.add_subplot(nb_sub_plots+1,1,indx+3))
-    # else:
-    #     ax=[fig.add_subplot(nb_sub_plots,1,graph_indx+1) for graph_indx in range(nb_sub_plots)]
-
-    # for  idx_ax, single_plot in enumerate(plot_visible):
-        
-       
     fig, ax[0]= plot_to_show[1].plot(fig, ax[0], U, labels)
     fig, ax[1]= plot_to_show[2].plot(fig, ax[1], U, labels)
     ax[1].sharex(ax[1])
     ax[0].set_xlabel('')
     fig.set_tight_layout(True)
-        #figure.subplots_adjust(left=0.1, bottom=0, right=1, top=1, wspace=0.1, hspace=0.1)
+    return fig
+
+def plot_rec(plot_to_show:List[CustomPlots], fig,  data):
+    fig= fig
+    if not plot_to_show[0].is_visible():
+        return fig
+    # U=data['U']
+    labels=data['labels']
+    eit_model=data['eit_model']
+    fig.clear()
+    ax=[fig.add_subplot(1,1,1)]
+    fig, ax[0]= plot_to_show[0].plot(fig, ax[0], eit_model, labels)
     return fig
 
 

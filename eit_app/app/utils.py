@@ -44,12 +44,12 @@ def set_table_widget(tableWidget:QTableWidget,list2display:List[List[float]], de
         else:
             tableWidget.clearContents()
 
-def set_slider(slider:QSlider,  slider_pos=0, pos_min=0, pos_max=None, single_step=1,page_step=1, next=False, loop=True):
+def set_slider(slider:QSlider,  set_pos=0, pos_min=0, pos_max=None, single_step=1,page_step=1, next=False, loop=True):
     if not next:
-        if slider_pos==-1:
+        if set_pos==-1:
             slider.setSliderPosition(slider.maximum())
         else:
-            slider.setSliderPosition(slider_pos)
+            slider.setSliderPosition(set_pos)
     elif slider.sliderPosition()==slider.maximum():
         if loop:
             slider.setSliderPosition(0)

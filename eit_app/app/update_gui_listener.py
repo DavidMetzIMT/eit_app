@@ -11,9 +11,9 @@ from eit_app.io.sciospec.device import StatusSWInterface, IOInterfaceSciospec
 from enum import Enum, auto
 
 from eit_app.eit.imaging_type import DATA_TRANSFORMATIONS, IMAGING_TYPE, Imaging
-from eit_app.io.sciospec.meas_dataset import EitMeasurementDataset
+from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 
-from eit_app.utils.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag
 
 
 
@@ -101,7 +101,7 @@ def update_replay_status(app:Ui_MainWindow, replay:CustomFlag):
     else:
         app.lab_replay_status.setText('REPLAY OFF')
         app.lab_replay_status.setStyleSheet("background-color: grey")
-        set_slider(app.slider_replay, slider_pos=0)
+        set_slider(app.slider_replay, set_pos=0)
 
 def update_imaging_inputs_field(app:Ui_MainWindow, imaging_type:Imaging):
     """"""
@@ -120,7 +120,9 @@ def update_imaging_inputs_field(app:Ui_MainWindow, imaging_type:Imaging):
         app.lab_freq_meas_1.setVisible(False)
 
 def update_plots_to_show_inputs(app:Ui_MainWindow):
-    pass
+    app.chB_Uplot.setEnabled(app.chB_plot_graph.isChecked())
+    app.chB_diff.setEnabled(app.chB_plot_graph.isChecked())
+    app.chB_y_log.setEnabled(app.chB_plot_graph.isChecked())
 
 def update_progression_acquisition_single_frame(app:Ui_MainWindow, idx_frame:int=0, progression:int=0):
     app.sB_actual_frame_cnt.setValue(idx_frame)
@@ -135,13 +137,13 @@ def update_autosave_changed(app:Ui_MainWindow):
     app.lE_meas_dataset_dir.setEnabled(app.chB_dataset_autoset.isChecked())
     app.chB_dataset_save_img.setEnabled(app.chB_dataset_autoset.isChecked())
 
-def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementDataset ):
+def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementSet ):
 
     app.tE_load_dataset_dir.setText(dataset.output_dir)
     nb_loaded_frame= dataset.frame_cnt
     set_comboBox_items(app.cB_current_idx_frame, [i for i in range(nb_loaded_frame)])
     set_comboBox_items(app.cB_ref_frame_idx, [i for i in range(nb_loaded_frame)])
-    set_slider(app.slider_replay,  slider_pos=0, pos_min=0, pos_max=nb_loaded_frame-1, single_step=1)
+    set_slider(app.slider_replay,  set_pos=0, pos_min=0, pos_max=nb_loaded_frame-1, single_step=1)
 
 
 class UpdateEvents(AutoName):
