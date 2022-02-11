@@ -286,7 +286,7 @@ class EitMeasurementSet(object):
         return self.meas_frame[idx].frame_path
     
     def get_frame_cnt(self):
-        self.frame_cnt = len(self.meas_frame)
+        # self.frame_cnt = len(self.meas_frame)
         return self.frame_cnt
     
     def set_voltages(self, U:np.ndarray, idx_frame:int=0, idx_freq:int=0)->None:
