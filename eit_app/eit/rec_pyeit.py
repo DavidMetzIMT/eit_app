@@ -46,6 +46,7 @@ class ReconstructionPyEIT(Reconstruction):
 
     def __post_init__(self):
         self.eit:EitBase=None
+        self.solver_type=''
 
     def initialize(self, model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray]:
         """ should initialize the reconstruction method and return some data to plot"""
@@ -69,14 +70,14 @@ class ReconstructionPyEIT(Reconstruction):
         """ 2. FEM simulation """
         # # calculate simulated data
         step_solver = 1
-        fwd = Forward(MeshObj, ElecPos)
+        fwd = Forward_all_meas(MeshObj, ElecPos)
         f0 = fwd.solve_eit(ex_mat, step=step_solver, perm=MeshObj["perm"])
         f1 = fwd.solve_eit(ex_mat, step=step_solver, perm=MeshObjSim["perm"])
 
         self.eit=get_solver_pyeit(
             model.SolverType,MeshObj, ElecPos, ex_mat,step_solver, model.p, model.lamb, model.n)
         # ds=_inv_solve_eit(self.eit,f1.v, f0.v, True)
-        MeshObj["perm"]=_inv_solve_eit(self.eit,f1.v, f0.v, True)
+        MeshObj["perm"]=_inv_solve_eit(model.SolverType,self.eit,f1.v, f0.v, True)
         model.fem.update_from_pyeit(MeshObj)
         self._print_mesh_nodes_elemts(MeshObj)
         self.initialized.set()
@@ -148,11 +149,11 @@ class ReconstructionPyEIT(Reconstruction):
     #                     'plot2Gui': app.figure})
     #     return queue
 
-def _inv_solve_eit(eit:EitBase, v1, v0, normalize:bool=False):
+def _inv_solve_eit(SolverType,eit:EitBase, v1, v0, normalize:bool=False):
 
-    if eit.solver_type in ['BP', 'JAC']:
+    if SolverType in ['BP', 'JAC']:
         ds = eit.solve(v1, v0, normalize= normalize )
-    elif eit.solver_type=='GREIT':
+    elif SolverType=='GREIT':
         ds = eit.solve(v1, v0, normalize= normalize)
         x, y, ds = eit.mask_value(ds, mask_value=np.NAN)
         
@@ -174,6 +175,7 @@ def get_solver_pyeit(
         lamb (int, optional): [description]. Defaults to 0.01.
         n (int, optional): [description]. Defaults to 64.
     """
+    
     if SolverType=='BP':
         eit = bp.BP(MeshObj, ElecPos, ex_mat=ex_mat, step=1, parser="std")
         eit.setup(weight="none")         
@@ -214,6 +216,66 @@ def _reconstruct_mesh_struct(mesh_obj):
     mesh_new["ds_pts"]= ds_pts
 
     return mesh_new
+
+
+class Forward_all_meas(Forward):
+    def __init__(self, mesh, el_pos):
+        super().__init__(mesh, el_pos)
+
+    def voltage_meter(ex_line, n_el=16, step=1, parser=None):
+        """
+        extract subtract_row-voltage measurements on boundary electrodes.
+        we direct operate on measurements or Jacobian on electrodes,
+        so, we can use LOCAL index in this module, do not require el_pos.
+
+        Notes
+        -----
+        ABMN Model.
+        A: current driving electrode,
+        B: current sink,
+        M, N: boundary electrodes, where v_diff = v_n - v_m.
+
+        'no_meas_current': (EIDORS3D)
+        mesurements on current carrying electrodes are discarded.
+
+        Parameters
+        ----------
+        ex_line: NDArray
+            2x1 array, [positive electrode, negative electrode].
+        n_el: int
+            number of total electrodes.
+        step: int
+            measurement method (two adjacent electrodes are used for measuring).
+        parser: str
+            if parser is 'fmmu', or 'rotate_meas' then data are trimmed,
+            boundary voltage measurements are re-indexed and rotated,
+            start from the positive stimulus electrodestart index 'A'.
+            if parser is 'std', or 'no_rotate_meas' then data are trimmed,
+            the start index (i) of boundary voltage measurements is always 0.
+
+        Returns
+        -------
+        v: NDArray
+            (N-1)*2 arrays of subtract_row pairs
+        """
+        # local node
+        drv_a = ex_line[0]
+        drv_b = ex_line[1]
+        i0 = drv_a if parser in ("fmmu", "rotate_meas") else 0
+
+        # build differential pairs
+        v = []
+        for a in range(i0, i0 + n_el):
+            m = a % n_el
+            n = (m + step) % n_el
+            # if any of the electrodes is the stimulation electrodes
+            if not (m == drv_a or m == drv_b or n == drv_a or n == drv_b) or True:
+                # the order of m, n matters
+                v.append([n, m])
+
+        diff_pairs = np.array(v)
+        return diff_pairs
+    
 
 
 if __name__ == '__main__':

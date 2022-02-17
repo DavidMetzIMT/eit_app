@@ -72,7 +72,8 @@ class EITChamber():
         x=self.body.box.length/2
         y=self.body.box.width/2
         z=self.body.box.height/2
-        return [[-x,-y,-z],[x,y,z]] if z else [[-x,-y],[x,y]]
+        limits= [[-x,-y,-z],[x,y,z]] if z else [[-x,-y],[x,y]]
+        return np.array(limits)
 @dataclass
 class FEM():
     nodes:np.ndarray=None
