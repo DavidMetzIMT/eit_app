@@ -29,7 +29,7 @@ from eit_app.eit.imaging_type import (DATA_TRANSFORMATIONS, IMAGING_TYPE,
 from eit_app.eit.plots import (PlotDiffPlot, PlotImage2D, PlotUPlot,
                                plot_measurements, plot_rec)
 from eit_app.eit.rec_abs import RecCMDs
-# from eit_app.eit.rec_ai import ReconstructionAI
+from eit_app.eit.rec_ai import ReconstructionAI
 from eit_app.eit.rec_pyeit import ReconstructionPyEIT
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.io.sciospec.device import IOInterfaceSciospec
@@ -504,7 +504,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         # set some 
         rec={
             0:ReconstructionPyEIT,
-            # 1:ReconstructionAI
+            1:ReconstructionAI
         }
         self._c_set_eit_model_data()
         self.U= np.random.rand(256,2)

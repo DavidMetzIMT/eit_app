@@ -229,15 +229,18 @@ class EitMeasurementSet(object):
 
         frame = self.meas_frame[idx_meas_frame]
         dirname, filename= os.path.split(frame.frame_path)
+        Fmin = freq_unit_converter(self.dev_setup.get_freq_min())
+        Fmax = freq_unit_converter(self.dev_setup.get_freq_max())
+        Amp = Amp_unit_converter(self.dev_setup.get_exc_amp())
         frame.info_text= [ 
             f"Dataset name:\t{self.name}",
             f"Frame filename:\t{filename}",
             f"dirname:\t{dirname}",
             f"Frame#:\t{frame.idx}",
             f"TimeStamps:\t{self.date_time}",
-            f"Sweepconfig:\tFmin = {self.dev_setup.get_freq_min()/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.get_freq_max()/1000:.3f} kHz",
+            f"Sweepconfig:\tFmin = {Fmin},\r\n\tFmax = {Fmax}",
             f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
-            f"\tAmp = {self.dev_setup.get_exc_amp():.5f} A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
+            f"\tAmp = {Amp},\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
             f"excitation:\t{self.dev_setup.get_exc_pattern()}"
         ]
                 
@@ -406,6 +409,37 @@ class EITMeas(object):
         print(f'{self.voltage_Z}')
 
 
+############################################################################
+##### Methods
+############################################################################ 
+
+def Amp_unit_converter(value):
+    str_value = str(value)
+    conversion = len(str_value[str_value.find('.') + 1 :]) + 1  # 1e-7 -> conversion = 7
+    
+    # for Ampere to mA and uA
+    if conversion >= 6:
+        value = value * 1000000
+        output_str = str(format(value, '.2f')) + ' uA'
+    elif conversion > 2 and conversion < 6:
+        value *= 1000
+        output_str = str(format(value, '.2f')) + ' mA'
+    else:
+        output_str = str(format(value, '.2f')) + ' A'
+        
+    return output_str
+    
+def freq_unit_converter(value):
+    #for KHz to MHz
+    if value >= 1000000:
+        value /= 1000000
+        output_str = str(format(value,'.2f')) + ' MHz'
+    else:
+        value /= 1000
+        output_str = str(format(value,'.2f')) + ' kHz'
+        
+    return output_str
+    
 if __name__ == '__main__':
     from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
     from PyQt5.QtWidgets import QApplication

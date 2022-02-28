@@ -1,7 +1,7 @@
 
 
 import os
-from eit_ai.train_utils.workspace import Generators
+from eit_ai.train_utils.workspace import AiWorkspace
 from eit_ai.train_utils.metadata import MetaData, reload_metadata
 
 from matplotlib import pyplot as plt
@@ -9,7 +9,7 @@ from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.rec_abs import Reconstruction
 from eit_ai.raw_data.matlab import MatlabSamples
 from eit_ai.raw_data.raw_samples import reload_samples
-from eit_ai.train_utils.select_gen import select_gen
+from eit_ai.train_utils.select_workspace import select_workspace
 import numpy as np
 
 from logging import getLogger
@@ -24,7 +24,7 @@ class ReconstructionAI(Reconstruction):
     """ Class for the EIT reconstruction with the package pyEIT """
     def __post_init__(self):
         self.metadata:MetaData=None
-        self.gen:Generators=None
+        self.workspace:AiWorkspace=None
         self.fwd_model:dict=None
 
     def initialize(
@@ -37,14 +37,14 @@ class ReconstructionAI(Reconstruction):
         self.initialized.reset()
         self.metadata = reload_metadata(dir_path=model_dirpath)
         raw_samples= reload_samples(MatlabSamples(),self.metadata)
-        self.gen= select_gen(self.metadata)
-        self.gen.load_model(self.metadata)
-        self.gen.build_dataset(raw_samples, self.metadata)
-        self.fwd_model=self.gen.getattr_dataset('fwd_model')
-        voltages, _=self.gen.extract_samples(
+        self.workspace= select_workspace(self.metadata)
+        self.workspace.load_model(self.metadata)
+        self.workspace.build_dataset(raw_samples, self.metadata)
+        self.fwd_model=self.workspace.getattr_dataset('fwd_model')
+        voltages, _=self.workspace.extract_samples(
             dataset_part='test', idx_samples='all')
         print(voltages[2])
-        perm_real=self.gen.get_prediction(
+        perm_real=self.workspace.get_prediction(
             metadata=self.metadata,
             single_X=voltages[2],
             preprocess=False)
@@ -64,7 +64,7 @@ class ReconstructionAI(Reconstruction):
             ds= (U[:,1]-U[:,0])/U[:,0]
 
             logger.debug(f'{ds=}\n, {U=}')
-            perm_real=self.gen.get_prediction(
+            perm_real=self.workspace.get_prediction(
                 metadata=self.metadata,
                 single_X=ds,
                 preprocess=True)
