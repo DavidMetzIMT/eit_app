@@ -31,7 +31,7 @@ class AutoName(Enum):
 
 def handle_device_refresh_event(app:Ui_MainWindow, device:IOInterfaceSciospec):
     """ Handle responsible of refesh the list of devices in the comboBox """
-    items = [key for key in device.available_devices.keys()] or ['None device']
+    items = list(device.available_devices.keys()) or ['None device']
     set_comboBox_items(app.cB_ports,items)
 
 def handle_device_status_event(app:Ui_MainWindow, device:IOInterfaceSciospec):
@@ -80,9 +80,8 @@ class UpdateMeasurementsEvents(AutoName):
     """ """
 
 def update_freqs_list_meas(app:Ui_MainWindow, freqs:List[Any]):
-    for cB in [ app.cB_freq_meas_0, 
-                app.cB_freq_meas_1]:
-        set_comboBox_items(cB, [f for f in freqs])
+    for cB in [ app.cB_freq_meas_0, app.cB_freq_meas_1]:
+        set_comboBox_items(cB, list(freqs))
 
 def update_live_view_status(app:Ui_MainWindow, live_meas:CustomFlag):
     if live_meas.is_set():
@@ -107,14 +106,17 @@ def update_imaging_inputs_field(app:Ui_MainWindow, imaging_type:Imaging):
     """"""
     app.cB_ref_frame_idx.setVisible(imaging_type.ref_frame_idx!=None)
     app.lab_ref_frame_idx.setVisible(imaging_type.ref_frame_idx!=None)
-    if imaging_type.idx_freqs[0] is not None:
+
+    print(list(imaging_type.detail_freqs[0].keys())[0])
+
+    if imaging_type.detail_freqs[0] is not None:
         app.cB_freq_meas_0.setEnabled(True)
-        app.lab_freq_meas_0.setText(list(imaging_type.idx_freqs[0].keys())[0])
+        app.lab_freq_meas_0.setText(list(imaging_type.detail_freqs[0].keys())[0])
     
-    if imaging_type.idx_freqs[1] is not None:
+    if imaging_type.detail_freqs[1] is not None:
         app.cB_freq_meas_1.setVisible(True)
         app.lab_freq_meas_1.setVisible(True)
-        app.lab_freq_meas_1.setText(list(imaging_type.idx_freqs[1].keys())[0])
+        app.lab_freq_meas_1.setText(list(imaging_type.detail_freqs[1].keys())[0])
     else:
         app.cB_freq_meas_1.setVisible(False)
         app.lab_freq_meas_1.setVisible(False)
@@ -141,8 +143,8 @@ def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementSet ):
 
     app.tE_load_dataset_dir.setText(dataset.output_dir)
     nb_loaded_frame= dataset.frame_cnt
-    set_comboBox_items(app.cB_current_idx_frame, [i for i in range(nb_loaded_frame)])
-    set_comboBox_items(app.cB_ref_frame_idx, [i for i in range(nb_loaded_frame)])
+    set_comboBox_items(app.cB_current_idx_frame, list(range(nb_loaded_frame)))
+    set_comboBox_items(app.cB_ref_frame_idx, list(range(nb_loaded_frame)))
     set_slider(app.slider_replay,  set_pos=0, pos_min=0, pos_max=nb_loaded_frame-1, single_step=1)
 
 

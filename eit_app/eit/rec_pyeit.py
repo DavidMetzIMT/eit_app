@@ -269,12 +269,11 @@ class Forward_all_meas(Forward):
             m = a % n_el
             n = (m + step) % n_el
             # if any of the electrodes is the stimulation electrodes
-            if not (m == drv_a or m == drv_b or n == drv_a or n == drv_b) or True:
+            # if not (m == drv_a or m == drv_b or n == drv_a or n == drv_b) or True:
                 # the order of m, n matters
-                v.append([n, m])
+            v.append([n, m])
 
-        diff_pairs = np.array(v)
-        return diff_pairs
+        return np.array(v)
     
 
 
@@ -284,5 +283,4 @@ if __name__ == '__main__':
     pts = rec.MeshObj["node"]
     tri = rec.MeshObj["element"]
     mplot.tetplot(pts, tri, edge_color=(0.2, 0.2, 1.0, 1.0), alpha=0.01)
-    
-    pass
+
