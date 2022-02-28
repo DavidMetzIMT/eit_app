@@ -40,7 +40,7 @@ from eit_app.threads_process.threads_worker import CustomWorker
 from glob_utils.flags.flag import CustomFlag, CustomTimer
 from glob_utils.log.log import change_level_logging, main_log
 from glob_utils.pth.path_utils import get_datetime_s, mk_new_dir
-from glob_utils.files.files import save_as_csv
+from glob_utils.files.files import save_as_csv,dialog_get_file_with_ext,FileExt,OpenDialogFileCancelledException
 from matplotlib.backends.backend_qt5agg import \
     FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import \
@@ -213,7 +213,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.chB_plot_image_rec.toggled.connect(self._c_plots_to_show)
         self.chB_y_log.toggled.connect(self._c_plots_to_show)
 
-        # loading maesuremenst / replay
+        # loading measurements / replay
         self.pB_load_meas_dataset.clicked.connect(self._c_load_meas_set)
         self.pB_replay_back_begin.clicked.connect(self._c_replay_back_begin)
         self.pB_replay_goto_end.clicked.connect(self._c_replay_goto_end)
@@ -223,6 +223,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.sB_replay_time.valueChanged.connect(self._c_replay_time_changed)
         self.slider_replay.valueChanged.connect(self._c_replay_slider_changed)
         self.pB_export_meas_csv.clicked.connect(self._c_export_meas_csv)
+        self.pB_load_ref_dataset.clicked.connect(self._c_loadRef4TD)
 
         self.pB_load_eidors_fwd_solution.clicked.connect(self._c_load_eidors_fwd_solution)
         self.sB_eidors_factor.valueChanged.connect(self._c_eidors_reload)
@@ -336,7 +337,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         in that case the data displayed/plot"""
         if self.figure_to_plot.empty():
             return
-        #empty the queue (possible lost of monitoreddata)
+        #empty the queue (possible lost of monitored data)
         while not self.figure_to_plot.empty():
             data=self.figure_to_plot.get()
         try:
@@ -350,7 +351,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                     dataset.get_idx_frame(idx_frame),
                     dataset.get_frame_info(idx_frame)
                 )
-            print(data['U'])
+            # print(data['U'])
             self._update_canvas(data)
         except AttributeError as e:
             logger.error(f'new computed data not displayed : source ({e})')
@@ -360,9 +361,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         in that case the image will be displayed"""
         if self.captured_imgs.empty():
             return
-         #empty the queue (possible lost of monitoreddata)
-        while not self.captured_imgs.empty():
-            image:QtGui.QImage=self.captured_imgs.get()
+
+        while not self.captured_imgs.empty():# empty the queue
+            image=self.captured_imgs.get()
         self.display_image(image)
 
     def nb_measurements_reached(self)-> None: 
@@ -448,6 +449,14 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self._c_set_device_setup()
         if self.io_interface.start_meas(self.lE_meas_dataset_dir.text()):
             self.init_gui_for_live_meas()
+    
+    # def _c_resume_measurement(self)->None:
+    #     """Start measurements on sciopec device"""
+    #     # self._c_set_device_setup()
+    #     if self.io_interface.resume_meas(self.lE_meas_dataset_dir.text()):
+    #         # self.up_events.post(
+    #         # UpdateEvents.info_data_computed,self, self.live_meas_status, 0, '')
+    #         self.live_meas_status.set()
 
     def _c_stop_measurement(self)->None:
         """Start measurements on sciopec device"""
@@ -496,7 +505,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         )
 
     ############################################################################
-    #### Replay of Measurements
+    #### Reconstruction
     ############################################################################
     def _c_init_rec(self)->None:
         """[summary]
@@ -517,12 +526,20 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     
     def _c_loadRef4TD(self)->None:
         """[summary]
-        """        
-        path, cancel= openFileNameDialog(
-            self,path=APP_DIRS.get(AppDirs.meas_set))
-        if cancel: # Cancelled
+        """
+
+        try:
+
+            file_path= dialog_get_file_with_ext(
+                ext=FileExt.pkl,title='', initialdir=APP_DIRS.get(AppDirs.meas_set))   
+        except OpenDialogFileCancelledException:
             return
-        self._c_UpdateRef4TD(path=path)    
+
+        # path, cancel= openFileNameDialog(
+        #     self,path=APP_DIRS.get(AppDirs.meas_set))
+        # if cancel: # Cancelled
+        #     return
+        self._c_UpdateRef4TD(path=file_path)    
         
     def _c_UpdateRef4TD(self, path=None)->None:
         """[summary]
@@ -546,7 +563,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.eit_model.set_solver(self.cB_solver.currentText())
         self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
 
-    def _c_load_eidors_fwd_solution(self)->None: # for Jiawei master thesis
+    def _c_load_eidors_fwd_solution(self) -> None:    # for Jiawei master thesis
         """load eidors foward solution(voltages) out of an mat-file"""
        
         sol = matlab.load_mat_var(initialdir=os.getcwd(),  var_name="X")
@@ -554,17 +571,16 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         volt= np.array(U).reshape((16,16))
 
         self.eidors_sol= volt
-        volt=volt*self.sB_eidors_factor.value()
-        self.meas_dataset.set_voltages(volt,0,0)
-        self.meas_dataset.set_frame_TD_ref(0)
-        self._c_replay_slider_changed()
-        # print(f"{self.meas_dataset.get_voltages(0,0)}")
+        self._extracted_from__c_eidors_reload_9(volt)
 
-    def _c_eidors_reload(self)->None: # for Jiawei master thesis
+    def _c_eidors_reload(self) -> None:    # for Jiawei master thesis
         """replot the data witha different scaling factor"""
         volt= self.eidors_sol
-        volt=volt*self.sB_eidors_factor.value()
-        self.meas_dataset.set_voltages(volt,0,0)
+        self._extracted_from__c_eidors_reload_9(volt)
+
+    def _extracted_from__c_eidors_reload_9(self, volt):
+        volt = volt * self.sB_eidors_factor.value()
+        self.meas_dataset.set_voltages(volt, 0, 0)
         self.meas_dataset.set_frame_TD_ref(0)
         self._c_replay_slider_changed()
 
@@ -619,6 +635,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.replay_status.clear()
         if not self.meas_dataset.load_meas_dir(dir_path):
             return
+        self.io_interface.load_setup(self.meas_dataset.output_dir)
         self.replay_status.set()
         self.up_events.post(UpdateEvents.device_setup,self, self.io_interface)
         self.up_events.post(UpdateEvents.dataset_loaded,self, self.meas_dataset)
@@ -721,7 +738,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     
     def _c_refresh_capture_devices(self)->None:
         capture_devices= self.capture_module.get_devices_available()
-        
         set_comboBox_items(self.cB_video_devices,capture_devices)
 
     def _c_set_capture_device(self)->None:
@@ -738,13 +754,17 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.capture_module.set_image_file_format(
             file_ext=self.cB_img_file_ext.currentText())
         self._c_live_capture_start(look_memory_flag=True)
-        
+
+    ############################################################################
+    #### Plotting
+    ############################################################################
             
     def _c_imaging_params_changed(self)->None:
 
         rec_type= self.cB_eit_imaging_type.currentText()
         if rec_type not in list(IMAGING_TYPE.keys()):
             raise Exception(f'The imaging type {rec_type} ist not known')
+            
         transform_volt=self.cB_transform_volt.currentText()
         if transform_volt not in DATA_TRANSFORMATIONS:
             raise Exception(f'The transformation {transform_volt} unknown')
@@ -754,15 +774,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             self.cB_freq_meas_1.currentIndex()
         ]
         idx_ref_frame= self.cB_ref_frame_idx.currentIndex()
-        # self.pB_set_ref_time_diff.clicked.connect(self._c_UpdateRef4TD)
+
         transform_funcs=[
             DATA_TRANSFORMATIONS[transform_volt], 
             DATA_TRANSFORMATIONS['Abs'] if self.showAbsValue.isChecked()\
                 else DATA_TRANSFORMATIONS['Identity']
         ]
-        # self.cB_transform_volt
-        # self.showAbsValue.toggled.connect(self._c_update_plot)
-        
+
         self.imaging_type:Imaging=IMAGING_TYPE[rec_type](
             idx_freqs, idx_ref_frame, transform_funcs)
 

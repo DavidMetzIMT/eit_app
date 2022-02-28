@@ -144,8 +144,10 @@ class EitMeasurementSet(object):
         if path is None:
             self._frame_TD_ref[0] = self.meas_frame[idx]
         else:
-            dataset_tmp:EitMeasurementSet=self.load_single_frame_file(path)
+            dataset_tmp=self.load_single_frame_file(path)
             self._frame_TD_ref[0]=dataset_tmp.meas_frame[0]
+            self.meas_frame[0].frame_path= path
+            self.make_info_text_for_frame(0)
     
     def save_dataset_single_frame(self, idx:int=0):
         if not self.autosave.is_set():
@@ -155,7 +157,7 @@ class EitMeasurementSet(object):
         save_as_pickle(path, self)
 
     def load_single_frame(self, file_path):
-        dataset_tmp:EitMeasurementSet=self.load_single_frame_file(file_path)
+        dataset_tmp=self.load_single_frame_file(file_path)
         self.meas_frame[0]=dataset_tmp.meas_frame[0]
 
     def load_single_frame_file(self, file_path):
@@ -182,15 +184,16 @@ class EitMeasurementSet(object):
             return None
         
         for filename in filenames:
-            if 'setup' in filename:
+            if 'Frame' not in filename: # remove all other pkl-files
                 filenames.remove(filename)
+
         if not filenames:
             show_msgBox('No frames-files in directory dirpath!', 'NO Files FOUND', 'Warning')
             return None
         # print('filepaths', filenames)
         for i,filename in enumerate(filenames): # get all the frame data
             filepath=os.path.join(dir_path, filename)
-            dataset_tmp:EitMeasurementSet=self.load_single_frame_file(filepath)
+            dataset_tmp=self.load_single_frame_file(filepath)
             if i ==0:
                 set_attributes(self,dataset_tmp)
                 setattr(self, 'output_dir', dir_path)
@@ -229,6 +232,7 @@ class EitMeasurementSet(object):
 
         frame = self.meas_frame[idx_meas_frame]
         dirname, filename= os.path.split(frame.frame_path)
+        
         frame.info_text= [ 
             f"Dataset name:\t{self.name}",
             f"Frame filename:\t{filename}",

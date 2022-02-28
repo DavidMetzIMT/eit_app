@@ -1,5 +1,6 @@
 
 import ast
+from genericpath import isdir
 import os
 from logging import getLogger
 from typing import List, Union
@@ -12,7 +13,8 @@ from eit_app.io.sciospec.utils import *
 # from eit_app.utils.utils_path import save_as_pickle
 from glob_utils.files.files import (DataLoadedNotCompatibleError, FileExt,
                                     OpenDialogFileCancelledException,
-                                    dialog_get_file_with_ext, load_pickle_app, save_as_pickle)
+                                    dialog_get_file_with_ext, load_pickle_app, save_as_pickle,
+                                    search_for_file_with_ext)
 from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
                                        get_datetime_s, get_dir)
 
@@ -82,19 +84,31 @@ class SciospecSetup(object):
         except OpenDialogDirCancelledException as e:
             logger.info(f'Saving setup cancelled:({e})')
 
-    def load(self):
+    def load(self, path:str=None):
         """ Load the setup out of a pkl file """
         try:
-            file_path = dialog_get_file_with_ext(ext=FileExt.pkl)
+            print(f'{path=}')
+            if path is None:
+                file_path = dialog_get_file_with_ext(ext=FileExt.pkl)
+            elif isdir(path):
+                files= search_for_file_with_ext(path,ext=FileExt.pkl)
+                file_path=[f for f in files if 'setup_' in f]
+                file_path= os.path.join(path,file_path[0])
+
+            if 'setup_' not in file_path:
+                logger.error('tryed to load a non setup file')
+                return
+
             load_pickle_app(file_path,self)
             # set_attributes(self,loaded_setup)
             logger.info(f'Setup: {self.__dict__} \n loaded from file : {file_path} ')
         except OpenDialogFileCancelledException as e:
             # show_msgBox('Loading cancelled','', "I")
-             logger.info(f'Loading cancelled {e}')
+            logger.info(f'Loading cancelled {e}')
         except DataLoadedNotCompatibleError:
             show_msgBox('Please select a setup file', 'Not a setup file', "Warning")
             # print('wrong pickle file choosen!!!')
+
     ## Get methods
     def get_channel(self):
         """ Return the number of channnel used in the device"""
@@ -311,7 +325,10 @@ class SciospecSetup(object):
             data= value[DATA_START_INDX:-1]
             length= LENGTH_IP_ADRESS
             self.ethernet_config.ip= data[:length]
-            self.ethernet_config.ip_formated= str(data[0])+ '.' +str(data[1])+ '.' +str(data[2])+ '.' +str(data[3])
+            self.ethernet_config.ip_formated = (
+                f'{str(data[0])}.{str(data[1])}.{str(data[2])}.{str(data[3])}'
+            )
+
         else:
             raise Exception('not implemented') # TODO
 
@@ -324,7 +341,10 @@ class SciospecSetup(object):
             length= LENGTH_MAC_ADRESS
             self.ethernet_config.mac= data[:length]
             ID= mkListOfHex(data[:length])
-            self.ethernet_config.mac_formated= ID[0]+ ':' +ID[1]+ ':' +ID[2] + ':' +ID[3]+ ':' +ID[4]+ ':'+ID[5]
+            self.ethernet_config.mac_formated = (
+                f'{ID[0]}:{ID[1]}:{ID[2]}:{ID[3]}:{ID[4]}:{ID[5]}'
+            )
+
         else:
             raise Exception('Error in use of this method')
 
@@ -343,7 +363,10 @@ class SciospecSetup(object):
             length = LENGTH_SERIAL_NUMBER
             self.device_infos.sn= rx_op_data[:length]
             ID= mkListOfHex(rx_op_data[:length])
-            self.device_infos.sn_formated= ID[0]+'-'+ID[1]+ID[2]+'-'+ID[3]+ID[4]+'-'+ID[5]+ID[6]
+            self.device_infos.sn_formated = (
+                f'{ID[0]}-{ID[1]}{ID[2]}-{ID[3]}{ID[4]}-{ID[5]}{ID[6]}'
+            )
+
         else:
             raise Exception('Error in use of this method')
 

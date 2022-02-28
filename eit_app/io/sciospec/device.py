@@ -567,6 +567,18 @@ class IOInterfaceSciospec(object):
         logger.info( f'Start Measurements - {succeed_word}')
         return succeed
 
+    # def resume_meas(self, name_measurement:str='default_meas_name'):
+    #     """ resume measurements """
+    #     self._if_measuring_stop(force_to_stop=False)
+    #     # name, output_dir =self._prepare_dataset(name_measurement)
+    #     # if self.dataset.autosave.is_set():
+    #     #     self.save_setup(output_dir)
+    #     succeed = self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
+    #     self._wait_not_busy()
+    #     succeed_word= 'SUCCEED' if succeed else 'FAILED' 
+    #     logger.info( f'Resume Measurements - {succeed_word}')
+    #     return succeed
+
     def stop_meas(self, append=True):
         """ Stop measurements """
         self._send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS, cmd_append=append)
@@ -630,8 +642,8 @@ class IOInterfaceSciospec(object):
     def save_setup(self, dir):
         self.setup.save(dir)
         
-    def load_setup(self):
-        self.setup.load()
+    def load_setup(self, path:str=None):
+        self.setup.load(path=path)
 
     def get_queue_video_module(self):
         return self.queue_out_video_module
