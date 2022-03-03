@@ -38,6 +38,7 @@ from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
                                        append_date_time, get_datetime_s,
                                        get_dir, mk_new_dir)
+from glob_utils.unit.unit import (unit_converter, unit_converter_str, unit_converter_value)
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -226,6 +227,9 @@ class EitMeasurementSet(object):
 
         frame = self.meas_frame[idx_meas_frame]
         dirname, filename= os.path.split(frame.frame_path)
+        Fmin = unit_converter(self.dev_setup.get_freq_min())
+        Fmax = unit_converter(self.dev_setup.get_freq_max())
+        Amp = unit_converter(self.dev_setup.get_exc_amp())
         
         frame.info_text= [ 
             f"Dataset name:\t{self.name}",
@@ -233,9 +237,9 @@ class EitMeasurementSet(object):
             f"dirname:\t{dirname}",
             f"Frame#:\t{frame.idx}",
             f"TimeStamps:\t{self.date_time}",
-            f"Sweepconfig:\tFmin = {self.dev_setup.get_freq_min()/1000:.3f} kHz,\r\n\tFmax = {self.dev_setup.get_freq_max()/1000:.3f} kHz",
+            f"Sweepconfig:\tFmin = {Fmin}Hz,\r\n\tFmax = {Fmax}Hz",
             f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
-            f"\tAmp = {self.dev_setup.get_exc_amp():.5f} A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
+            f"\tAmp = {Amp}A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
             f"excitation:\t{self.dev_setup.get_exc_pattern()}"
         ]
                 
@@ -402,8 +406,7 @@ class EITMeas(object):
     def set_voltages(self, U:np.ndarray)->None:
         self.voltage_Z[0:16,0:16] = U
         print(f'{self.voltage_Z}')
-
-
+    
 if __name__ == '__main__':
     from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
     from PyQt5.QtWidgets import QApplication
