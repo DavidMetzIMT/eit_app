@@ -1,9 +1,11 @@
 
 import ast
 from genericpath import isdir
+import math
 import os
 from logging import getLogger
 from typing import List, Union
+from matplotlib import pyplot as plt
 
 import numpy as np
 import pandas as pd
@@ -442,7 +444,9 @@ class FrequencyConfig(object):
         if self.freq_scale==OP_LINEAR.name:
             self.freqs= np.linspace(self.freq_min,self.freq_max, self.freq_steps)
         elif self.freq_scale==OP_LOG.name:
-            self.freqs= np.logspace(self.freq_min,self.freq_max, self.freq_steps)
+            freq_min= np.log10(self.freq_min)
+            freq_max = np.log10(self.freq_max)
+            self.freqs= np.logspace(freq_min,freq_max, self.freq_steps)
         else:
             TypeError('incorrect scale')
         return self.freqs
@@ -471,3 +475,16 @@ class FrequencyConfig(object):
         self.freqs= self.freq_min if error else self.make_freqs_list()
 
         return set_freq_max_enable, error
+
+
+if __name__ == '__main__':
+
+    freq_min = np.log10(100)
+    freq_max = np.log10(1000)
+    freq_steps = 10
+
+
+    freqs= np.logspace(freq_min,freq_max,freq_steps)
+    print(f'{freqs=}')
+    plt.plot(np.array(freqs))
+    plt.show()
