@@ -38,6 +38,7 @@ from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
                                        append_date_time, get_datetime_s,
                                        get_dir, mk_new_dir)
+from glob_utils.unit.unit import (unit_converter, unit_converter_str, unit_converter_value)
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -226,6 +227,9 @@ class EitMeasurementSet(object):
 
         frame = self.meas_frame[idx_meas_frame]
         dirname, filename= os.path.split(frame.frame_path)
+        Fmin = unit_converter(self.dev_setup.get_freq_min())
+        Fmax = unit_converter(self.dev_setup.get_freq_max())
+        Amp = unit_converter(self.dev_setup.get_exc_amp())
         
         frame.info_text= [ 
             f"Dataset name:\t{self.name}",
@@ -233,9 +237,9 @@ class EitMeasurementSet(object):
             f"dirname:\t{dirname}",
             f"Frame#:\t{frame.idx}",
             f"TimeStamps:\t{self.date_time}",
-            f"Sweepconfig:\tFmin = {Fmin},\r\n\tFmax = {Fmax}",
+            f"Sweepconfig:\tFmin = {Fmin}Hz,\r\n\tFmax = {Fmax}Hz",
             f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
-            f"\tAmp = {Amp},\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
+            f"\tAmp = {Amp}A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
             f"excitation:\t{self.dev_setup.get_exc_pattern()}"
         ]
                 
@@ -402,38 +406,6 @@ class EITMeas(object):
     def set_voltages(self, U:np.ndarray)->None:
         self.voltage_Z[0:16,0:16] = U
         print(f'{self.voltage_Z}')
-
-
-############################################################################
-##### Methods
-############################################################################ 
-
-def Amp_unit_converter(value):
-    str_value = str(value)
-    conversion = len(str_value[str_value.find('.') + 1 :]) + 1  # 1e-7 -> conversion = 7
-    
-    # for Ampere to mA and uA
-    if conversion >= 6:
-        value = value * 1000000
-        output_str = str(format(value, '.2f')) + ' uA'
-    elif conversion > 2 and conversion < 6:
-        value *= 1000
-        output_str = str(format(value, '.2f')) + ' mA'
-    else:
-        output_str = str(format(value, '.2f')) + ' A'
-        
-    return output_str
-    
-def freq_unit_converter(value):
-    #for KHz to MHz
-    if value >= 1000000:
-        value /= 1000000
-        output_str = str(format(value,'.2f')) + ' MHz'
-    else:
-        value /= 1000
-        output_str = str(format(value,'.2f')) + ' kHz'
-        
-    return output_str
     
 if __name__ == '__main__':
     from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
