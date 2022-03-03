@@ -14,6 +14,14 @@ from eit_app.eit.eit_model import EITModelClass
 
 
 def identity(x:np.ndarray)-> np.ndarray:
+    """_summary_
+
+    Args:
+        x (np.ndarray): _description_
+
+    Returns:
+        np.ndarray: _description_
+    """
     return x
 
 DATA_TRANSFORMATIONS={
@@ -25,12 +33,33 @@ DATA_TRANSFORMATIONS={
     'Identity':identity
     }
 
-def make_voltage_vector(eit_model:EITModelClass,transform_funcs, voltages:np.ndarray):
+def make_voltage_vector(eit_model:EITModelClass,transform_funcs:list, voltages:np.ndarray)-> np.ndarray:
+    """_summary_
+
+    Args:
+        eit_model (EITModelClass): _description_
+        transform_funcs (list): _description_
+        voltages (np.ndarray): _description_
+
+    Returns:
+        np.ndarray: _description_
+    """
     tmp= make_voltage_from_meas_pattern(eit_model, voltages)
-    print(f'{tmp=}')
     return transform_data(tmp, transform_funcs)
 
-def transform_data(x:np.ndarray, transform_funcs=[])-> np.ndarray:
+def transform_data(x:np.ndarray, transform_funcs:list)-> np.ndarray:
+    """_summary_
+
+    Args:
+        x (np.ndarray): _description_
+        transform_funcs (list): _description_
+
+    Raises:
+        Exception: _description_
+
+    Returns:
+        np.ndarray: _description_
+    """
     if len(transform_funcs)!=2:
         raise Exception()
     
@@ -41,16 +70,27 @@ def transform_data(x:np.ndarray, transform_funcs=[])-> np.ndarray:
     return x
 
 def make_voltage_from_meas_pattern(eit_model:EITModelClass, voltages:np.ndarray)->np.ndarray:
+    """_summary_
+
+    Args:
+        eit_model (EITModelClass): _description_
+        voltages (np.ndarray): _description_
+
+    Returns:
+        np.ndarray: _description_
+    """
     meas_voltage=voltages[:,:eit_model.n_el] # get only the voltages of used electrode (0-n_el)
-    print(f'{eit_model.meas_pattern=}')
     return eit_model.meas_pattern.dot(meas_voltage.T).flatten() #get the volgate corresponding to the meas_pattern and flatten
 
 
-class Imaging():
+class Imaging(ABC):
     idx_freqs=[None, None]
     ref_frame_idx=None
     transform_funcs=[identity, identity]
     label_imaging:str=''
+
+    def __init__(self) -> None:
+        super().__init__()
 
     def process_data(self,dataset:EitMeasurementSet, eit_model:EITModelClass, idx_frame:int=0,extract_voltages:bool=False):
         
@@ -60,8 +100,6 @@ class Imaging():
         meas_voltages=self.pre_process_data(dataset, eit_model, idx_frame)
         _metadata=self.get_metadata(dataset, idx_frame)
         labels= self.make_labels(_metadata)
-        # if extract_voltages:   ----->>>>> TODO
-        #     for voltage
         return meas_voltages, labels
 
     @abstractmethod
@@ -81,6 +119,7 @@ class Imaging():
         for key, func in DATA_TRANSFORMATIONS.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
             if func == self.transform_funcs[0]:
                 trans_label=key
+    
         label_meas=[
             f'{trans_label}(U)',
             f'{trans_label}({self.label_imaging})'
@@ -98,7 +137,9 @@ class Imaging():
 
 class AbsoluteImaging(Imaging):
 
-    def __init__(self, idx_freqs:List[int], ref_frame_idx:int=0, transform_funcs:list=[]) -> None:
+    def __init__(self, idx_freqs:List[int], ref_frame_idx:int=0, transform_funcs: list = None) -> None:
+        if transform_funcs is None:
+            transform_funcs = []
         self.label_imaging='U'
         self.detail_freqs=[{'Frequence in Hz' : idx_freqs[0]}, None]
         self.ref_frame_idx=None
@@ -110,9 +151,7 @@ class AbsoluteImaging(Imaging):
             return np.array([])
 
         voltages=dataset.get_voltages(idx_frame=idx_frame, idx_freq=self.idx_freqs[0])
-        print(f'{voltages=}')
         v=make_voltage_vector(eit_model, self.transform_funcs, voltages)
-        print(f'{v=}') 
         return np.hstack((v, v))
     
     def make_labels(self, metadata):
@@ -124,27 +163,35 @@ class AbsoluteImaging(Imaging):
         if len(freqs_val)!=1:
             raise Exception(f'should be 1 freqences values freqs_val:{freqs_val}')
 
+        frame= f'Frame #{idx_frames[0]}'
+        freq_0= f'{freqs_val[0]} Hz'
+        # freq_1= f'{freqs_val[1]} Hz'
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Absolute Imaging ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz)',
+                        'title': f'Absolute Imaging ({label_meas[1]}); {frame} ({freq_0})',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]}); Frequence: {freqs_val[0]} Hz ' ,
-                        'legend': [f'Frame #{idx_frames[0]}',f'Frame #{idx_frames[0]}'],
+                        'title': f'Voltages ({label_meas[0]}); Frequence: {freq_0}' ,
+                        'legend': [f'{frame}',f'{frame}'],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltages ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz)',
+                        'title': f'Voltages ({label_meas[1]}); {frame} ({freq_0})',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     }
                 }
+        
+
+        
 
 class TimeDifferenceImaging(Imaging):
 
-    def __init__(self, idx_freqs:List[float], ref_frame_idx:int=0, transform_funcs:list=[]) -> None:
+    def __init__(self, idx_freqs:List[float], ref_frame_idx:int=0, transform_funcs: list = None) -> None:
+        if transform_funcs is None:
+            transform_funcs = []
         self.label_imaging='\u0394U_t' #ΔU_t
         self.detail_freqs=[{'Frequence in Hz' : idx_freqs[0]}, None]
         self.ref_frame_idx=ref_frame_idx
@@ -175,27 +222,33 @@ class TimeDifferenceImaging(Imaging):
         if len(freqs_val)!=1:
             raise Exception(f'should be 1 freqences values freqs_val:{freqs_val}')
 
+        frame= f'Frame #{idx_frames[0]}'
+        freq_0= f'{freqs_val[0]} Hz'
+        freq_1= f'{freqs_val[1]} Hz'
+
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Time difference Imaging ({label_meas[1]}); Frame #{idx_frames[0]} - #{idx_frames[1]} ({freqs_val[0]} Hz)',
+                        'title': f'Time difference Imaging ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y', 'Z']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]}); Frequence: {freqs_val[0]} Hz ' ,
-                        'legend': [ f'Ref Frame #{idx_frames[0]}',f'Frame #{idx_frames[1]}'],
+                        'title': f'Voltages ({label_meas[0]}); {frame} ' ,
+                        'legend': [ f'Ref Frequence {freq_0}',f'Frequence {freq_1}'],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltage differences ({label_meas[1]}); Frame #{idx_frames[0]} - #{idx_frames[1]} ({freqs_val[0]} Hz)',
+                        'title': f'Voltage differences ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
                         'legend': ['',''],
-                        'xylabel':  ['Measurements', 'Voltages in [V]']
-                    }
+                        'xylabel': ['Measurements', 'Voltages in [V]']
+                    },
                 }
         
 class FrequenceDifferenceImaging(Imaging):
 
-    def __init__(self, idx_freqs:List[float], ref_frame_idx:int=0, transform_funcs:list=[]) -> None:
+    def __init__(self, idx_freqs:List[float], ref_frame_idx:int=0, transform_funcs: list = None) -> None:
+        if transform_funcs is None:
+            transform_funcs = []
         self.label_imaging='\u0394U_f' #ΔU_f
         self.detail_freqs=[
             {'Frequence (ref) in Hz' : idx_freqs[0]},
@@ -203,11 +256,7 @@ class FrequenceDifferenceImaging(Imaging):
         self.ref_frame_idx=None
         self.transform_funcs= transform_funcs
     
-    def pre_process_data(
-            self,
-            dataset:EitMeasurementSet,
-            eit_model:EITModelClass,
-            idx_frame:int=0) -> np.ndarray:
+    def pre_process_data(self, dataset:EitMeasurementSet, eit_model:EITModelClass, idx_frame:int=0) -> np.ndarray:
         """"""
         if len(self.idx_freqs)!=2:
             return np.array([]) 
@@ -238,19 +287,23 @@ class FrequenceDifferenceImaging(Imaging):
         if len(freqs_val)!=2:
             raise Exception(f'should be 2 freqences values freqs_val:{freqs_val}')
 
+        frame= f'Frame #{idx_frames[0]}'
+        freq_0= f'{freqs_val[0]} Hz'
+        freq_1= f'{freqs_val[1]} Hz'
+
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Frequency difference Imaging ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz - {freqs_val[1]} Hz)',
+                        'title': f'Frequency difference Imaging ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y', 'Z']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]}); Frame #{idx_frames[0]} ' ,
-                        'legend': [ f'Ref Frequence {freqs_val[0]} Hz',f'Frequence {freqs_val[1]} Hz'],
+                        'title': f'Voltages ({label_meas[0]}); {frame} ' ,
+                        'legend': [ f'Ref Frequence {freq_0}',f'Frequence {freq_1}'],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltage differences ({label_meas[1]}); Frame #{idx_frames[0]} ({freqs_val[0]} Hz - {freqs_val[1]} Hz)',
+                        'title': f'Voltage differences ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },

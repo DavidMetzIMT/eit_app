@@ -308,10 +308,10 @@ class IOInterfaceSciospec(object):
             >> call the correspoding function from the cllbcks catalog        """
         try:
             return self.callbacks[cmd.tag][op.tag](True) or [0x00]
-        except KeyError:
+        except KeyError as e:
             msg= f'Combination of Cmd:"{cmd.name}"({cmd.tag})/ Option:"{op.name}"({op.tag}) - NOT FOUND in callbacks catalog'
             logger.error(msg)
-            raise  SWInterfaceError(msg)            
+            raise SWInterfaceError(msg) from e            
         
     ## =========================================================================
     ##  Methods for recieved data
@@ -455,13 +455,13 @@ class IOInterfaceSciospec(object):
                 self.flag_new_data.set()
                 msg=f'RX_ANSWER: {rx_frame} -  TREATED'
                 logger.debug(msg)
-        except KeyError:
+        except KeyError as e:
             cmd=get_cmd(cmd_tag)
             op=get_op(cmd.options, op_tag)
             msg= f'Combination of Cmd:"{cmd.name}"({cmd.tag})/ Option:"{op.name}"({op.tag}) - NOT FOUND in callbacks catalog'
             logger.error(msg)
-            raise  SWInterfaceError(msg)
-            
+            raise SWInterfaceError(msg) from e
+
         except TypeError as error:
             logger.error(error)  
 
@@ -513,7 +513,7 @@ class IOInterfaceSciospec(object):
         self.treat_rx_frame_worker.stop_polling()
         self.status=StatusSWInterface.NOT_CONNECTED
         tmp.restitute_object_from_buffer(self.setup.device_infos)
-        logger.info(f'Sciospec devices available: {[k for k in self.available_devices]}')
+        logger.info(f'Sciospec devices available: {list(self.available_devices)}')
 
         return self.available_devices
         

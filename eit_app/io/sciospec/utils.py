@@ -6,7 +6,7 @@ import numpy as np
 ##  Functions for Sciopec Device ###############################################
 ################################################################################
 
-def mkListOfHex(rx_data:list[bytes])->list[str]:
+def mkListOfHex(rx_data:list[bytes]) -> list[str]:
     """Return a list of str of the Hex-representation of the list of int8
 
     Args:
@@ -21,16 +21,16 @@ def mkListOfHex(rx_data:list[bytes])->list[str]:
     """    
     list_hex= []
 
-    for i in range(len(rx_data)):
-        tmp=hex(rx_data[i]).replace('0x','')
+    for rx_datum in rx_data:
+        tmp = hex(rx_datum).replace('0x', '')
         if len(tmp)==1:
-            list_hex.append('0'+tmp.capitalize())
+            list_hex.append(f'0{tmp.capitalize()}')
         else:
             list_hex.append(tmp.capitalize())
+    
     return list_hex
 
 def convert4Bytes2Float(data_4bytes:list[bytes])->float:
-    
     """ Convert the represention of a single float format (a list of 4 int8 (4 Bytes)) of a number 
     to its float value 
 
@@ -50,9 +50,7 @@ def convert4Bytes2Float(data_4bytes:list[bytes])->float:
     else:
         raise TypeError(f"Only 4Bytes allowed: {data_4bytes} transmitted") 
     
-
 def convertFloat2Bytes(float_val:float)->list[bytes]:
-
     """ Convert a float value to its single float format (a list of 4 int8 (4 Bytes))
     representation
 
@@ -69,7 +67,7 @@ def convertFloat2Bytes(float_val:float)->list[bytes]:
     - see documentation of the EIT device"""
     return list(struct.pack(">f", float_val))
 
-def convertBytes2Int(data_Bytes:list[bytes])->int:
+def convertBytes2Int(data_Bytes:list[bytes]) -> int:
     """ Convert a list of int8 to an integer
 
     Parameters
@@ -84,11 +82,11 @@ def convertBytes2Int(data_Bytes:list[bytes])->int:
     -----
     - see documentation of the EIT device"""
     '''return a list of 4 int (4 Bytes)'''
-    if len(data_Bytes)>1:
-        out_int=int.from_bytes(bytearray(data_Bytes),"big")
-    else:
-        out_int=int.from_bytes(bytes(data_Bytes),"big")
-    return out_int
+    return (
+        int.from_bytes(bytearray(data_Bytes), "big")
+        if len(data_Bytes) > 1
+        else int.from_bytes(bytes(data_Bytes), "big")
+    )
 
 def convertInt2Bytes(int_val:int, n_bytes:int)->list[bytes]:
     """ Convert an integer to its representaion as a list of int8 with n_bytes
@@ -109,51 +107,6 @@ def convertInt2Bytes(int_val:int, n_bytes:int)->list[bytes]:
     - see documentation of the EIT device"""
     return list((int(int_val)).to_bytes(n_bytes, byteorder='big'))
 
-# def getAllSubattributes(obj_):
-#     """ List all attributes  and subattributes of an object 
-
-#     Parameters
-#     ----------
-#     obj_: object
-#         value to convert in list of int8
-    
-#     Returns
-#     -------
-#     data: misc
-#         values of the attributes  and subattributes of obj_ 
-#     name:  str
-#         of the attributes  and subattributes of obj_ 
-#     types: str
-#         types of the attributes  and subattributes of obj_
-    
-#     Notes
-#     -----
-#     - use to load/save the setup of EIT device from/in an excel-file """
-
-#     import inspect
-#     attributes = inspect.getmembers(obj_, lambda a:not(inspect.isroutine(a)))
-#     attr=[a for a in attributes if not(a[0].startswith('__') and a[0].endswith('__'))]
-#     name= []
-#     data= []
-#     types= []
-#     for i in range(len(attr)):
-#         if sum([str(type(attr[i][1])).find(t) for t in ['list', 'float', 'int', 'str']])> 0:
-#             name.append(attr[i][0])
-#             data.append(attr[i][1])
-#         else:
-#             data_tmp, name_tmp, types_tmp = getAllSubattributes(getattr(obj_, attr[i][0]))
-#             name_tmp2=[]
-#             for name_i in name_tmp:
-#                 name_tmp2.append(attr[i][0] + '.' +name_i)
-#             if len(data_tmp)>1:
-#                 name.extend(name_tmp2)
-#                 data.extend(data_tmp)
-#             else:
-#                 name.append(name_tmp2)
-#                 data.append(data_tmp)
-#     types = [type(item) for item in data]        
-#     return data, name , types
-
 def convertBoolToByte(val:bool)->bytes:
     """Convert a boolean in a bytes
 
@@ -164,18 +117,19 @@ def convertBoolToByte(val:bool)->bytes:
         bytes: corresponding bytes value
     """    
     val= 1 if val else 0
+
     return val.to_bytes(1, byteorder='big')
 
-def convertByteToBool(byte:bytes)->bool:
-    """Convert a bytes value in bool
+# def convertByteToBool(byte:bytes)->bool:
+#     """Convert a bytes value in bool
 
-    Args:
-        byte (bytes): bytes value to convert
+#     Args:
+#         byte (bytes): bytes value to convert
 
-    Returns:
-        bool: corresponding bool value
-    """    
-    return byte[0]==1
+#     Returns:
+#         bool: corresponding bool value
+#     """    
+#     return byte[0]==1
 
 
 

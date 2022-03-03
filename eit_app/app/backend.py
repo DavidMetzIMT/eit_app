@@ -478,8 +478,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         ## Update Measurement Setups
         self.io_interface.setup.set_frame_rate(self.sBd_frame_rate.value())
         self.io_interface.setup.set_burst(self.sB_burst.value())
-        self.io_interface.setup.set_exc_amp(
-            self.sBd_exc_amp.value()/1000) # from mA -> A
+        self.io_interface.setup.set_exc_amp(self.sBd_exc_amp.value()/1000) # mA -> A
 
         freq_max_enable, error=self.io_interface.setup.set_freq_config(
             freq_min=self.sBd_freq_min.value(),

@@ -33,7 +33,6 @@ class CustomPlots(ABC):
     def plot():
         """Plot"""
 
-
 class CustomLabels():
     """ organize the labels utilized by a plot"""
 
@@ -44,13 +43,21 @@ class CustomLabels():
     def set_title(self, title:str=''):
         self.label['title']=title
 
-    def set_legend(self, legend:List[str]=['', '']):
+    def set_legend(self, legend: List[str] = None):
+        if legend is None:
+            legend = ['', '']
         self.label['legend']= legend
 
-    def set_axis(self, axis:List[str]=['', '']):
+    def set_axis(self, axis: List[str] = None):
+        if axis is None:
+            axis = ['', '']
         self.label['axis']= axis
 
-    def set(self, title:str='', legend:List[str]=['', ''], axis:List[str]=['', '']):
+    def set(self, title:str='', legend: List[str] = None, axis: List[str] = None):
+        if legend is None:
+            legend = ['', '']
+        if axis is None:
+            axis = ['', '']
         self.set_title(title)
         self.set_legend(legend)
         self.set_axis(axis)
@@ -67,8 +74,12 @@ class CustomLabels():
     def get_axis(self)->List[str]:
         return self.label['axis']
 
-    
 class PlotImage2D(CustomPlots):
+    """_summary_
+
+    Args:
+        CustomPlots (_type_): _description_
+    """
 
     def __init__(self, is_visible:bool=False) -> None:
         super().__init__()
@@ -95,6 +106,11 @@ class PlotImage2D(CustomPlots):
         return fig, ax
 
 class PlotUPlot(CustomPlots):
+    """_summary_
+
+    Args:
+        CustomPlots (_type_): _description_
+    """
 
     def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
         super().__init__()
@@ -121,6 +137,11 @@ class PlotUPlot(CustomPlots):
         return fig, ax
 
 class PlotDiffPlot(CustomPlots):
+    """_summary_
+
+    Args:
+        CustomPlots (_type_): _description_
+    """
 
     def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
         super().__init__()
@@ -145,37 +166,17 @@ class PlotDiffPlot(CustomPlots):
 
         return fig, ax
 
-# def plot_conductivity_map(fig, ax, rec:ReconstructionPyEIT, perm_ds=True, nb_plots=3):
-#         if rec.InitDone:
-#             pts = rec.MeshObjMeas["node"]
-#             tri = rec.MeshObjMeas["element"]
-#             perm= rec.MeshObjMeas["perm"]
-#             ds= rec.MeshObjMeas["ds"]
-#             ax.clear()
-#             if perm_ds:
-#                 im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(perm), shading="flat")
-#             else:
-#                 if hasattr(rec.eit, 'solver_type'):
-#                     if rec.eit.solver_type=='GREIT':
-#                         ds = rec.MeshObjMeas["ds_greit"]
-#                         im = ax.imshow(np.real(ds), interpolation="none", origin='lower', vmin=rec.Scalevmin, vmax=rec.Scalevmax)
-#                     else:
-#                         im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(ds), shading="flat", vmin=rec.Scalevmin, vmax=rec.Scalevmax)
-#                 else:
-#                     im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(ds), shading="flat", vmin=rec.Scalevmin, vmax=rec.Scalevmax)
-#             for i, e in enumerate(rec.ElecPos):
-#                 ax.annotate(str(i + 1), xy=(pts[e,0], pts[e,1]), color="r")   
-#             ax.axis("equal")
-#             ax.set_title('Reconstruction')
-#             fig.colorbar(im, ax=ax)
-#         else:
-#             ax.set_title('Reconstruction')
-#             ax.text(0.5, 0.5, 'pyEIT not initialized \n please choose an reconstruction algorithm', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes,bbox=dict(facecolor='red', alpha=0.5))
-        
-#         return fig, ax
-
-
 def plot_measurements(plot_to_show:List[CustomPlots], fig,  data):
+    """_summary_
+
+    Args:
+        plot_to_show (List[CustomPlots]): _description_
+        fig (_type_): _description_
+        data (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     if not plot_to_show[1].is_visible() and not plot_to_show[2].is_visible():
         return fig
     U=data['U']
@@ -192,6 +193,17 @@ def plot_measurements(plot_to_show:List[CustomPlots], fig,  data):
     return fig
 
 def plot_rec(plot_to_show:List[CustomPlots], fig,  data):
+    """_summary_
+
+    Args:
+        plot_to_show (List[CustomPlots]): _description_
+        fig (_type_): _description_
+        data (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
     fig= fig
     if not plot_to_show[0].is_visible():
         return fig
@@ -243,12 +255,7 @@ def plot_rec(plot_to_show:List[CustomPlots], fig,  data):
 
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
-    pass
-    # 
+
+    """"""
+     
