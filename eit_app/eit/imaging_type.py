@@ -8,6 +8,7 @@ from typing import Callable, List
 import numpy as np
 from eit_app.eit.plots import PlotType
 from eit_app.io.sciospec.device import EitMeasurementSet
+from glob_utils.unit.unit import eng
 
 from eit_app.eit.eit_model import EITModelClass
 
@@ -222,23 +223,25 @@ class TimeDifferenceImaging(Imaging):
         if len(freqs_val)!=1:
             raise Exception(f'should be 1 freqences values freqs_val:{freqs_val}')
 
-        frame= f'Frame #{idx_frames[0]}'
-        freq_0= f'{freqs_val[0]} Hz'
-        freq_1= f'{freqs_val[1]} Hz'
+        frame_0 = f'Frame #{idx_frames[0]}'
+        frame_1 = f'Frame #{idx_frames[1]}'
+        freq = f"Frequency #{eng(freqs_val[0],'Hz','.2g')}"
+        # freq_1= f'{freqs_val[1]} Hz'
 
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Time difference Imaging ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
+                        # 'title': f'Time difference Imaging ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
+                        'title': f'Time difference Imaging ({label_meas[1]}); {freq} ({frame_0} -{frame_1})',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y', 'Z']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]}); {frame} ' ,
-                        'legend': [ f'Ref Frequence {freq_0}',f'Frequence {freq_1}'],
+                        'title': f'Voltages ({label_meas[0]}); Frequence: {freq}' ,
+                        'legend': [ f'Ref Frequence {frame_0}',f'Frequence {frame_1}'],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltage differences ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
+                        'title': f'Voltage differences ({label_meas[1]}); {freq} ({frame_0} -{frame_1})',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },
