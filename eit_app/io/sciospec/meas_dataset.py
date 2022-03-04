@@ -38,7 +38,7 @@ from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import (OpenDialogDirCancelledException,
                                        append_date_time, get_datetime_s,
                                        get_dir, mk_new_dir)
-from glob_utils.unit.unit import (unit_converter, unit_converter_str, unit_converter_value)
+from glob_utils.unit.unit import eng
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -227,9 +227,9 @@ class EitMeasurementSet(object):
 
         frame = self.meas_frame[idx_meas_frame]
         dirname, filename= os.path.split(frame.frame_path)
-        Fmin = unit_converter(self.dev_setup.get_freq_min())
-        Fmax = unit_converter(self.dev_setup.get_freq_max())
-        Amp = unit_converter(self.dev_setup.get_exc_amp())
+        Fmin = eng(self.dev_setup.get_freq_min(),'Hz')
+        Fmax = eng(self.dev_setup.get_freq_max(),'Hz')
+        Amp = eng(self.dev_setup.get_exc_amp(),'A')
         
         frame.info_text= [ 
             f"Dataset name:\t{self.name}",
@@ -237,9 +237,9 @@ class EitMeasurementSet(object):
             f"dirname:\t{dirname}",
             f"Frame#:\t{frame.idx}",
             f"TimeStamps:\t{self.date_time}",
-            f"Sweepconfig:\tFmin = {Fmin}Hz,\r\n\tFmax = {Fmax}Hz",
+            f"Sweepconfig:\tFmin = {Fmin},\r\n\tFmax = {Fmax}",
             f"\tFSteps = {self.dev_setup.get_freq_steps():.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
-            f"\tAmp = {Amp}A,\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
+            f"\tAmp = {Amp},\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
             f"excitation:\t{self.dev_setup.get_exc_pattern()}"
         ]
                 
