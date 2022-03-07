@@ -91,6 +91,8 @@ class EitMeasurementSet(object):
         self.flag_new_meas=CustomFlag()
         return self.name, self.output_dir
     
+    def init_resume(self):
+        self.rx_meas_frame[0]=EITFrame(self.dev_setup)# clear frame
 
     def add_rx_frame_to_dataset(self, rx_frame, for_ser:bool=False, idx:int=0):
         """ add the data from the rx_frame in the dataset 
@@ -227,9 +229,9 @@ class EitMeasurementSet(object):
 
         frame = self.meas_frame[idx_meas_frame]
         dirname, filename= os.path.split(frame.frame_path)
-        Fmin = eng(self.dev_setup.get_freq_min(), 'Hz', '2g')
-        Fmax = eng(self.dev_setup.get_freq_max(), 'Hz', '.2g')
-        Amp = eng(self.dev_setup.get_exc_amp(), 'A', '.2g')
+        Fmin = eng(self.dev_setup.get_freq_min(),'Hz')
+        Fmax = eng(self.dev_setup.get_freq_max(),'Hz')
+        Amp = eng(self.dev_setup.get_exc_amp(),'A')
         
         frame.info_text= [ 
             f"Dataset name:\t{self.name}",
