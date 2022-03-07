@@ -110,7 +110,7 @@ class Imaging(ABC):
 
     def get_metadata(self, dataset:EitMeasurementSet, idx_frame:int=0):
         """provide all posible metadata for ploting """
-
+        global freqs_val, idx_frames
         freqs_val= [dataset.get_freq_val(idx_freq=_idx_freq) for _idx_freq in self.idx_freqs]
         idx_frames=[] 
         if self.ref_frame_idx is not None:
@@ -135,6 +135,12 @@ class Imaging(ABC):
     @abstractmethod
     def make_labels(self, metadata):
         """"""
+        
+    def frame_label(self, idx) ->str:
+        return f'Frame #{idx_frames[idx]}'
+    
+    def freq_label(self, idx) -> str:
+        return f"Frequency #{eng(freqs_val[idx],'Hz','.2g')}"
 
 class AbsoluteImaging(Imaging):
 
@@ -164,22 +170,22 @@ class AbsoluteImaging(Imaging):
         if len(freqs_val)!=1:
             raise Exception(f'should be 1 freqences values freqs_val:{freqs_val}')
 
-        frame= f'Frame #{idx_frames[0]}'
-        freq_0= f'{freqs_val[0]} Hz'
-        # freq_1= f'{freqs_val[1]} Hz'
+        # frame= f'Frame #{idx_frames[0]}'
+        # freq= f'{freqs_val[0]} Hz'
+        
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Absolute Imaging ({label_meas[1]}); {frame} ({freq_0})',
+                        'title': f'Absolute Imaging ({label_meas[1]}); {self.frame_label(0)} ({self.freq_label(0)})',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]}); Frequence: {freq_0}' ,
-                        'legend': [f'{frame}',f'{frame}'],
+                        'title': f'Voltages ({label_meas[0]}); {self.freq_label(0)}' ,
+                        'legend': [f'{self.frame_label(0)}',f'{self.frame_label(0)}'],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltages ({label_meas[1]}); {frame} ({freq_0})',
+                        'title': f'Voltages ({label_meas[1]}); {self.frame_label(0)} ({self.freq_label(0)})',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     }
@@ -223,25 +229,25 @@ class TimeDifferenceImaging(Imaging):
         if len(freqs_val)!=1:
             raise Exception(f'should be 1 freqences values freqs_val:{freqs_val}')
 
-        frame_0 = f'Frame #{idx_frames[0]}'
-        frame_1 = f'Frame #{idx_frames[1]}'
+        # frame_0 = f'Frame #{idx_frames[0]}'
+        # frame_1 = f'Frame #{idx_frames[1]}'
         freq = f"Frequency #{eng(freqs_val[0],'Hz','.2g')}"
         # freq_1= f'{freqs_val[1]} Hz'
 
         return  {
                     PlotType.Image_2D:{
                         # 'title': f'Time difference Imaging ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
-                        'title': f'Time difference Imaging ({label_meas[1]}); {freq} ({frame_0} -{frame_1})',
+                        'title': f'Time difference Imaging ({label_meas[1]}); {self.freq_label(0)} ({self.frame_label(0)} -{self.frame_label(1)})',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y', 'Z']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]}); Frequence: {freq}' ,
-                        'legend': [ f'Ref Frequence {frame_0}',f'Frequence {frame_1}'],
+                        'title': f'Voltages ({label_meas[0]}); {self.freq_label(0)}' ,
+                        'legend': [ f'Ref Frequence {self.frame_label(0)}',f'Frequence {self.frame_label(1)}'],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltage differences ({label_meas[1]}); {freq} ({frame_0} -{frame_1})',
+                        'title': f'Voltage differences ({label_meas[1]}); {freq} ({self.frame_label(0)} -{self.frame_label(1)})',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },
@@ -290,23 +296,23 @@ class FrequenceDifferenceImaging(Imaging):
         if len(freqs_val)!=2:
             raise Exception(f'should be 2 freqences values freqs_val:{freqs_val}')
 
-        frame= f'Frame #{idx_frames[0]}'
-        freq_0= f'{freqs_val[0]} Hz'
-        freq_1= f'{freqs_val[1]} Hz'
+        # frame= f'Frame #{idx_frames[0]}'
+        # freq_0= f'{freqs_val[0]} Hz'
+        # freq_1= f'{freqs_val[1]} Hz'
 
         return  {
                     PlotType.Image_2D:{
-                        'title': f'Frequency difference Imaging ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
+                        'title': f'Frequency difference Imaging ({label_meas[1]}); {self.frame_label(0)} ({self.freq_label(0)} - {self.freq_label(1)})',
                         'legend': ['',''],
                         'xylabel': ['X', 'Y', 'Z']
                     },
                     PlotType.U_plot:{
-                        'title': f'Voltages ({label_meas[0]}); {frame} ' ,
-                        'legend': [ f'Ref Frequence {freq_0}',f'Frequence {freq_1}'],
+                        'title': f'Voltages ({label_meas[0]}); {self.frame_label(0)} ' ,
+                        'legend': [ f'Ref Frequence {self.freq_label(0)}',f'Frequence {self.freq_label(1)}'],
                         'xylabel':  ['Measurements', 'Voltages in [V]']
                     },
                     PlotType.Diff_plot:{
-                        'title': f'Voltage differences ({label_meas[1]}); {frame} ({freq_0} - {freq_1})',
+                        'title': f'Voltage differences ({label_meas[1]}); {self.frame_label(0)} ({self.freq_label(0)} - {self.freq_label(1)})',
                         'legend': ['',''],
                         'xylabel': ['Measurements', 'Voltages in [V]']
                     },
