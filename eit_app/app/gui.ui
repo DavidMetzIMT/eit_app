@@ -112,13 +112,16 @@
         <string>test</string>
        </property>
        <property name="statusTip">
-        <string>Refresh the available serial port list</string>
+        <string>Refresh the available serial port list (Ctrl + R)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
        </property>
        <property name="text">
         <string>Refresh</string>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl+R</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pB_disconnect">
@@ -142,6 +145,9 @@
        <property name="text">
         <string>Disconnect</string>
        </property>
+       <property name="shortcut">
+        <string>D</string>
+       </property>
       </widget>
       <widget class="QPushButton" name="pB_connect">
        <property name="geometry">
@@ -160,6 +166,9 @@
        </property>
        <property name="text">
         <string>Connect</string>
+       </property>
+       <property name="shortcut">
+        <string>C</string>
        </property>
       </widget>
      </widget>
@@ -214,6 +223,9 @@
        </property>
        <property name="text">
         <string>Set_Setup</string>
+       </property>
+       <property name="shortcut">
+        <string>Shift+S</string>
        </property>
       </widget>
       <widget class="QWidget" name="formLayoutWidget_2">
@@ -577,6 +589,9 @@
        <property name="text">
         <string>Get_Setup</string>
        </property>
+       <property name="shortcut">
+        <string>Shift+G</string>
+       </property>
       </widget>
       <widget class="QPushButton" name="pB_reset">
        <property name="geometry">
@@ -595,6 +610,9 @@
        </property>
        <property name="text">
         <string>Reset</string>
+       </property>
+       <property name="shortcut">
+        <string>Ctrl+Shift+R</string>
        </property>
       </widget>
      </widget>
@@ -659,7 +677,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>360</y>
+        <y>410</y>
         <width>401</width>
         <height>270</height>
        </rect>
@@ -707,7 +725,7 @@
         <x>10</x>
         <y>10</y>
         <width>401</width>
-        <height>110</height>
+        <height>161</height>
        </rect>
       </property>
       <property name="title">
@@ -717,7 +735,7 @@
        <property name="geometry">
         <rect>
          <x>220</x>
-         <y>80</y>
+         <y>120</y>
          <width>171</width>
          <height>23</height>
         </rect>
@@ -733,7 +751,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>80</y>
+         <y>120</y>
          <width>141</width>
          <height>23</height>
         </rect>
@@ -749,7 +767,7 @@
        <property name="geometry">
         <rect>
          <x>160</x>
-         <y>80</y>
+         <y>120</y>
          <width>51</width>
          <height>23</height>
         </rect>
@@ -789,9 +807,9 @@
       <widget class="QLineEdit" name="lE_meas_dataset_dir">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>10</x>
          <y>50</y>
-         <width>201</width>
+         <width>380</width>
          <height>23</height>
         </rect>
        </property>
@@ -817,6 +835,9 @@
        <property name="text">
         <string>Stop</string>
        </property>
+       <property name="shortcut">
+        <string>Esc</string>
+       </property>
       </widget>
       <widget class="QPushButton" name="pB_start_meas">
        <property name="geometry">
@@ -836,12 +857,15 @@
        <property name="text">
         <string>Start</string>
        </property>
+       <property name="shortcut">
+        <string>Ctrl+Shift+Space</string>
+       </property>
       </widget>
-      <widget class="QCheckBox" name="chB_dataset_autoset">
+      <widget class="QCheckBox" name="chB_dataset_autosave">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>50</y>
+         <y>80</y>
          <width>71</width>
          <height>23</height>
         </rect>
@@ -856,8 +880,8 @@
       <widget class="QCheckBox" name="chB_dataset_save_img">
        <property name="geometry">
         <rect>
-         <x>80</x>
-         <y>50</y>
+         <x>90</x>
+         <y>80</y>
          <width>71</width>
          <height>23</height>
         </rect>
@@ -869,12 +893,28 @@
         <bool>true</bool>
        </property>
       </widget>
+      <widget class="QCheckBox" name="chB_load_after_meas">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>80</y>
+         <width>101</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>load after meas</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
      <widget class="QGroupBox" name="groupBox_6">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>130</y>
+        <y>180</y>
         <width>401</width>
         <height>221</height>
        </rect>
@@ -923,6 +963,9 @@
         <iconset resource="../resource.qrc">
          <normaloff>:/newPrefix/icons/icon_end.png</normaloff>:/newPrefix/icons/icon_end.png</iconset>
        </property>
+       <property name="shortcut">
+        <string>End</string>
+       </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
@@ -952,6 +995,12 @@
         <iconset resource="../resource.qrc">
          <normaloff>:/newPrefix/icons/icon_play.png</normaloff>:/newPrefix/icons/icon_play.png</iconset>
        </property>
+       <property name="shortcut">
+        <string>Ctrl+Space</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
@@ -980,6 +1029,9 @@
        <property name="icon">
         <iconset resource="../resource.qrc">
          <normaloff>:/newPrefix/icons/icon_begin.png</normaloff>:/newPrefix/icons/icon_begin.png</iconset>
+       </property>
+       <property name="shortcut">
+        <string>Home</string>
        </property>
        <property name="checkable">
         <bool>false</bool>
@@ -1020,67 +1072,6 @@
        </property>
        <property name="value">
         <double>1.000000000000000</double>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_replay_pause">
-       <property name="geometry">
-        <rect>
-         <x>113</x>
-         <y>121</y>
-         <width>28</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Plot the U-Shape diagramm</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../resource.qrc">
-         <normaloff>:/newPrefix/icons/icon_pause.png</normaloff>:/newPrefix/icons/icon_pause.png</iconset>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_replay_stop">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>147</x>
-         <y>121</y>
-         <width>28</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Plot the U-Shape diagramm</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../resource.qrc">
-         <normaloff>:/newPrefix/icons/icon_stop.png</normaloff>:/newPrefix/icons/icon_stop.png</iconset>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
        </property>
       </widget>
       <widget class="QLabel" name="lab_replay_time">
@@ -1199,7 +1190,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>630</y>
+        <y>680</y>
         <width>181</width>
         <height>23</height>
        </rect>
@@ -1218,7 +1209,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>270</x>
-        <y>630</y>
+        <y>680</y>
         <width>91</width>
         <height>23</height>
        </rect>
@@ -1249,7 +1240,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>660</y>
+        <y>710</y>
         <width>231</width>
         <height>23</height>
        </rect>

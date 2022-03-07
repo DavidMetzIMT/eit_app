@@ -25,7 +25,7 @@ from logging import getLogger
 from queue import Empty, Queue
 from threading import Event
 from time import sleep
-from typing import Any, List
+from typing import Any, List, Tuple
 
 from numpy.lib.npyio import save
 
@@ -555,29 +555,38 @@ class IOInterfaceSciospec(object):
         self._send_cmd_frame(CMD_GET_DEVICE_INFOS, OP_NULL)
         self._wait_not_busy()
 
-    def start_meas(self, name_measurement:str='default_meas_name'):
+    def start_meas(self, name_measurement:str='default_meas_name')-> Tuple[bool, str]:
         """ Start measurements """
         self._if_measuring_stop(force_to_stop=False)
+        meas_dir=''
         name, output_dir =self._prepare_dataset(name_measurement)
         if self.dataset.autosave.is_set():
             self.save_setup(output_dir)
+            meas_dir=output_dir
         succeed = self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
         self._wait_not_busy()
         succeed_word= 'SUCCEED' if succeed else 'FAILED' 
         logger.info( f'Start Measurements - {succeed_word}')
+        return succeed, meas_dir
+
+    def resume_meas(self, name_measurement:str='default_meas_name'):
+        """ resume measurements """
+        self._if_measuring_stop(force_to_stop=False)
+        # name, output_dir =self._prepare_dataset(name_measurement)
+        # if self.dataset.autosave.is_set():
+        #     self.save_setup(output_dir)
+        self.dataset.init_resume()
+        succeed = self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
+        self._wait_not_busy()
+        succeed_word= 'SUCCEED' if succeed else 'FAILED' 
+        logger.info( f'Resume Measurements - {succeed_word}')
         return succeed
 
-    # def resume_meas(self, name_measurement:str='default_meas_name'):
-    #     """ resume measurements """
-    #     self._if_measuring_stop(force_to_stop=False)
-    #     # name, output_dir =self._prepare_dataset(name_measurement)
-    #     # if self.dataset.autosave.is_set():
-    #     #     self.save_setup(output_dir)
-    #     succeed = self._send_cmd_frame(CMD_START_STOP_MEAS, OP_START_MEAS)
-    #     self._wait_not_busy()
-    #     succeed_word= 'SUCCEED' if succeed else 'FAILED' 
-    #     logger.info( f'Resume Measurements - {succeed_word}')
-    #     return succeed
+    def pause_meas(self, append=True):
+        """ Pause measurements """
+        self._send_cmd_frame(CMD_START_STOP_MEAS, OP_STOP_MEAS, cmd_append=append)
+        self._wait_not_busy()
+        logger.info( 'Pause Measurements - done')
 
     def stop_meas(self, append=True):
         """ Stop measurements """

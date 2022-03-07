@@ -13,13 +13,12 @@ from enum import Enum, auto
 from eit_app.eit.imaging_type import DATA_TRANSFORMATIONS, IMAGING_TYPE, Imaging
 from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 
-from glob_utils.flags.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag,MultiState
 
 
 
 class UpdateListenerError(Exception):
     """"""
-
 
 
 
@@ -83,20 +82,54 @@ def update_freqs_list_meas(app:Ui_MainWindow, freqs:List[Any]):
     for cB in [ app.cB_freq_meas_0, app.cB_freq_meas_1]:
         set_comboBox_items(cB, list(freqs))
 
-def update_live_view_status(app:Ui_MainWindow, live_meas:CustomFlag):
-    if live_meas.is_set():
-        app.lab_live_meas_status.setText('MEASUREMENTS ON')
-        app.lab_live_meas_status.setStyleSheet("background-color: green")
-    else:
-        app.lab_live_meas_status.setText('MEASUREMENTS OFF')
+class LiveMeasState(Enum):
+    Idle=auto()
+    Measuring=auto()
+    Paused=auto()
+
+def update_live_view_status(app:Ui_MainWindow, live_meas:MultiState):
+    if live_meas.is_set(LiveMeasState.Idle):
+        app.lab_live_meas_status.setText('Idle')
         app.lab_live_meas_status.setStyleSheet("background-color: red")
+        app.pB_start_meas.setText('Start')
+        app.pB_start_meas.setToolTip('Start aquisition of a new measurement dataset')
+    elif live_meas.is_set(LiveMeasState.Measuring):
+        app.lab_live_meas_status.setText('Measuring')
+        app.lab_live_meas_status.setStyleSheet("background-color: green")
         app.meas_progress_bar.setValue(0)
+        app.pB_start_meas.setText('Pause')
+        app.pB_start_meas.setToolTip('Pause aquisition of measurement dataset')
+    elif live_meas.is_set(LiveMeasState.Paused):
+        app.lab_live_meas_status.setText('Paused')
+        app.lab_live_meas_status.setStyleSheet("background-color: yellow")
+        app.pB_start_meas.setText('Resume')
+        app.pB_start_meas.setToolTip('Restart aquisition of measurement dataset')
+
+
+
+
+# if self.pB_start_meas.text() =='Start':
+#             self._c_set_device_setup()
+#             if self.io_interface.start_meas(self.lE_meas_dataset_dir.text()):
+#                 self.init_gui_for_live_meas()
+#                 self.live_meas_status.change_state(LiveMeasState.Measuring)
+#             self.pB_start_meas.setText('Pause')
+#             self.pB_start_meas.setToolTip('Pause aquisition of measurement dataset')
+#         elif self.pB_start_meas.text() =='Pause':
+#             self.io_interface.stop_meas()
+#             self.live_meas_status.change_state(LiveMeasState.Paused)
+#             self.pB_start_meas.setText('Resume')
+#             self.pB_start_meas.setToolTip('Restart aquisition of measurement dataset')
+#         elif self.pB_start_meas.text() =='Resume':
+#             if self.io_interface.resume_meas():
+#                 self.live_meas_status.change_state(LiveMeasState.Measuring)
+            
 
 
 def update_replay_status(app:Ui_MainWindow, replay:CustomFlag):
     if replay.is_set():
         app.lab_replay_status.setText('REPLAY ON')
-        app.lab_replay_status.setStyleSheet("background-color: blue")
+        app.lab_replay_status.setStyleSheet("background-color: green")
     else:
         app.lab_replay_status.setText('REPLAY OFF')
         app.lab_replay_status.setStyleSheet("background-color: grey")
@@ -130,14 +163,19 @@ def update_progression_acquisition_single_frame(app:Ui_MainWindow, idx_frame:int
     app.sB_actual_frame_cnt.setValue(idx_frame)
     app.meas_progress_bar.setValue(progression)
 
-def update_info_data_computed(app:Ui_MainWindow, live_meas:CustomFlag=CustomFlag, idx_frame:List[int]=0, info:str=''):
-    if live_meas.is_set():
+def update_info_data_computed(app:Ui_MainWindow, live_meas:MultiState, idx_frame:List[int]=0, info:str=''):
+    if live_meas.is_set(LiveMeasState.Measuring):
         set_comboBox_items(app.cB_current_idx_frame, [idx_frame], reset_box=False, set_index=-1, block=True ) 
     app.tE_frame_info.setText("\r\n".join(info))
     
 def update_autosave_changed(app:Ui_MainWindow):
-    app.lE_meas_dataset_dir.setEnabled(app.chB_dataset_autoset.isChecked())
-    app.chB_dataset_save_img.setEnabled(app.chB_dataset_autoset.isChecked())
+    app.lE_meas_dataset_dir.setEnabled(app.chB_dataset_autosave.isChecked())
+    app.chB_dataset_save_img.setEnabled(app.chB_dataset_autosave.isChecked())
+    app.chB_load_after_meas.setEnabled(app.chB_dataset_autosave.isChecked())
+    app.chB_dataset_save_img.setChecked(
+            app.chB_dataset_autosave.isChecked() and app.chB_dataset_save_img.isChecked())
+    app.chB_load_after_meas.setChecked(
+            app.chB_dataset_autosave.isChecked() and app.chB_load_after_meas.isChecked())
 
 def update_dataset_loaded(app:Ui_MainWindow, dataset:EitMeasurementSet ):
 

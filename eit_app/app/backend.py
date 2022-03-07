@@ -5,6 +5,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from enum import Enum, auto
 
 import logging
 import os
@@ -20,7 +21,7 @@ from eit_app.app.dialog_boxes import openFileNameDialog, show_msgBox
 from eit_app.app.event import CustomEvents
 from eit_app.app.gui import Ui_MainWindow as app_gui
 from eit_app.app.update_gui_listener import (UpdateEvents,
-                                             setup_update_event_handlers)
+                                             setup_update_event_handlers, LiveMeasState)
 from eit_app.app.utils import set_comboBox_items, set_slider, set_table_widget
 from eit_app.eit.computation import ComputeMeas
 from eit_app.eit.eit_model import EITModelClass
@@ -37,7 +38,7 @@ from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.io.video.microcamera import (EXT_IMG, IMG_SIZES, MicroUSBCamera,
                                           VideoCaptureModule)
 from eit_app.threads_process.threads_worker import CustomWorker
-from glob_utils.flags.flag import CustomFlag, CustomTimer
+from glob_utils.flags.flag import CustomFlag, CustomTimer,MultiState
 from glob_utils.log.log import change_level_logging, main_log
 from glob_utils.pth.path_utils import get_datetime_s, mk_new_dir
 from glob_utils.files.files import save_as_csv,dialog_get_file_with_ext,FileExt,OpenDialogFileCancelledException
@@ -71,6 +72,9 @@ log_level={
     'INFO':logging.INFO,
     'WARNING':logging.WARNING
 }
+
+
+
 
 class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     
@@ -121,7 +125,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.up_events.post(
             UpdateEvents.device_status,self, self.io_interface)
         self.up_events.post(
-            UpdateEvents.live_meas_status, self, self.live_meas_status)
+            UpdateEvents.live_meas_status, self, self.meas_status)
         self.up_events.post(
             UpdateEvents.replay_status, self, self.replay_status)
 
@@ -144,7 +148,10 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             self.figure_to_plot
         )
 
-        self.live_meas_status=CustomFlag()
+        # self.live_meas_status=CustomFlag()
+        self.meas_status=MultiState(
+            [LiveMeasState.Idle, LiveMeasState.Measuring, LiveMeasState.Paused])
+        self.meas_status.change_state(LiveMeasState.Idle)
         self.replay_status=CustomFlag()
         self.replay=CustomFlag()
         self.replay_timer= CustomTimer(
@@ -201,9 +208,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.cB_scale.activated.connect(self._update_dev_setup)
         self.sBd_frame_rate.valueChanged.connect(self._update_dev_setup)
         
-        self.chB_dataset_autoset.toggled.connect(self._c_autosave)
+        self.chB_dataset_autosave.toggled.connect(self._c_autosave)
         self.chB_dataset_save_img.toggled.connect(self._c_autosave)
-
+        self.chB_load_after_meas.toggled.connect(self._c_autosave)
         # frame plot/ 
         self.cB_current_idx_frame.activated.connect(
             self._c_current_frame_selected)
@@ -218,8 +225,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.pB_replay_back_begin.clicked.connect(self._c_replay_back_begin)
         self.pB_replay_goto_end.clicked.connect(self._c_replay_goto_end)
         self.pB_replay_play.clicked.connect(self._c_replay_play)
-        self.pB_replay_pause.clicked.connect(self._c_replay_pause)
-        self.pB_replay_stop.clicked.connect(self._c_replay_stop)
+        # self.pB_replay_pause.clicked.connect(self._c_replay_pause)
+        # self.pB_replay_stop.clicked.connect(self._c_replay_stop)
         self.sB_replay_time.valueChanged.connect(self._c_replay_time_changed)
         self.slider_replay.valueChanged.connect(self._c_replay_slider_changed)
         self.pB_export_meas_csv.clicked.connect(self._c_export_meas_csv)
@@ -293,13 +300,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             - live view can be stopped with Stop Meas.
         """
     
-        if self.live_meas_status.has_changed():
+        if self.meas_status.has_changed():
             self.up_events.post(
                 UpdateEvents.live_meas_status,
                 self,
-                self.live_meas_status)
-            self.live_meas_status.ack_change()
-            if self.live_meas_status.is_set():
+                self.meas_status)
+            self.meas_status.ack_change()
+            if self.meas_status.is_set(LiveMeasState.Measuring):
                 self.replay_status.clear()
                 self.capture_module.set_meas()
             else:
@@ -313,13 +320,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                 self.replay_status)
             self.replay_status.ack_change()
 
-        if self.live_meas_status.is_set():
+        if self.meas_status.is_set(LiveMeasState.Measuring):
             self.up_events.post(
                 UpdateEvents.progress_frame,
                 self,
                 self.meas_dataset.get_frame_cnt(),
                 self.meas_dataset.get_filling())
-            self.nb_measurements_reached()
+            self.check_nb_meas_reached()
         self.replay_pulse()    
         self.is_device_unplugged()
 
@@ -347,7 +354,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                 self.up_events.post(
                     UpdateEvents.info_data_computed,
                     self,
-                    self.live_meas_status,
+                    self.meas_status,
                     dataset.get_idx_frame(idx_frame),
                     dataset.get_frame_info(idx_frame)
                 )
@@ -366,7 +373,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             image=self.captured_imgs.get()
         self.display_image(image)
 
-    def nb_measurements_reached(self)-> None: 
+    def check_nb_meas_reached(self)-> None: 
         """Check if the number of Burst(measurements) is reached, 
         in that case the measurement mode will be stopped on the device
         Notes:
@@ -446,22 +453,30 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     
     def _c_start_measurement(self)->None:
         """Start measurements on sciopec device"""
-        self._c_set_device_setup()
-        if self.io_interface.start_meas(self.lE_meas_dataset_dir.text()):
-            self.init_gui_for_live_meas()
-    
-    # def _c_resume_measurement(self)->None:
-    #     """Start measurements on sciopec device"""
-    #     # self._c_set_device_setup()
-    #     if self.io_interface.resume_meas(self.lE_meas_dataset_dir.text()):
-    #         # self.up_events.post(
-    #         # UpdateEvents.info_data_computed,self, self.live_meas_status, 0, '')
-    #         self.live_meas_status.set()
+        if self.meas_status.is_set(LiveMeasState.Idle):
+            self._c_set_device_setup()
+            success, self.last_meas_dir = self.io_interface.start_meas(
+                self.lE_meas_dataset_dir.text())
+            if success:
+                self.init_gui_for_live_meas()
+                self.meas_status.change_state(LiveMeasState.Measuring)
+
+        elif self.meas_status.is_set(LiveMeasState.Measuring):
+            self.io_interface.stop_meas()
+            self.meas_status.change_state(LiveMeasState.Paused)
+
+        elif self.meas_status.is_set(LiveMeasState.Paused):
+            if self.io_interface.resume_meas():
+                self.meas_status.change_state(LiveMeasState.Measuring)
 
     def _c_stop_measurement(self)->None:
         """Start measurements on sciopec device"""
-        self.io_interface.stop_meas()
-        self.live_meas_status.clear()
+        if self.meas_status.is_set(LiveMeasState.Measuring) or self.meas_status.is_set(LiveMeasState.Paused):
+            self.io_interface.stop_meas()
+            self.meas_status.change_state(LiveMeasState.Idle)
+            self.up_events.post(UpdateEvents.progress_frame,self,0, 0)
+            if self.chB_load_after_meas.isChecked():
+                self._load_meas_set(self.last_meas_dir)
         # self.frame_cnt_old =-1 # reset
     
     def _c_save_setup(self)->None:
@@ -546,7 +561,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         Args:
             path ([type], optional): [description]. Defaults to None.
         """        
-        if self.live_meas_status.is_set()==True:
+        if self.meas_status.is_set(LiveMeasState.Measuring)==True:
             # Frame to use is ._last_frame[0] is the last updated...
             self.meas_dataset.set_frame_TD_ref() 
         else:
@@ -603,9 +618,11 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     def _c_autosave(self)->None:
         """update selected autosave mode """        
         self.io_interface.set_autosave(
-            self.chB_dataset_autoset.isChecked(),
+            self.chB_dataset_autosave.isChecked(),
             self.chB_dataset_save_img.isChecked())
         self.up_events.post(UpdateEvents.autosave_changed,self)
+        self.chB_load_after_meas.setChecked(
+            self.chB_dataset_autosave.isChecked() and self.chB_load_after_meas.isChecked())
     
     def _c_load_meas_set(self)->None:
         """the callback has to be witouh arguments! """
@@ -624,7 +641,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                 'Live video still running',
                 'Information'
             )
-        if self.live_meas_status.is_set():
+        if self.meas_status.is_set(LiveMeasState.Measuring):
             show_msgBox(
                 'Please stop measurements before loading dataset',
                 'Live measurements still running',
@@ -641,24 +658,39 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.compute_frame(idx_frame=0)
 
     def _c_replay_play(self)->None:
-        self.replay.set()
-        self.replay_timer.reset()
+        icon = QtGui.QIcon()
+        logger.debug(f'{self.replay.is_set()}')
+        if self.replay.is_set():
+            logger.debug('PAUSE')
+            self._c_replay_stop()
+            icon_path=":/newPrefix/icons/icon_play.png"
+        else:
+            logger.debug('PLAY')
+            self.replay.set()
+            self.replay_timer.reset()
+            icon_path=":/newPrefix/icons/icon_pause.png"
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(icon_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.pB_replay_play.setIcon(icon)
 
     def _c_replay_back_begin(self)->None:
+        self._c_replay_stop()
         set_slider(self.slider_replay, set_pos=0)
         
     def _c_replay_goto_end(self)->None:
+        self._c_replay_stop()
         set_slider(self.slider_replay, set_pos=-1)
 
-    def _c_replay_pause(self)->None:
-        self.replay.clear()
+    # def _c_replay_pause(self)->None:
+    #     self.replay.clear()
+
         
     def _c_replay_stop(self)->None:
         """[summary]
         """        
         self.replay.clear()
-        self._c_replay_back_begin()
         self.replay_timer.reset()
+
         
     def _c_replay_slider_changed(self)->None:
         idx_frame=self.slider_replay.sliderPosition()
@@ -674,7 +706,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self._compute_meas_frame(idx_frame)
 
     def _compute_meas_frame(self, idx_frame:int=0)->None:
-        if not self.replay_status.is_set() or self.live_meas_status.is_set():
+        if not self.replay_status.is_set() or self.meas_status.is_set(LiveMeasState.Measuring):
             show_msgBox(
                 'First load a measuremment dataset',
                 'Replay mode not activated',
@@ -703,7 +735,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     ############################################################################
 
     def _c_live_capture_start(self, look_memory_flag:bool=False)->None:
-        if self.live_meas_status.is_set():
+        if self.meas_status.is_set(LiveMeasState.Measuring):
             show_msgBox(
                 'First stop measurement',
                 'Measurement is running',
@@ -717,7 +749,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         
         
     def _c_live_capture_stop(self, memory_flag:bool=False)->None:
-        if self.live_meas_status.is_set():
+        if self.meas_status.is_set(LiveMeasState.Measuring):
             show_msgBox(
                 'First stop measurement',
                 'Measurement is running',
@@ -740,7 +772,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         set_comboBox_items(self.cB_video_devices,capture_devices)
 
     def _c_set_capture_device(self)->None:
-        if self.live_meas_status.is_set():
+        if self.meas_status.is_set(LiveMeasState.Measuring):
             show_msgBox(
                 'First stop measurement',
                 'Measurement is running',
@@ -828,8 +860,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
     def init_gui_for_live_meas(self)->None:
         self.up_events.post(
-            UpdateEvents.info_data_computed,self, self.live_meas_status, 0, '')
-        self.live_meas_status.set()
+            UpdateEvents.info_data_computed,self, self.meas_status, 0, '')
+        # self.live_meas_status.change_state(LiveMeasState.Measuring)
 
 
     def closeEvent(self, event)->None:

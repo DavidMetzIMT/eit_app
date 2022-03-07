@@ -91,6 +91,8 @@ class EitMeasurementSet(object):
         self.flag_new_meas=CustomFlag()
         return self.name, self.output_dir
     
+    def init_resume(self):
+        self.rx_meas_frame[0]=EITFrame(self.dev_setup)# clear frame
 
     def add_rx_frame_to_dataset(self, rx_frame, for_ser:bool=False, idx:int=0):
         """ add the data from the rx_frame in the dataset 
