@@ -54,6 +54,7 @@ class ReconstructionPyEIT(Reconstruction):
         MeshObj, ElecPos= self._construct_mesh(
                     model.get_nd_elecs(),
                     model.get_fem_refinement(),
+                    model.get_elec_pos(),
                     model.chamber.get_chamber_limit()
                 )
 
@@ -91,8 +92,8 @@ class ReconstructionPyEIT(Reconstruction):
             model.fem.update_from_pyeit(MeshObj)
         return model, U
 
-    def _construct_mesh(self, elec_nb, fem_refinement, bbox):
-        MeshObj, ElecPos = mesh.create(n_el=elec_nb, h0=fem_refinement, bbox=bbox)
+    def _construct_mesh(self, elec_nb, fem_refinement, elec_pos, bbox):
+        MeshObj, ElecPos = mesh.create(n_el=elec_nb, h0=fem_refinement, p_fix=elec_pos, bbox=bbox)
         MeshObj= _reconstruct_mesh_struct(MeshObj)
         return MeshObj, ElecPos
 

@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List
+from matplotlib import markers
 import matplotlib.figure as mfig
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,6 +12,10 @@ from numpy.lib.shape_base import tile
 from eit_app.eit.eit_model import EITModelClass
 # from eit_app.eit.reconstruction import ReconstructionPyEIT
 from logging import getLogger
+import os
+
+DEFAULT_DIR= 'default'
+DEFAULT_Elec_Pos='elec_pos.txt'
 
 logger = getLogger(__name__)
 class PlotType(Enum):
@@ -28,6 +33,9 @@ class CustomPlots(ABC):
     
     def is_visible(self):
         return self.visible
+    
+    def add_elec_nb(self):
+        return self.add_elec_nb
 
     @abstractmethod
     def plot():
@@ -81,10 +89,11 @@ class PlotImage2D(CustomPlots):
         CustomPlots (_type_): _description_
     """
 
-    def __init__(self, is_visible:bool=False) -> None:
+    def __init__(self, is_visible:bool=False, add_elec_nb:bool=True) -> None:
         super().__init__()
         self.name=PlotType.Image_2D
         self.visible=is_visible
+        self.add_elec_nb=add_elec_nb
     
     def plot(self, fig:Figure, ax:Axes, model:EITModelClass, labels):
         
@@ -100,6 +109,14 @@ class PlotImage2D(CustomPlots):
         if len(label['xylabel'])==2:
             ax.set_ylabel(label['xylabel'][1])
         fig.colorbar(im, ax=ax)
+        if(self.add_elec_nb==True):
+            add_annotation(ax, model.get_elec_pos())
+        
+        # x_coord = self.elec_pos[:, 0]
+        # y_coord = self.elec_pos[:, 1]
+        # ax.scatter(x_coord/5, y_coord/5, marker ='o')
+        # for i in range (len(self.elec_pos)):
+        #     ax.annotate(f'{i+1}',self.elec_pos[i],  xytext=(5, 5), textcoords='offset points')
         # else:
         #     ax.set_title('Reconstruction')
         #     ax.text(0.5, 0.5, 'pyEIT not initialized \n please choose an reconstruction algorithm', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes,bbox=dict(facecolor='red', alpha=0.5))
@@ -212,6 +229,7 @@ def plot_rec(plot_to_show:List[CustomPlots], fig,  data):
     eit_model=data['eit_model']
     fig.clear()
     ax=[fig.add_subplot(1,1,1)]
+    # add_annotation(ax[0])
     fig, ax[0]= plot_to_show[0].plot(fig, ax[0], eit_model, labels)
     return fig
 
@@ -252,7 +270,14 @@ def plot_rec(plot_to_show:List[CustomPlots], fig,  data):
 #         #figure.subplots_adjust(left=0.1, bottom=0, right=1, top=1, wspace=0.1, hspace=0.1)
 #     return fig
 
-
+def add_annotation(ax, elec_pos):
+        # path= os.path.join(DEFAULT_DIR,DEFAULT_Elec_Pos)
+        # elec_pos = np.loadtxt(path)
+        x_coord = elec_pos[:, 0] / 5
+        y_coord = elec_pos[:, 1] / 5
+        ax.scatter(x_coord, y_coord, marker ='o', s = 10, c ='r')
+        for i in range (len(elec_pos)):
+            ax.annotate(f"{i+1}",elec_pos[i] / 5,  xycoords='data', xytext=(5, -5), textcoords='offset points', fontsize =10)   
 
 
 if __name__ == "__main__":

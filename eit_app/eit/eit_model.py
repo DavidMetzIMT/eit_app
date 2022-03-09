@@ -18,6 +18,7 @@ DEFAULT_INJECTIONS= {   'ad':'InjPattern_default_ad.txt',
                         'op':'InjPattern_default_op.txt'}
 DEFAULT_MEASUREMENTS= { 'ad':'MeasPattern_default_ad.txt',
                         'op':'MeasPattern_default_op.txt'}
+DEFAULT_Elec_Pos='elec_pos.txt'
 
 DEFAULT_ELECTRODES_CHIP_RING='Chip_Ring.txt'
 ## ======================================================================================================================================================
@@ -149,6 +150,7 @@ class EITModelClass(object):
         self.InjPattern = [[0,0], [0,0]]
         self.Amplitude= float(1)
         self.meas_pattern=[[0,0], [0,0]]
+        self.elec_pos = None
         self.n_el=16
         self.p=0.5
         self.lamb=0.01
@@ -162,6 +164,10 @@ class EITModelClass(object):
         self.meas_pattern=np.loadtxt(path)
         # print(type(self.MeasPattern))
         # print(self.MeasPattern)
+        path= os.path.join(DEFAULT_DIR,DEFAULT_Elec_Pos)
+        self.elec_pos=np.loadtxt(path)
+        # print(self.elec_pos)
+        
         self.SolverType= 'none'
         self.FEMRefinement=0.1
         self.translate_inj_pattern_4_chip()
@@ -193,7 +199,9 @@ class EITModelClass(object):
             new[old==o_num[n]]= n_num[n]
             
         self.InjPattern= new # to list???
-        
+    
+    def get_elec_pos(self):
+        return self.elec_pos
     def get_fem_refinement(self):
         return self.fem.refinement
     def get_nd_elecs(self, all:bool=True):
