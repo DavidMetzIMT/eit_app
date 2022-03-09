@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -137,7 +137,7 @@
         <string/>
        </property>
        <property name="statusTip">
-        <string>Disconnect the serial port</string>
+        <string>Disconnect the serial port (Shift + D)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -146,7 +146,7 @@
         <string>Disconnect</string>
        </property>
        <property name="shortcut">
-        <string>D</string>
+        <string>Shift+D</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pB_connect">
@@ -159,7 +159,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Connect to the selected serial port</string>
+        <string>Connect to the selected serial port (Shift +C)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -168,7 +168,7 @@
         <string>Connect</string>
        </property>
        <property name="shortcut">
-        <string>C</string>
+        <string>Shift+C</string>
        </property>
       </widget>
      </widget>
@@ -216,7 +216,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Send measurements parameters to connected device</string>
+        <string>Send measurements parameters to connected device (Shift +S)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -581,7 +581,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Ask measurements parameters from connected device</string>
+        <string>Ask measurements parameters from connected device (Shift +G)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -603,7 +603,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Software reset of the device (reconnection needed after 10-15 sec)</string>
+        <string>Software reset of the device (reconnection needed after 10-15 sec) (Ctrl + Shift +C)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -827,7 +827,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Stop measurement</string>
+        <string>Stop measurement (Esc)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -849,7 +849,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Start measurement</string>
+        <string>Start measurement (Ctrl + Shift +Space)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -951,7 +951,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Plot the U-Shape diagramm</string>
+        <string>Display last meas. frame (End)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -983,7 +983,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Plot the U-Shape diagramm</string>
+        <string>Start Replay pf measurements (Ctrl +Space)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -1018,7 +1018,7 @@
         </rect>
        </property>
        <property name="statusTip">
-        <string>Plot the U-Shape diagramm</string>
+        <string>Display last meas. frame (Pos1)</string>
        </property>
        <property name="autoFillBackground">
         <bool>false</bool>
@@ -2006,11 +2006,14 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>2</number>
+    </property>
+    <property name="tabBarAutoHide">
+     <bool>true</bool>
     </property>
     <widget class="QWidget" name="tab_meas_voltages">
      <attribute name="title">
-      <string>Measured voltages</string>
+      <string>Reconstruction data</string>
      </attribute>
      <widget class="QGroupBox" name="groupBox_8">
       <property name="geometry">
@@ -2100,7 +2103,7 @@ p, li { white-space: pre-wrap; }
     </widget>
     <widget class="QWidget" name="tab_values">
      <attribute name="title">
-      <string>Values</string>
+      <string>Measured values tabs</string>
      </attribute>
      <widget class="QTabWidget" name="tabW_values">
       <property name="geometry">
@@ -2199,6 +2202,22 @@ p, li { white-space: pre-wrap; }
         <string>Magnitude</string>
        </attribute>
       </widget>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Measured values graph</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget_4">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>20</y>
+        <width>1350</width>
+        <height>441</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="layout_ch_graph"/>
      </widget>
     </widget>
    </widget>
