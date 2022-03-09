@@ -171,7 +171,6 @@ class EITModelClass(object):
         self.stimulations:List[Stimulations]=[Stimulations()]
         
 
-    
     def set_solver(self, solver_type):
         self.SolverType= solver_type
 

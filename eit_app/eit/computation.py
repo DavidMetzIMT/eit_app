@@ -1,8 +1,8 @@
 
-import traceback
+
 from queue import Queue
 from typing import List
-from logging import getLogger
+import logging
 import numpy as np
 from eit_app.eit.imaging_type import Imaging
 from eit_app.eit.eit_model import EITModelClass
@@ -12,6 +12,7 @@ from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.threads_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import get_datetime_s
+from glob_utils.decorator.decorator import catch_error
 
 
 class Data4GUI():
@@ -21,7 +22,9 @@ class Data4GUI():
     def unpack():
         """"""
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+
 class ComputeMeas():
 
     def __init__(self, queue_in: Queue, queue_out:Queue):
@@ -63,32 +66,33 @@ class ComputeMeas():
         if self.queue_in.empty():
             return
             
-        try:
-            # loosing some informations
-            while not self.queue_in.empty():
-                data = self.queue_in.get(block=True)
+        # loosing some informations
+        while not self.queue_in.empty():
+            data = self.queue_in.get(block=True)
+        self.process(data)
 
-            dataset, idx_frame, cmd = data
+    @catch_error
+    def process(self, data):
+        dataset, idx_frame, cmd = data
             
-            self.U, self.labels = self.preprocess(dataset, idx_frame)
-            if self.plots_to_show[0].visible:
-                    self.eit_model, self.U= self.rec.run(cmd, self.eit_model, self.U)
-                    # if rec_result is not None:
-                        # self.eit_model, self.U= rec_result
-                    if dataset == 'random':
-                        logger.info(f'Dummy data - reconstructed (time {get_datetime_s()})')
-                    else:
-                        logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - reconstructed (time {get_datetime_s()})')
-            data_4_gui = { 
+        self.U, self.labels = self.preprocess(dataset, idx_frame)
+        if self.plots_to_show[0].visible:
+            self.eit_model, self.U= self.rec.run(cmd, self.eit_model, self.U)
+                # if rec_result is not None:
+                    # self.eit_model, self.U= rec_result
+            if dataset == 'random':
+                logger.info(f'Dummy data - reconstructed (time {get_datetime_s()})')
+            else:
+                logger.info(f'Frame #{dataset.get_idx_frame(idx_frame)} - reconstructed (time {get_datetime_s()})')
+        data_4_gui = { 
                 'dataset': dataset,
                 'idx_frame':idx_frame,
                 'U':self.U,
                 'labels':self.labels,
                 'eit_model':self.eit_model
             }
-            self.queue_out.put_nowait(data_4_gui)
-        except BaseException as error:
-            logger.error(f'{error}\n {traceback.format_exc()}')
+        self.queue_out.put_nowait(data_4_gui)
+
 
     def preprocess(self,dataset:EitMeasurementSet, idx_frame:int):
 
