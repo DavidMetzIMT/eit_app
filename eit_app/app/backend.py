@@ -5,23 +5,25 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from enum import Enum, auto
 
 import logging
 import os
 import time
 from logging import getLogger
 from queue import Queue
-from sys import argv, exit
 
+import eit_ai.raw_data.load_eidors as matlab
+import glob_utils.log.log
 import matplotlib
+import matplotlib.backends.backend_qt5agg
+import matplotlib.pyplot
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs, set_ai_default_dir
-from eit_app.app.dialog_boxes import openFileNameDialog, show_msgBox
+from eit_app.app.dialog_boxes import show_msgBox
 from eit_app.app.event import CustomEvents
 from eit_app.app.gui import Ui_MainWindow as app_gui
-from eit_app.app.update_gui_listener import (UpdateEvents,
-                                             setup_update_event_handlers, LiveMeasState)
+from eit_app.app.update_gui_listener import (LiveMeasState, UpdateEvents,
+                                             setup_update_event_handlers)
 from eit_app.app.utils import set_comboBox_items, set_slider, set_table_widget
 from eit_app.eit.computation import ComputeMeas
 from eit_app.eit.eit_model import EITModelClass
@@ -38,20 +40,12 @@ from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.io.video.microcamera import (EXT_IMG, IMG_SIZES, MicroUSBCamera,
                                           VideoCaptureModule)
 from eit_app.threads_process.threads_worker import CustomWorker
-from glob_utils.flags.flag import CustomFlag, CustomTimer,MultiState
-from glob_utils.log.log import change_level_logging, main_log
-from glob_utils.pth.path_utils import get_datetime_s, mk_new_dir
-from glob_utils.files.files import save_as_csv,dialog_get_file_with_ext,FileExt,OpenDialogFileCancelledException
-from matplotlib.backends.backend_qt5agg import \
-    FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import \
-    NavigationToolbar2QT as NavigationToolbar
-from matplotlib.pyplot import figure
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QApplication
-
-import eit_ai.raw_data.load_eidors as matlab
 from glob_utils.decorator.decorator import catch_error
+from glob_utils.files.files import (FileExt, OpenDialogFileCancelledException,
+                                    dialog_get_file_with_ext, save_as_csv)
+from glob_utils.flags.flag import CustomFlag, CustomTimer, MultiState
+from glob_utils.pth.path_utils import get_datetime_s
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 # Ensure using PyQt5 backend
 matplotlib.use('QT5Agg')
@@ -68,7 +62,7 @@ __status__ = "Production"
 logger = getLogger(__name__)
 
 
-log_level={
+LOG_LEVELS={
     'DEBUG':logging.DEBUG,
     'INFO':logging.INFO,
     'WARNING':logging.WARNING
@@ -94,24 +88,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             )
         )
 
-
-        self.figure_graphs = figure()
-        self.canvas_graphs = FigureCanvas(self.figure_graphs)
-        self.toolbar_graphs = NavigationToolbar(self.canvas_graphs, self)
-        self.layout_graphs.addWidget(self.toolbar_graphs)
-        self.layout_graphs.addWidget(self.canvas_graphs)
-
-        self.figure_rec = figure()
-        self.canvas_rec = FigureCanvas(self.figure_rec)
-        self.toolbar_rec = NavigationToolbar(self.canvas_rec, self)
-        self.layout_rec.addWidget(self.toolbar_rec)
-        self.layout_rec.addWidget(self.canvas_rec)
-
-        self.figure_ch_graph = figure()
-        self.canvas_ch_graph = FigureCanvas(self.figure_ch_graph)
-        self.toolbar_ch_graph = NavigationToolbar(self.canvas_ch_graph, self)
-        self.layout_ch_graph.addWidget(self.toolbar_ch_graph)
-        self.layout_ch_graph.addWidget(self.canvas_ch_graph)
+        # set canvas
+        tmp  = self.set_canvaslayout4plots(self.layout_graphs)
+        self.figure_graphs, self.canvas_graphs, self.toolbar_graphs = tmp
+        tmp  = self.set_canvaslayout4plots(self.layout_rec)
+        self.figure_rec, self.canvas_rec, self.toolbar_rec = tmp
+        tmp  = self.set_canvaslayout4plots(self.layout_ch_graph)
+        self.figure_ch_graph, self.canvas_ch_graph, self.toolbar_ch_graph = tmp
 
         self._init_main_objects()
 
@@ -135,6 +118,18 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             UpdateEvents.replay_status, self, self.replay_status)
 
         self._init_multithreading_workers()
+    
+    def set_canvaslayout4plots(self,layout):
+
+        if not isinstance(layout, QtWidgets.QVBoxLayout):
+            raise TypeError('wrong layout type')
+        figure = matplotlib.pyplot.figure()
+        canvas = matplotlib.backends.backend_qt5agg.FigureCanvasQTAgg(figure)
+        toolbar = matplotlib.backends.backend_qt5agg.NavigationToolbar2QT(canvas, self)
+        layout.addWidget(toolbar)
+        layout.addWidget(canvas)
+
+        return figure, canvas, toolbar
         
     def _init_main_objects(self)->None:
 
@@ -175,7 +170,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     def comboBox_init(self)->None:
         """ """
         set_comboBox_items(
-            self.cB_log_level,list(log_level.keys()))
+            self.cB_log_level,list(LOG_LEVELS.keys()))
         set_comboBox_items(
             self.cB_scale, [OP_LINEAR.name, OP_LOG.name])
         set_comboBox_items(
@@ -417,7 +412,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     ############################################################################
     def _c_update_log(self)->None:
         """Modify the actual logging level"""
-        change_level_logging(level=log_level[self.cB_log_level.currentText()])
+        glob_utils.log.log.change_level_logging(
+            LOG_LEVELS[self.cB_log_level.currentText()]
+        )
 
     ############################################################################
     #### Interaction with Device 
@@ -823,7 +820,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
         self.up_events.post(UpdateEvents.freqs_inputs, self, self.imaging_type)
 
-        self.computing.set_computation(self.imaging_type)
+        self.computing.set_imaging_mode(self.imaging_type)
         self.computing.set_eit_model(self.eit_model)
         # if not self.live_view.is_set():
         #     self.compute_measurement()

@@ -27,11 +27,13 @@ logger = logging.getLogger(__name__)
 
 class ComputeMeas():
 
-    def __init__(self, queue_in: Queue, queue_out:Queue):
+
+    def __init__(self, input_buf: Queue, output_buf:Queue):
         """Constructor """
-        self.queue_in= queue_in
-        self.queue_out= queue_out
-        self.compute_worker=Poller(name='compute',pollfunc=self.get_last_rx_frame,sleeptime=0.01)
+        self.input_buf= input_buf
+        self.output_buf= output_buf
+        self.compute_worker=Poller(
+            name='compute', pollfunc=self.get_last_rx_frame, sleeptime=0.01)
         self.compute_worker.start()
         self.compute_worker.start_polling()
         self._post_init_()
@@ -47,7 +49,7 @@ class ComputeMeas():
         self.extract_voltages=False
         self.rec:Reconstruction=None
 
-    def set_computation(self, imaging_type:Imaging):
+    def set_imaging_mode(self, imaging_type:Imaging):
         self.imaging_type= imaging_type
 
     def set_eit_model(self, eit_model:EITModelClass):
@@ -62,19 +64,20 @@ class ComputeMeas():
         logger.info(f'Recocntructions selected: {self.rec}')
 
     def get_last_rx_frame(self):
+        """ Get last RX Frame contained in the input_buffer"""
 
-        if self.queue_in.empty():
+        if self.input_buf.empty():
             return
             
         # loosing some informations
-        while not self.queue_in.empty():
-            data = self.queue_in.get(block=True)
+        while not self.input_buf.empty():
+            data = self.input_buf.get(block=True)
         self.process(data)
 
     @catch_error
     def process(self, data):
+
         dataset, idx_frame, cmd = data
-            
         self.U, self.labels = self.preprocess(dataset, idx_frame)
         if self.plots_to_show[0].visible:
             self.eit_model, self.U= self.rec.run(cmd, self.eit_model, self.U)
@@ -91,7 +94,7 @@ class ComputeMeas():
                 'labels':self.labels,
                 'eit_model':self.eit_model
             }
-        self.queue_out.put_nowait(data_4_gui)
+        self.output_buf.put_nowait(data_4_gui)
 
 
     def preprocess(self,dataset:EitMeasurementSet, idx_frame:int):

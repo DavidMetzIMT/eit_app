@@ -59,7 +59,7 @@ class ReconstructionPyEIT(Reconstruction):
 
         ex_mat = eit_scan_lines(ne=model.get_nd_elecs(), dist=1)
         
-        logger.info(f'Initialisation of PyEIT; solver:{model.SolverType}')
+        logger.info(f'Initialisation of PyEIT; solver:{model.SolverType} {ex_mat.shape=}')
     
     
         """ 1. problem setup """
