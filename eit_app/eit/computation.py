@@ -1,19 +1,20 @@
 
 
+import enum
 from queue import Queue
 from typing import List
 import logging
 import numpy as np
 from eit_app.eit.imaging_type import Imaging
-from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.plots import CustomPlots, PlotType
-from eit_app.eit.rec_abs import Reconstruction
 from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.threads_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import get_datetime_s
 from glob_utils.decorator.decorator import catch_error
 
+import eit_model.solver_abc
+import eit_model.model
 
 class Data4GUI():
 
@@ -23,6 +24,10 @@ class Data4GUI():
         """"""
 
 logger = logging.getLogger(__name__)
+
+class RecCMDs(enum.Enum):
+    initialize=enum.auto()
+    reconstruct=enum.auto()
 
 
 class ComputeMeas():
@@ -36,32 +41,30 @@ class ComputeMeas():
             name='compute', pollfunc=self.get_last_rx_frame, sleeptime=0.01)
         self.compute_worker.start()
         self.compute_worker.start_polling()
-        self._post_init_()
-    
-    def _post_init_(self):
-        """ init the """
+
         self.channel = 32
         self.flag_new_plots=CustomFlag()
         self.flag_new_rec_image=CustomFlag()
         self.imaging_type=None
         self.eit_model=None
-        self.U, self.labels, self.rec=None, None, None
+        self.U, self.labels, self.solver=None, None, None
         self.extract_voltages=False
-        self.rec:Reconstruction=None
+        self.solver:eit_model.solver_abc.Solver=None
 
     def set_imaging_mode(self, imaging_type:Imaging):
         self.imaging_type= imaging_type
 
-    def set_eit_model(self, eit_model:EITModelClass):
+    def set_eit_model(self, eit_model:eit_model.model.EITModel):
         self.eit_model= eit_model
 
-    def set_plotings(self, plots_to_show:List[CustomPlots], fig):
+    def set_plotings(self, plots_to_show:List[CustomPlots]):
         self.plots_to_show= plots_to_show
-        self.fig= fig
     
-    def set_reconstruction(self, rec:Reconstruction):
-        self.rec=rec()
-        logger.info(f'Recocntructions selected: {self.rec}')
+    def set_solver(self, solver:eit_model.solver_abc.Solver):
+
+        if isinstance(self.eit_model, eit_model.model.EITModel):
+            self.solver=solver()
+            logger.info(f'Recocntructions selected: {self.solver}')
 
     def get_last_rx_frame(self):
         """ Get last RX Frame contained in the input_buffer"""
@@ -79,8 +82,9 @@ class ComputeMeas():
 
         dataset, idx_frame, cmd = data
         self.U, self.labels = self.preprocess(dataset, idx_frame)
+        
         if self.plots_to_show[0].visible:
-            self.eit_model, self.U= self.rec.run(cmd, self.eit_model, self.U)
+            self.eit_model, self.U= self.solver.run(cmd, self.eit_model, self.U)
                 # if rec_result is not None:
                     # self.eit_model, self.U= rec_result
             if dataset == 'random':
