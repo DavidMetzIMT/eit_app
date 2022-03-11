@@ -26,7 +26,6 @@ from eit_app.app.update_gui_listener import (LiveMeasState, UpdateEvents,
                                              setup_update_event_handlers)
 from eit_app.app.utils import set_comboBox_items, set_slider, set_table_widget
 from eit_app.eit.computation import ComputeMeas
-from eit_app.eit.eit_model import EITModelClass
 from eit_app.eit.imaging_type import (DATA_TRANSFORMATIONS, IMAGING_TYPE,
                                       Imaging)
 from eit_app.eit.plots import (PlotDiffPlot, PlotImage2D, PlotUPlot,
@@ -42,10 +41,12 @@ from eit_app.io.video.microcamera import (EXT_IMG, IMG_SIZES, MicroUSBCamera,
 from eit_app.threads_process.threads_worker import CustomWorker
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.files.files import (FileExt, OpenDialogFileCancelledException,
-                                    dialog_get_file_with_ext, save_as_csv)
+                                    dialog_get_file_with_ext, save_as_csv, search_for_file_with_ext)
 from glob_utils.flags.flag import CustomFlag, CustomTimer, MultiState
 from glob_utils.pth.path_utils import get_datetime_s
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+import eit_model.model
 
 # Ensure using PyQt5 backend
 matplotlib.use('QT5Agg')
@@ -138,8 +139,10 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         # add dir in default dirs TODO
         self.dataset = EitMeasurementSet()
         self.io_interface = IOInterfaceSciospec()
-        self.eit_model= EITModelClass()
-        self.io_interface.setup.exc_pattern= self.eit_model.InjPattern
+        self.eit_model= eit_model.model.EITModel()
+        self.eit_model.load_defaultmatfile()
+
+        # self.io_interface.setup.exc_pattern= self.eit_model.InjPattern
 
         self.data_to_compute= Queue(maxsize=256)
         self.figure_to_plot= Queue(maxsize=256)
@@ -185,6 +188,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             self.cB_img_file_ext, list(EXT_IMG.keys()))
         set_comboBox_items(
             self.cB_ref_frame_idx, [0])
+        self._c_update_eit_ctlg()
 
     def _link_callbacks(self)->None:
         """ """
@@ -239,10 +243,10 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         #EIT reconstruction
         self.pB_set_reconstruction.clicked.connect(self._c_init_rec)
         ## pyeit
-        self.scalePlot_vmax.valueChanged.connect(self._c_set_eit_model_data)
-        self.scalePlot_vmin.valueChanged.connect(self._c_set_eit_model_data)
-        self.normalize.toggled.connect(self._c_set_eit_model_data) 
-        self.eit_FEMRefinement.valueChanged.connect(self._c_set_eit_model_data)
+        self.scalePlot_vmax.valueChanged.connect(self._c_set_solvers_parameters)
+        self.scalePlot_vmin.valueChanged.connect(self._c_set_solvers_parameters)
+        self.normalize.toggled.connect(self._c_set_solvers_parameters) 
+        self.eit_FEMRefinement.valueChanged.connect(self._c_set_solvers_parameters)
         # self.cB_solver.activated.connect(self._c_set_reconstruction)
 
         # eit imaging 
@@ -254,6 +258,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.cB_freq_meas_1.activated.connect(self._c_imaging_params_changed)
         self.cB_transform_volt.activated.connect(self._c_imaging_params_changed)
         self.showAbsValue.toggled.connect(self._c_imaging_params_changed)
+
+        self.cB_eit_mdl_ctlg.currentTextChanged.connect(self._c_set_eit_ctlg)
+        self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._c_update_eit_ctlg)
 
         # Video capture
         self.pB_refresh_video_devices.clicked.connect(
@@ -531,7 +538,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             0:ReconstructionPyEIT,
             1:ReconstructionAI
         }
-        self._c_set_eit_model_data()
+        self._c_set_solvers_parameters()
         self.U= np.random.rand(256,2)
         self.labels= ['test','test','test','test']
         self.computing.set_eit_model(self.eit_model)
@@ -540,14 +547,14 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
         self.io_interface.put_queue_out(('random', 0, RecCMDs.initialize))
     
-    def _c_set_eit_model_data(self)->None:
+    def _c_set_solvers_parameters(self)->None:
         """[summary]
         """        
-        self.eit_model.p=self.eit_p.value()
-        self.eit_model.lamb=self.eit_lamda.value()
-        self.eit_model.n=self.eit_n.value()
-        self.eit_model.set_solver(self.cB_solver.currentText())
-        self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
+        # self.eit_model.p=self.eit_p.value()
+        # self.eit_model.lamb=self.eit_lamda.value()
+        # self.eit_model.n=self.eit_n.value()
+        # self.eit_model.set_solver(self.cB_solver.currentText())
+        # self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
     
     def _c_loadRef4TD(self)->None:
         """[summary]
@@ -612,7 +619,16 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             self.meas_dataset.output_dir, f'eidorsvsmeas#{frame}_freq{freq}')
         save_as_csv(file_path, data)
         logger.debug(f'Measurements VS Eidors exported as CSV in : {file_path}')
-        
+
+    def _c_update_eit_ctlg(self):
+        """Update catalog and if changed"""
+        files= search_for_file_with_ext(APP_DIRS.get(AppDirs.eit_model.value), FileExt.mat)
+        set_comboBox_items(self.cB_eit_mdl_ctlg, files)
+
+    def _c_set_eit_ctlg(self):
+        """Update catalog and if changed"""
+        path= os.path.join(APP_DIRS.get(AppDirs.eit_model.value), self.cB_eit_mdl_ctlg.currentText())
+        self.eit_model.load_matfile(path)
 
     ############################################################################
     #### Replay of Measurements
@@ -915,13 +931,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         elapsed = time.time() - t
         if dataset=='random':
             return
-        voltages= dataset.get_voltages(idx_frame, 0)
-        if voltages is not None:
-            set_table_widget(self.tableWidgetvoltages_Z, voltages)
-            meas_voltage=np.real(voltages[:,:self.eit_model.n_el].flatten())
-            ax=self.figure_ch_graph.add_subplot(1,1,1)
-            ax.plot(meas_voltage, '-b')
-            self.canvas_ch_graph.draw()
+        # voltages= dataset.get_voltages(idx_frame, 0)
+        # if voltages is not None:
+        #     set_table_widget(self.tableWidgetvoltages_Z, voltages)
+        #     meas_voltage=np.real(voltages[:,:self.eit_model.n_el].flatten())
+        #     ax=self.figure_ch_graph.add_subplot(1,1,1)
+        #     ax.plot(meas_voltage, '-b')
+        #     self.canvas_ch_graph.draw()
         if isinstance(dataset, EitMeasurementSet):
             idx, t=dataset.get_idx_frame(idx_frame), get_datetime_s()
             logger.debug(f'Plot Frame #{idx}, time {t}, lasted {elapsed}')
