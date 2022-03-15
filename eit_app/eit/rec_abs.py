@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 import os
 from multiprocessing.queues import Queue
@@ -21,8 +20,9 @@ from pyeit.eit.utils import eit_scan_lines
 
 from eit_app.eit.eit_model import EITModelClass
 from glob_utils.flags.flag import CustomFlag
+
 # from eit_app.io.sciospec.device import *
-# from eit_app.io.sciospec.interface.serial4sciospec import 
+# from eit_app.io.sciospec.interface.serial4sciospec import
 # from eit_app.eit.meas_preprocessing import *
 
 # from eit_ai.path_utils import get_dir
@@ -42,42 +42,47 @@ from glob_utils.flags.flag import CustomFlag
 
 
 class RecCMDs(Enum):
-    initialize=auto()
-    reconstruct=auto()
+    initialize = auto()
+    reconstruct = auto()
+
 
 class Reconstruction(ABC):
-    """ Class for the EIT reconstruction """
-    
+    """Class for the EIT reconstruction"""
+
     def __init__(self):
-        self.initialized=CustomFlag()
-        self.cmd_func= {
-            RecCMDs.initialize:self.initialize,
-            RecCMDs.reconstruct:self.reconstruct
+        self.initialized = CustomFlag()
+        self.cmd_func = {
+            RecCMDs.initialize: self.initialize,
+            RecCMDs.reconstruct: self.reconstruct,
         }
         self.__post_init__()
 
-    def run(self, cmd:RecCMDs, *args, **kwargs):
+    def run(self, cmd: RecCMDs, *args, **kwargs):
         if not isinstance(cmd, RecCMDs):
             return None
         return self.cmd_func[cmd](*args, **kwargs)
 
     @abstractmethod
-    def __post_init__(self)-> None:
-        """ for init"""
+    def __post_init__(self) -> None:
+        """for init"""
 
     @abstractmethod
-    def initialize(self, model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray] :
-        """ should initialize the reconstruction method and return some data to plot"""
+    def initialize(
+        self, model: EITModelClass, U: np.ndarray
+    ) -> tuple[EITModelClass, np.ndarray]:
+        """should initialize the reconstruction method and return some data to plot"""
         self.initialized.reset()
         self.initialized.set()
-        
+
     @abstractmethod
-    def reconstruct(self, model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray] :
-        """ return the reconstructed reconstructed conductivities values for the FEM"""
+    def reconstruct(
+        self, model: EITModelClass, U: np.ndarray
+    ) -> tuple[EITModelClass, np.ndarray]:
+        """return the reconstructed reconstructed conductivities values for the FEM"""
         if self.initialized.is_set():
-            """ DO SOMETTHING and return data of reconstruction"""
+            """DO SOMETTHING and return data of reconstruction"""
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     pass

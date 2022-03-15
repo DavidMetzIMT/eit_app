@@ -1,21 +1,21 @@
 # #!C:\Anaconda3\envs\py38_app python
 # # -*- coding: utf-8 -*-
 # """  Class for the communication with serial port of the Sciospec device
-    
+
 #     code modify from:
 #     #  HW_Thread.py
 #     #  Classes for communication with asynchronous hardware
 #     #  written by Jonathan Foote jtf@rotormind.com 3/2013
 #     #  Updated for Python 3.6 by Jonathan Foote  3/2019
 #     #
-#     #  Works with example Arduino code from 
+#     #  Works with example Arduino code from
 #     #  https://github.com/headrotor/Python-Arduino-example
 #     #  Share & enjoy!
 #     #
 #     # -----------------------------------------------------------------------------
 #     #
 #     # This program is free software; you can redistribute it and/or modify
-#     # it under the terms of the GNU General Public License as  as published 
+#     # it under the terms of the GNU General Public License as  as published
 #     # by the Free Software Foundation http://www.gnu.org/licenses/gpl-2.0.html
 #     # This program is distributed WITHOUT ANY WARRANTY use at your own risk blah blah
 
@@ -46,22 +46,20 @@
 # import serial  # get from http://pyserial.sourceforge.net/
 # from eit_app.io.sciospec.com_constants import *
 # #from eit_app.io.sciospec.device import SciospecDevice
-# from eit_app.threads_process.threads_worker import HardwarePoller, Worker
+# from glob_utils.thread_process.threads_worker import HardwarePoller, Worker
 # from glob_utils.log.log import main_log
 
 # from abc import ABC, abstractmethod
 
 
-
-
-# #This class has to be remodeled for a generic interface 
+# #This class has to be remodeled for a generic interface
 # class HWInterface(ABC):
 #     """ abstract class of HardWare Interfaces for setting the methods and there responsabilities"""
-    
+
 #     @abstractmethod
 #     def get_ports_available(self)->List[str]:
 #         """ Lists the ports available on the system"""
-    
+
 #     @abstractmethod
 #     def open(self, port_name, baudrate, timeout, write_timeout):
 #         """ Open interface
@@ -72,7 +70,7 @@
 #         Returns:
 #             [type]: [description]
 #         """
-        
+
 #     @abstractmethod
 #     def close(self):
 #         """ Close interface """
@@ -80,13 +78,13 @@
 
 #     @abstractmethod
 #     def register_callback(self, func=None):
-#         """Register function (external function) to call 
+#         """Register function (external function) to call
 #         when the hardware sends a complete data frame
 
 #         Args:
 #             func: function, who . Defaults to None.
 #         """
- 
+
 #     @abstractmethod
 #     def no_callback(self, rx_frame:List[Bytes]=[]):
 #         """[summary]
@@ -116,7 +114,7 @@
 
 #         RXFrame:  - [cmd_byte, length_byte=0x01, option_byte, cmd_byte]
 #                   - [cmd_byte, length_byte, option_byte, [data], cmd_byte]
-                    
+
 
 #         Notes
 #         -----

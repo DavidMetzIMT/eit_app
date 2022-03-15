@@ -1,10 +1,5 @@
-
-
-
-
 import os
 from multiprocessing.queues import Queue
-
 
 
 import matplotlib.pyplot as plt
@@ -29,7 +24,7 @@ from logging import getLogger
 
 logger = getLogger(__name__)
 # from eit_app.io.sciospec.device import *
-# from eit_app.io.sciospec.interface.serial4sciospec import 
+# from eit_app.io.sciospec.interface.serial4sciospec import
 # from eit_app.eit.meas_preprocessing import *
 
 # from eit_ai.path_utils import get_dir
@@ -42,30 +37,33 @@ logger = getLogger(__name__)
 ##  Class for EIT Reconstruction
 ## ======================================================================================================================================================
 class ReconstructionPyEIT(Reconstruction):
-    """ Class for the EIT reconstruction with the package pyEIT """
+    """Class for the EIT reconstruction with the package pyEIT"""
 
     def __post_init__(self):
-        self.eit:EitBase=None
-        self.solver_type=''
+        self.eit: EitBase = None
+        self.solver_type = ""
 
-    def initialize(self, model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray]:
-        """ should initialize the reconstruction method and return some data to plot"""
+    def initialize(
+        self, model: EITModelClass, U: np.ndarray
+    ) -> tuple[EITModelClass, np.ndarray]:
+        """should initialize the reconstruction method and return some data to plot"""
         self.initialized.reset()
-        MeshObj, ElecPos= self._construct_mesh(
-                    model.get_nd_elecs(),
-                    model.get_fem_refinement(),
-                    model.chamber.get_chamber_limit()
-                )
+        MeshObj, ElecPos = self._construct_mesh(
+            model.get_nd_elecs(),
+            model.get_fem_refinement(),
+            model.chamber.get_chamber_limit(),
+        )
 
         ex_mat = eit_scan_lines(ne=model.get_nd_elecs(), dist=1)
-        
-        logger.info(f'Initialisation of PyEIT; solver:{model.SolverType} {ex_mat.shape=}')
-    
-    
+
+        logger.info(
+            f"Initialisation of PyEIT; solver:{model.SolverType} {ex_mat.shape=}"
+        )
+
         """ 1. problem setup """
         anomaly = [{"x": 0.5, "y": 0.5, "d": 0.1, "perm": 10}]
-        MeshObjSim = mesh.set_perm(MeshObj, anomaly=anomaly,background=1.0)
-        MeshObjSim= _reconstruct_mesh_struct(MeshObjSim)
+        MeshObjSim = mesh.set_perm(MeshObj, anomaly=anomaly, background=1.0)
+        MeshObjSim = _reconstruct_mesh_struct(MeshObjSim)
 
         """ 2. FEM simulation """
         # # calculate simulated data
@@ -74,37 +72,52 @@ class ReconstructionPyEIT(Reconstruction):
         f0 = fwd.solve_eit(ex_mat, step=step_solver, perm=MeshObj["perm"])
         f1 = fwd.solve_eit(ex_mat, step=step_solver, perm=MeshObjSim["perm"])
 
-        self.eit=get_solver_pyeit(
-            model.SolverType,MeshObj, ElecPos, ex_mat,step_solver, model.p, model.lamb, model.n)
+        self.eit = get_solver_pyeit(
+            model.SolverType,
+            MeshObj,
+            ElecPos,
+            ex_mat,
+            step_solver,
+            model.p,
+            model.lamb,
+            model.n,
+        )
         # ds=_inv_solve_eit(self.eit,f1.v, f0.v, True)
-        MeshObj["perm"]=_inv_solve_eit(model.SolverType,self.eit,f1.v, f0.v, True)
+        MeshObj["perm"] = _inv_solve_eit(model.SolverType, self.eit, f1.v, f0.v, True)
         model.fem.update_from_pyeit(MeshObj)
         self._print_mesh_nodes_elemts(MeshObj)
         self.initialized.set()
-        return model, np.hstack((np.reshape(f1.v,(f1.v.shape[0],1)), np.reshape(f0.v,(f0.v.shape[0],1))))
-        
-    def reconstruct(self,  model:EITModelClass, U:np.ndarray)-> tuple[EITModelClass,np.ndarray]:
-        """ return the reconstructed reconstructed conductivities values for the FEM"""
+        return model, np.hstack(
+            (np.reshape(f1.v, (f1.v.shape[0], 1)), np.reshape(f0.v, (f0.v.shape[0], 1)))
+        )
+
+    def reconstruct(
+        self, model: EITModelClass, U: np.ndarray
+    ) -> tuple[EITModelClass, np.ndarray]:
+        """return the reconstructed reconstructed conductivities values for the FEM"""
         if self.initialized.is_set():
-            MeshObj=model.fem.get_pyeit_mesh()
-            logger.debug(f'data send for rec \n{U=}')
-            MeshObj["perm"]=_inv_solve_eit(model.SolverType,self.eit,-U[:,1],-U[:,0], False)
+            MeshObj = model.fem.get_pyeit_mesh()
+            logger.debug(f"data send for rec \n{U=}")
+            MeshObj["perm"] = _inv_solve_eit(
+                model.SolverType, self.eit, -U[:, 1], -U[:, 0], False
+            )
             model.fem.update_from_pyeit(MeshObj)
         return model, U
 
     def _construct_mesh(self, elec_nb, fem_refinement, bbox):
         MeshObj, ElecPos = mesh.create(n_el=elec_nb, h0=fem_refinement, bbox=bbox)
-        MeshObj= _reconstruct_mesh_struct(MeshObj)
+        MeshObj = _reconstruct_mesh_struct(MeshObj)
         return MeshObj, ElecPos
 
     def _print_mesh_nodes_elemts(self, mesh_obj):
         pts = mesh_obj["node"]
         tri = mesh_obj["element"]
-        perm= mesh_obj["perm"]
+        perm = mesh_obj["perm"]
         logger.info(
             f"mesh status:\n\
-            {pts.shape[0]} nodes, {tri.shape[0]} elements, {perm.shape[0]} perm")
-        
+            {pts.shape[0]} nodes, {tri.shape[0]} elements, {perm.shape[0]} perm"
+        )
+
     # def imageReconstruct(self, v1=None, v0=None):
     #         if not self.running:
     #             if self.InitDone:
@@ -135,7 +148,7 @@ class ReconstructionPyEIT(Reconstruction):
     #             self.initPyeit(eit_model=data['eit_model'], plot2Gui=data['plot2Gui'])
     #             queue_out.put({'cmd': 'updatePlot','rec': self})
     #             print(data)
-    #         elif data['cmd']=='setScalePlot':  
+    #         elif data['cmd']=='setScalePlot':
     #             self.setScalePlot(data['vmax'], data['vmin'])
     #             self.setNormalize(data['normalize'])
     #         elif data['cmd']=='recpyEIT':
@@ -150,15 +163,17 @@ class ReconstructionPyEIT(Reconstruction):
     #                     'plot2Gui': app.figure})
     #     return queue
 
-def _inv_solve_eit(SolverType,eit:EitBase, v1, v0, normalize:bool=False):
 
-    if SolverType in ['BP', 'JAC']:
-        ds = eit.solve(v1, v0, normalize= normalize )
-    elif SolverType=='GREIT':
-        ds = eit.solve(v1, v0, normalize= normalize)
+def _inv_solve_eit(SolverType, eit: EitBase, v1, v0, normalize: bool = False):
+
+    if SolverType in ["BP", "JAC"]:
+        ds = eit.solve(v1, v0, normalize=normalize)
+    elif SolverType == "GREIT":
+        ds = eit.solve(v1, v0, normalize=normalize)
         x, y, ds = eit.mask_value(ds, mask_value=np.NAN)
-        
+
     return ds
+
 
 def get_solver_pyeit(
     SolverType,
@@ -166,9 +181,10 @@ def get_solver_pyeit(
     ElecPos,
     ex_mat,
     step_solver,
-    p:int=0.5,
-    lamb:int=0.01,
-    n:int=64):
+    p: int = 0.5,
+    lamb: int = 0.01,
+    n: int = 64,
+):
     """[summary]
 
     Args:
@@ -176,45 +192,50 @@ def get_solver_pyeit(
         lamb (int, optional): [description]. Defaults to 0.01.
         n (int, optional): [description]. Defaults to 64.
     """
-    
-    if SolverType=='BP':
+
+    if SolverType == "BP":
         eit = bp.BP(MeshObj, ElecPos, ex_mat=ex_mat, step=1, parser="std")
-        eit.setup(weight="none")         
-    elif SolverType=='JAC':
-        eit = jac.JAC(MeshObj, ElecPos, ex_mat=ex_mat, step=step_solver, perm=1.0, parser="std")
+        eit.setup(weight="none")
+    elif SolverType == "JAC":
+        eit = jac.JAC(
+            MeshObj, ElecPos, ex_mat=ex_mat, step=step_solver, perm=1.0, parser="std"
+        )
         eit.setup(p=p, lamb=lamb, method="kotre")
-    elif SolverType=='GREIT':
-        eit = greit.GREIT(MeshObj, ElecPos, ex_mat=ex_mat, step=step_solver, parser="std")
+    elif SolverType == "GREIT":
+        eit = greit.GREIT(
+            MeshObj, ElecPos, ex_mat=ex_mat, step=step_solver, parser="std"
+        )
         eit.setup(p=p, lamb=lamb, n=n)
     else:
         raise NotImplementedError()
     return eit
 
+
 def _reconstruct_mesh_struct(mesh_obj):
-    mesh_new= mesh_obj
+    mesh_new = mesh_obj
     pts = mesh_obj["node"]
     tri = mesh_obj["element"]
-    perm= mesh_obj["perm"]
+    perm = mesh_obj["perm"]
 
     if "ds" not in mesh_obj:
-        mesh_obj["ds"]=2*np.ones_like(mesh_obj["perm"]) #
+        mesh_obj["ds"] = 2 * np.ones_like(mesh_obj["perm"])  #
 
-    ds= mesh_obj["ds"]
-    if ds.shape[0]==tri.shape[0]:
-        ds_pts= sim2pts(pts,tri,ds)
-    elif ds.shape[0]==pts.shape[0]:
-        ds_pts= ds
-        ds= pts2sim(tri, ds_pts)
-    if perm.shape[0]==tri.shape[0]:
-        perm_pts= sim2pts(pts,tri,perm)
-    elif perm.shape[0]==pts.shape[0]:
-        perm_pts= perm
-        perm= pts2sim(tri, perm_pts)
+    ds = mesh_obj["ds"]
+    if ds.shape[0] == tri.shape[0]:
+        ds_pts = sim2pts(pts, tri, ds)
+    elif ds.shape[0] == pts.shape[0]:
+        ds_pts = ds
+        ds = pts2sim(tri, ds_pts)
+    if perm.shape[0] == tri.shape[0]:
+        perm_pts = sim2pts(pts, tri, perm)
+    elif perm.shape[0] == pts.shape[0]:
+        perm_pts = perm
+        perm = pts2sim(tri, perm_pts)
 
-    mesh_new["perm"]= perm
+    mesh_new["perm"] = perm
     mesh_new["perm_pts"] = perm_pts
     mesh_new["ds"] = ds
-    mesh_new["ds_pts"]= ds_pts
+    mesh_new["ds_pts"] = ds_pts
 
     return mesh_new
 
@@ -271,17 +292,15 @@ class Forward_all_meas(Forward):
             n = (m + step) % n_el
             # if any of the electrodes is the stimulation electrodes
             # if not (m == drv_a or m == drv_b or n == drv_a or n == drv_b) or True:
-                # the order of m, n matters
+            # the order of m, n matters
             v.append([n, m])
 
         return np.array(v)
-    
 
 
-if __name__ == '__main__':
-    rec= ReconstructionPyEIT()
+if __name__ == "__main__":
+    rec = ReconstructionPyEIT()
     rec.initPyeit()
     pts = rec.MeshObj["node"]
     tri = rec.MeshObj["element"]
     mplot.tetplot(pts, tri, edge_color=(0.2, 0.2, 1.0, 1.0), alpha=0.01)
-
