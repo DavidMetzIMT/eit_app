@@ -109,7 +109,7 @@
         </rect>
        </property>
        <property name="toolTip">
-        <string>test</string>
+        <string/>
        </property>
        <property name="statusTip">
         <string>Refresh the available serial port list (Ctrl + R)</string>
@@ -1680,7 +1680,7 @@ p, li { white-space: pre-wrap; }
        </rect>
       </property>
       <property name="statusTip">
-       <string>Save dataset to file (*.dat)</string>
+       <string>Set the reconstruction</string>
       </property>
       <property name="autoFillBackground">
        <bool>false</bool>
@@ -1741,7 +1741,7 @@ p, li { white-space: pre-wrap; }
        </rect>
       </property>
       <property name="text">
-       <string>log level</string>
+       <string>ei_model catalog</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pB_refresh_eit_mdl_ctlg">
@@ -1754,7 +1754,7 @@ p, li { white-space: pre-wrap; }
        </rect>
       </property>
       <property name="statusTip">
-       <string>Save dataset to file (*.dat)</string>
+       <string>reload the catalog </string>
       </property>
       <property name="autoFillBackground">
        <bool>false</bool>
