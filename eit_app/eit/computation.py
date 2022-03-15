@@ -7,8 +7,7 @@ import logging
 import numpy as np
 from eit_app.eit.imaging_type import Imaging
 from eit_app.eit.plots import CustomPlots, PlotType
-from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
-from eit_app.threads_process.threads_worker import Poller
+from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.pth.path_utils import get_datetime_s
 from glob_utils.decorator.decorator import catch_error

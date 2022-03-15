@@ -16,7 +16,7 @@ from logging import getLogger
 logger = getLogger(__name__)
 class PlotType(Enum):
     Image_2D='Image_2D'
-    Image_3D='Image_3D'
+from glob_utils.thread_process.threads_worker import Poller
     U_plot='U_plot'
     Ch_plot='Ch_plot'
     Diff_plot='Diff_plot'

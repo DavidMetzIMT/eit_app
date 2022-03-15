@@ -38,7 +38,7 @@ from eit_app.io.sciospec.hw_serial_interface import (HARDWARE_NOT_DETECTED,
                                                      SerialInterface,
                                                      SerialInterfaceError)
 from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
-from eit_app.threads_process.threads_worker import Poller
+from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.flags.flag import CustomFlag, CustomTimer
 from glob_utils.log.log import main_log
 

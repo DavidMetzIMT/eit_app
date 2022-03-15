@@ -38,7 +38,8 @@ from eit_app.io.sciospec.device import IOInterfaceSciospec
 from eit_app.io.sciospec.meas_dataset import EitMeasurementSet
 from eit_app.io.video.microcamera import (EXT_IMG, IMG_SIZES, MicroUSBCamera,
                                           VideoCaptureModule)
-from eit_app.threads_process.threads_worker import CustomWorker
+    IMG_SIZES,
+from glob_utils.thread_process.threads_worker import CustomWorker
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.files.files import (FileExt, OpenDialogFileCancelledException,
                                     dialog_get_file_with_ext, save_as_csv, search_for_file_with_ext)
