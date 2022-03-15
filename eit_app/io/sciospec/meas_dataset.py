@@ -133,6 +133,9 @@ class EitMeasurementSet(object):
         self.init_rx_frame()
 
         return self.name, self.output_dir
+
+
+    
     
     def init_rx_frame(self)-> None:
         self.rx_meas_frame = EITFrame(
@@ -162,23 +165,6 @@ class EitMeasurementSet(object):
         self.frame_cnt += 1
         self.flag_new_meas.set_edge_up()
         self.init_rx_frame()
-
-    # def frame_save_and_prepare_for_next_rx(self):
-
-
-        # self.rx_meas_frame= EITFrame(self.dev_setup)  # clear frame
-
-
-    # def latch_rx_frame_to_meas(self, idx_meas_frame: int = 0):
-
-    #     self.meas_frame[idx_meas_frame] = self.rx_meas_frame
-
-        # if self.autosave.is_set():
-        #     self.meas_frame[idx_meas_frame].frame_path = os.path.join(
-        #         self.output_dir, f"Frame{self.frame_cnt:02}.pkl"
-        #     )
-        # if self.frame_cnt == 0:
-        #     self.set_frame_TD_ref(0)
 
     def set_frame_TD_ref(self, idx: int = 0, path: str = None):
         """Latch Frame[indx] as reference for time difference mode"""
@@ -268,8 +254,9 @@ class EitMeasurementSet(object):
         meas_frame = self.load_frame(file_path)
         self.meas_frame[idx] = meas_frame
 
-    def load_meas_dir(self, dir_path: str = None) -> Union[list[str], None]:
-        """Load Dataset files"""
+
+    def _get_all_meas_frame_file(self,dir_path: str = None )->Union[list[str], None]:
+        ""
         try:
             if not dir_path:
                 title = "Select a directory of the measurement dataset you want to load"
@@ -277,14 +264,14 @@ class EitMeasurementSet(object):
                     title=title, initialdir=APP_DIRS.get(AppDirs.meas_set)
                 )
             filenames = search_for_file_with_ext(dir_path, ext=FileExt.pkl)
-            # print('filepaths', filenames)
+            
         except FileNotFoundError as e:
             logger.warning(f"FileNotFoundError: ({e})")
             show_msgBox(f"{e}", "FileNotFoundError", "Warning")
-            return None
+            return None,None
         except OpenDialogDirCancelledException as e:
             logger.info(f"Loading cancelled: ({e})")
-            return None
+            return None,None
 
         for filename in filenames:
             if "Frame" not in filename:  # remove all other pkl-files
@@ -292,26 +279,44 @@ class EitMeasurementSet(object):
 
         if not filenames:
             show_msgBox(
-                "No frames-files in directory dirpath!", "NO Files FOUND", "Warning"
+                f"No Frames-files in directory: {dir_path}!",
+                "Files Not Found",
+                "Warning"
             )
+            return None,None
+
+        return dir_path, filenames
+
+
+    @catch_error
+    def load(self, dir_path: str = None) -> Union[list[str], None]:
+        """Load a measurement files contained in measuremnet dataset"""
+        dir_path, filenames= self._get_all_meas_frame_file(dir_path)
+
+        if filenames is None:
             return None
-        # print('filepaths', filenames)
-        for i, filename in enumerate(filenames):  # get all the frame data
-            filepath = os.path.join(dir_path, filename)
-            dataset_tmp = self.load_frame(filepath)
-            if i == 0:
-                set_attributes(self, dataset_tmp)
-                setattr(self, "output_dir", dir_path)
-            else:
-                # setattr(self, 'frame_cnt', getattr(dataset_tmp,'frame_cnt'))
-                self.meas_frame.append(dataset_tmp.meas_frame[0])
+        
+        for file in filenames:
+            filepath = os.path.join(dir_path, file)
+            loaded_frame = self.load_frame(filepath)
+            self.meas_frame.append(loaded_frame)
+            # correct the frame path (if dataset dir moved...)
             self.meas_frame[-1].frame_path = filepath
-            self.make_info_text_for_frame(-1)
-        setattr(self, "frame_cnt", len(self.meas_frame))
-        # print(self.__dict__)
+            self.meas_frame[-1].make_info_text()
+
+        self.time_stamps = self.meas_frame[0].time_stamp
+        _, self.name = os.path.split(dir_path)
+        self.output_dir = dir_path
+        self.dev_setup = self.meas_frame[0].dev_setup
+
+        self.rx_meas_frame = None #not used with loaded dataset
+        self._ref_frame_idx =0 # reset to initial frame
+        self.flag_new_meas = CustomFlag()
+        self.frame_cnt = len(self.meas_frame) 
 
         return filenames
 
+    
     ## =========================================================================
     ##  Setter/getter
     ## =========================================================================
@@ -342,14 +347,6 @@ class EitMeasurementSet(object):
         self, U: np.ndarray, idx_frame: int = 0, idx_freq: int = 0
     ) -> None:
         self.meas_frame[idx_frame].set_voltages(U, idx_freq)
-
-    # def get_freqs_list(self):
-    #     """"""
-    #     # return self.freqs_list
-
-    # def get_freq_val(self, idx_freq: int = 0):
-    #     """TODO"""
-    #     return self.freqs_list[idx_freq]
 
     def get_frame_info(self, idx: int = 0):
         return None if self.meas_frame is None else self.meas_frame[idx].info_text
@@ -420,7 +417,7 @@ class EITFrame(object):
             f"Sweepconfig:\tFmin = {Fmin},\r\n\tFmax = {Fmax}",
             f"\tFSteps = {self.freq_steps:.0f},\r\n\tFScale = {self.dev_setup.get_freq_scale()}",
             f"\tAmp = {Amp},\r\n\tFrameRate = {self.dev_setup.get_frame_rate():.3f} fps",
-            f"excitation:\t{self.dev_setup.get_exc_pattern()}",
+            f"Excitation:\t{self.dev_setup.get_exc_pattern()}",
         ]        
 
     def add_voltages(self, data:RXFrameData):

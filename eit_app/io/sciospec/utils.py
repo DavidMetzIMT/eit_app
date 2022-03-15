@@ -127,18 +127,6 @@ def convertBoolToByte(val: bool) -> bytes:
     return val.to_bytes(1, byteorder="big")
 
 
-# def convertByteToBool(byte:bytes)->bool:
-#     """Convert a bytes value in bool
-
-#     Args:
-#         byte (bytes): bytes value to convert
-
-#     Returns:
-#         bool: corresponding bool value
-#     """
-#     return byte[0]==1
-
-
 if __name__ == "__main__":
 
     meas_data = [
@@ -173,8 +161,8 @@ if __name__ == "__main__":
         0x41,
         0x00,
         0,
-        0,
-    ]  # 8
+        0,  # 8
+    ]  
     meas = np.array(meas_data)
     meas = np.reshape(meas, (-1, 4))
     meas = meas.tolist()
@@ -199,8 +187,8 @@ if __name__ == "__main__":
         [0x40, 0xA0, 0, 0],  # 5
         [0x40, 0xC0, 0, 0],  # 6
         [0x40, 0xE0, 0, 0],  # 7
-        [0x41, 0x00, 0, 0],
-    ]  # 8
+        [0x41, 0x00, 0, 0],  # 8
+    ]  
     # meas =[bytearray(m) for m in meas]
     print(meas)
     print(convert4Bytes2Float(meas[2]))

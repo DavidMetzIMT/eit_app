@@ -4,6 +4,7 @@ from enum import Enum, auto
 from logging import getLogger
 import threading
 from typing import Any, Callable, List
+from PyQt5 import QtGui
 
 from eit_app.app.gui import Ui_MainWindow
 from eit_app.app.gui_utils import (
@@ -269,6 +270,30 @@ class ReplayStatus(EventDataClass):
     status: CustomFlag
     func: str = update_replay_status.__name__
 
+# -------------------------------------------------------------------------------
+## Update replay play/pause button
+# -------------------------------------------------------------------------------
+
+
+def update_replay_button(app: Ui_MainWindow, play_active:bool):
+    """Update the status label"""
+
+    if play_active:
+        icon_path = ":/newPrefix/icons/icon_pause.png"
+    else:
+        icon_path = ":/newPrefix/icons/icon_play.png"
+
+    icon = QtGui.QIcon()
+    icon.addPixmap(QtGui.QPixmap(icon_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    app.pB_replay_play.setIcon(icon)
+
+add_func_to_catalog(update_replay_button)
+
+
+@dataclass
+class ReplayButton(EventDataClass):
+    play_active: bool
+    func: str = update_replay_button.__name__
 
 # -------------------------------------------------------------------------------
 ## Update imaging inputs fields
