@@ -92,18 +92,18 @@ def update_live_view_status(app:Ui_MainWindow, live_meas:MultiState):
         app.lab_live_meas_status.setText('Idle')
         app.lab_live_meas_status.setStyleSheet("background-color: red")
         app.pB_start_meas.setText('Start')
-        app.pB_start_meas.setToolTip('Start aquisition of a new measurement dataset')
+        app.pB_start_meas.setStatusTip('Start aquisition of a new measurement dataset (Ctrl + Shift +Space)')
     elif live_meas.is_set(LiveMeasState.Measuring):
         app.lab_live_meas_status.setText('Measuring')
         app.lab_live_meas_status.setStyleSheet("background-color: green")
         app.meas_progress_bar.setValue(0)
         app.pB_start_meas.setText('Pause')
-        app.pB_start_meas.setToolTip('Pause aquisition of measurement dataset')
+        app.pB_start_meas.setStatusTip('Pause aquisition of measurement dataset (Ctrl + Shift +Space)')
     elif live_meas.is_set(LiveMeasState.Paused):
         app.lab_live_meas_status.setText('Paused')
         app.lab_live_meas_status.setStyleSheet("background-color: yellow")
         app.pB_start_meas.setText('Resume')
-        app.pB_start_meas.setToolTip('Restart aquisition of measurement dataset')
+        app.pB_start_meas.setStatusTip('Restart aquisition of measurement dataset (Ctrl + Shift +Space)')
 
 
 

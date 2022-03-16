@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from numpy.lib.shape_base import tile
 from eit_app.eit.eit_model import EITModelClass
+import glob_utils.args.kwargs as kwargs_utils
 # from eit_app.eit.reconstruction import ReconstructionPyEIT
 from logging import getLogger
 import os
@@ -22,6 +23,7 @@ class PlotType(Enum):
     Image_2D='Image_2D'
     Image_3D='Image_3D'
     U_plot='U_plot'
+    Ch_plot='Ch_plot'
     Diff_plot='Diff_plot'
 
 class CustomPlots(ABC):
@@ -41,46 +43,41 @@ class CustomPlots(ABC):
     def plot():
         """Plot"""
 
-class CustomLabels():
-    """ organize the labels utilized by a plot"""
+class CustomLabels(object):
+    """ Organize the labels utilized by a """
 
-    def __init__(self) -> None:
-        self.label= {}
-        self.set()
+    title:str
+    legend:list[str]
+    axis:list[str]
 
-    def set_title(self, title:str=''):
-        self.label['title']=title
+    def __init__(self, title:str=None, legend: list[str] = None, axis: list[str] = None) -> None:
+        """_summary_
 
-    def set_legend(self, legend: List[str] = None):
-        if legend is None:
-            legend = ['', '']
-        self.label['legend']= legend
+        Args:
+            title (str, optional): title of the plot. Defaults to None ('Default title').
+            legend (list[str], optional): legend labels of the plot. Defaults to None (['signal_1', 'signal_2']).
+            axis (list[str], optional): axis labels of the plot. Defaults to None (['x', 'y', 'z']).
+        """
 
-    def set_axis(self, axis: List[str] = None):
-        if axis is None:
-            axis = ['', '']
-        self.label['axis']= axis
-
-    def set(self, title:str='', legend: List[str] = None, axis: List[str] = None):
-        if legend is None:
-            legend = ['', '']
-        if axis is None:
-            axis = ['', '']
         self.set_title(title)
         self.set_legend(legend)
         self.set_axis(axis)
 
-    def get(self)-> dict:
-        return self.label
+    def set_title(self, title:str)->None:
+        if title is None:
+            title = 'Default title'
+        self.title=title
 
-    def get_title(self)->str:
-        return self.label['title']
+    def set_legend(self, legend: list[str])->None:
+        if legend is None:
+            legend = ['signal_1', 'signal_2']
+        self.legend= legend
 
-    def get_legend(self)->List[str]:
-        return self.label['legend']
+    def set_axis(self, axis: list[str])->None:
+        if axis is None:
+            axis = ['x', 'y', 'z']
+        self.axis= axis
 
-    def get_axis(self)->List[str]:
-        return self.label['axis']
 
 class PlotImage2D(CustomPlots):
     """_summary_
@@ -141,6 +138,37 @@ class PlotUPlot(CustomPlots):
         # print(U)
         ax.plot(U[:,0], '-b', label=label['legend'][0])
         ax.plot(U[:,1], '-r', label=label['legend'][1])
+
+        ax.set_title(label['title'])
+        ax.set_xlabel(label['xylabel'][0])
+        if len(label['xylabel'])==2:
+            ax.set_ylabel(label['xylabel'][1])
+        if self.y_axis_log:
+            ax.set_yscale('log')
+        # legend = ax[graph_indx].legend(loc='upper left', bbox_to_anchor=(1.05, 1))
+        if label['legend'][0] != '':
+            legend = ax.legend(loc='upper left')
+        return fig, ax
+
+class PlotCh(CustomPlots):
+    """_summary_
+
+    Args:
+        CustomPlots (_type_): _description_
+    """
+
+    def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
+        super().__init__()
+        self.name=PlotType.Ch_plot
+        self.visible=is_visible
+        self.y_axis_log=y_axis_log
+
+    def plot(self, fig, ax, U:np.ndarray, labels):
+        """Plot"""
+        label = labels[self.name]
+        # print(U)
+        ax.plot(U[:,0], '-b', label=label['legend'][0])
+        # ax.plot(U[:,1], '-r', label=label['legend'][1])
 
         ax.set_title(label['title'])
         ax.set_xlabel(label['xylabel'][0])
@@ -281,6 +309,8 @@ def add_annotation(ax, elec_pos):
 
 
 if __name__ == "__main__":
+    a= CustomLabels()
+    print(a.__dict__)
 
     """"""
      

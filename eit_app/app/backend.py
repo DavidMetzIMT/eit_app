@@ -51,6 +51,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QApplication
 
 import eit_ai.raw_data.load_eidors as matlab
+from glob_utils.decorator.decorator import catch_error
 
 # Ensure using PyQt5 backend
 matplotlib.use('QT5Agg')
@@ -72,8 +73,6 @@ log_level={
     'INFO':logging.INFO,
     'WARNING':logging.WARNING
 }
-
-
 
 
 class UiBackEnd(app_gui, QtWidgets.QMainWindow):
@@ -107,6 +106,12 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.toolbar_rec = NavigationToolbar(self.canvas_rec, self)
         self.layout_rec.addWidget(self.toolbar_rec)
         self.layout_rec.addWidget(self.canvas_rec)
+
+        self.figure_ch_graph = figure()
+        self.canvas_ch_graph = FigureCanvas(self.figure_ch_graph)
+        self.toolbar_ch_graph = NavigationToolbar(self.canvas_ch_graph, self)
+        self.layout_ch_graph.addWidget(self.toolbar_ch_graph)
+        self.layout_ch_graph.addWidget(self.canvas_ch_graph)
 
         self._init_main_objects()
 
@@ -538,6 +543,15 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
         self.io_interface.put_queue_out(('random', 0, RecCMDs.initialize))
     
+    def _c_set_eit_model_data(self)->None:
+        """[summary]
+        """        
+        self.eit_model.p=self.eit_p.value()
+        self.eit_model.lamb=self.eit_lamda.value()
+        self.eit_model.n=self.eit_n.value()
+        self.eit_model.set_solver(self.cB_solver.currentText())
+        self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
+    
     def _c_loadRef4TD(self)->None:
         """[summary]
         """
@@ -568,14 +582,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             self.meas_dataset.set_frame_TD_ref(
                 self.cB_current_idx_frame.currentIndex(), path= path)
         
-    def _c_set_eit_model_data(self)->None:
-        """[summary]
-        """        
-        self.eit_model.p=self.eit_p.value()
-        self.eit_model.lamb=self.eit_lamda.value()
-        self.eit_model.n=self.eit_n.value()
-        self.eit_model.set_solver(self.cB_solver.currentText())
-        self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
 
     def _c_load_eidors_fwd_solution(self) -> None:    # for Jiawei master thesis
         """load eidors foward solution(voltages) out of an mat-file"""
@@ -898,34 +904,43 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
     def _test_compute(self)->None:
         self.io_interface.put_queue_out(('random', 0, RecCMDs.reconstruct))
 
+    @catch_error
     def _update_canvas(self, data)->None:
         """"""
-        try:
-            dataset:EitMeasurementSet=data['dataset']
-            idx_frame=data['idx_frame']
-            t = time.time()
-            self.figure_rec=plot_rec(self.plots_to_show, self.figure_rec, data)
-            self.canvas_rec.draw()
-            self.figure_graphs = plot_measurements(
-                self.plots_to_show, self.figure_graphs, data)
-            self.canvas_graphs.draw()
-            elapsed = time.time() - t
-            if dataset=='random':
-                return
-            voltages= dataset.get_voltages(idx_frame, 0)
-            if voltages is not None:
-                set_table_widget(self.tableWidgetvoltages_Z, voltages)
-            if isinstance(dataset, EitMeasurementSet):
-                idx, t=dataset.get_idx_frame(idx_frame), get_datetime_s()
-                logger.debug(f'Plot Frame #{idx}, time {t}, lasted {elapsed}')
-        except BaseException as e:
-            logger.error(f'Error _update_canvas: {e}')
-    
+        dataset:EitMeasurementSet=data['dataset']
+        idx_frame=data['idx_frame']
+        t = time.time()
+        self.figure_rec=plot_rec(self.plots_to_show, self.figure_rec, data)
+        self.canvas_rec.draw()
+        self.figure_graphs = plot_measurements(
+            self.plots_to_show, self.figure_graphs, data)
+        self.canvas_graphs.draw()
+        elapsed = time.time() - t
+        if dataset=='random':
+            return
+        voltages= dataset.get_voltages(idx_frame, 0)
+        if voltages is not None:
+            set_table_widget(self.tableWidgetvoltages_Z, voltages)
+            meas_voltage=np.real(voltages[:,:self.eit_model.n_el].flatten())
+            ax=self.figure_ch_graph.add_subplot(1,1,1)
+            ax.plot(meas_voltage, '-b')
+            self.canvas_ch_graph.draw()
+        if isinstance(dataset, EitMeasurementSet):
+            idx, t=dataset.get_idx_frame(idx_frame), get_datetime_s()
+            logger.debug(f'Plot Frame #{idx}, time {t}, lasted {elapsed}')
+        
     def display_image(self, image:QtGui.QImage)->None:
         if not isinstance(image, QtGui.QImage):
             logger.error(f'{image=} is not an QtGui.QImage')
             return
         self.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
+
+
+
+
+
+
+
 
 if __name__ == "__main__":
     """"""
