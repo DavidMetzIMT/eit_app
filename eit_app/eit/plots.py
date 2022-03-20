@@ -11,7 +11,7 @@ from glob_utils.thread_process.threads_worker import Poller
 from matplotlib.figure import Figure
 
 import eit_model.data
-import eit_model.plot.mesh
+import eit_model.plot
 
 logger = getLogger(__name__)
 
@@ -20,13 +20,14 @@ logger = getLogger(__name__)
 class Data2Plot:
     data:Any=None
     labels:dict=field(default_factory=lambda:{})
+    destination:Any=None
 
 
 class CustomLayout(ABC):
     """descripe a sort of plot"""
 
     allowed_data_type:tuple=()
-    plotter:eit_model.plot.mesh.EITCustomPlots=None
+    plotter:eit_model.plot.EITCustomPlots=None
 
     def __init__(self) -> None:
         super().__init__()
@@ -37,7 +38,7 @@ class CustomLayout(ABC):
     def _post_init_(self):
         """Custom initialization"""
         # self.allowed_data_type=()    
-        # self.plotter=eit_model.plot.mesh.EITImage2DPlot()
+        # self.plotter=eit_model.plot.EITImage2DPlot()
 
     def build(self, fig:Figure, data:Data2Plot):
         """Plot"""
@@ -64,7 +65,7 @@ class LayoutEITImage2D(CustomLayout):
     def _post_init_(self):
         """Custom initialization"""
         self.allowed_data_type=(eit_model.data.EITImage)
-        self.plotter=eit_model.plot.mesh.EITImage2DPlot()
+        self.plotter=eit_model.plot.EITImage2DPlot()
 
     # @abstractmethod
     def _build(self, fig:Figure, data:Any, labels:dict):
@@ -72,8 +73,6 @@ class LayoutEITImage2D(CustomLayout):
         ax = fig.add_subplot(1, 1, 1)
         lab = labels.get(self.plotter.type)
         fig, ax = self.plotter.plot(fig, ax, data, lab)
-
-
 
 class LayoutEITData(CustomLayout):
     """_summary_
@@ -86,8 +85,8 @@ class LayoutEITData(CustomLayout):
         """Custom initialization"""
         self.allowed_data_type=(eit_model.data.EITData)
         self.plotter=[
-            eit_model.plot.mesh.EITUPlot(),
-            eit_model.plot.mesh.EITUPlotDiff()
+            eit_model.plot.EITUPlot(),
+            eit_model.plot.EITUPlotDiff()
         ]
 
     # @abstractmethod
@@ -103,6 +102,38 @@ class LayoutEITData(CustomLayout):
         ax[1].sharex(ax[1])
         ax[0].set_xlabel("")
         fig.set_tight_layout(True)
+
+
+class LayoutEITChannelVoltage(CustomLayout):
+    """_summary_
+
+    Args:
+        CustomPlots (_type_): _description_
+    """
+
+    def _post_init_(self):
+        """Custom initialization"""
+        self.allowed_data_type=(eit_model.data.EITData)
+        self.plotter=[
+            eit_model.plot.EITUPlot(),
+            eit_model.plot.EITUPlotDiff()
+        ]
+
+    # @abstractmethod
+    def _build(self, fig:Figure, data:Any, labels:dict):
+
+        # ax = [fig.add_subplot(2, 1, 1), fig.add_subplot(2, 1, 2)]
+        ax = fig.add_subplot(1, 1, 1)
+
+        lab = labels.get(self.plotter[0].type)
+        fig, ax = self.plotter[0].plot(fig, ax, data, lab)
+
+        # lab = labels.get(self.plotter[1].type)
+        # fig, ax[1] = self.plotter[1].plot(fig, ax[1], data, lab)
+        # ax[1].sharex(ax[1])
+        # ax[0].set_xlabel("")
+        fig.set_tight_layout(True)
+    
 
 class CanvasLayout(object):
 
@@ -165,7 +196,7 @@ class PlottingAgent(object):
     def add_layouts(self, canvaslayout:CanvasLayout):
         self.canvaslayout.append(canvaslayout)
     
-    def add_data2plot(self, data):
+    def add_data2plot(self, data, **kwargs):
         self.input_buf.put(data)
 
     def poll_input_buffer(self):
@@ -175,16 +206,20 @@ class PlottingAgent(object):
             return
 
         # loosing some informations
-        while not self.input_buf.empty():
-            data = self.input_buf.get(block=True)
-        
+        # while not self.input_buf.empty():
+        data = self.input_buf.get(block=True)
+
         self.process(data)
     
     def process(self, data):
         """"""
         if not isinstance(data, Data2Plot):
             return
-        [cl.plot(data) for cl in self.canvaslayout]
+
+        for cl in self.canvaslayout:
+            if isinstance(cl.layout_type, data.destination):
+                # logger.debug(f"Plot those data :{data=}")
+                cl.plot(data)
 
 
 if __name__ == "__main__":
