@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from typing import Any, Callable, List
 from PyQt5.QtWidgets import QComboBox, QTableWidgetItem, QTableWidget, QSlider
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def set_comboBox_items(
@@ -26,7 +29,7 @@ def set_comboBox_items(
         comboBox.clear()
     if items is not None:
         if not items:
-            print("could not set combobox: ", comboBox.objectName)
+            logger.error("could not set combobox: ", comboBox.objectName)
         elif len(items) == 1:
             comboBox.addItem(
                 str(items[0]),

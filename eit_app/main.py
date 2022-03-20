@@ -6,7 +6,7 @@ import sys
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication
 
-from eit_app.app.backend import UiBackEnd
+from eit_app.backend import UiBackEnd
 
 
 def main():

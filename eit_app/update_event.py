@@ -6,8 +6,8 @@ import threading
 from typing import Any, Callable, List
 from PyQt5 import QtGui
 
-from eit_app.app.gui import Ui_MainWindow
-from eit_app.app.gui_utils import (
+from eit_app.gui import Ui_MainWindow
+from eit_app.gui_utils import (
     change_value_withblockSignal,
     set_comboBox_items,
     set_slider,
@@ -111,9 +111,9 @@ class DevAvailables(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_device_status(app: Ui_MainWindow, connected: bool, status_prompt: str):
+def update_device_status(app: Ui_MainWindow, connected: bool, connect_prompt: str):
     """Actualize the status of the device"""
-    app.lab_device_status.setText(status_prompt)
+    app.lab_device_status.setText(connect_prompt)
     app.lab_device_status.adjustSize
     color = "background-color: green" if connected else "background-color: red"
     app.lab_device_status.setStyleSheet(color)
@@ -125,7 +125,7 @@ add_func_to_catalog(update_device_status)
 @dataclass
 class DevStatus(EventDataClass):
     connected: bool
-    status_prompt: str
+    connect_prompt: str
     func: str = update_device_status.__name__
 
 
@@ -208,18 +208,18 @@ class LiveMeasState(Enum):
     Paused = auto()
 
 
-def update_live_status(app: Ui_MainWindow, live_meas: MultiState):
+def update_live_status(app: Ui_MainWindow, meas_status: str):
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
 
-    if live_meas.is_set(LiveMeasState.Idle):
+    if meas_status.is_set(LiveMeasState.Idle):
         app.lab_live_meas_status.setText("Idle")
         app.lab_live_meas_status.setStyleSheet("background-color: red")
         app.pB_start_meas.setText("Start")
         app.pB_start_meas.setStatusTip(
             "Start aquisition of a new measurement dataset (Ctrl + Shift +Space)"
         )
-    elif live_meas.is_set(LiveMeasState.Measuring):
+    elif meas_status.is_set(LiveMeasState.Measuring):
         app.lab_live_meas_status.setText("Measuring")
         app.lab_live_meas_status.setStyleSheet("background-color: green")
         app.meas_progress_bar.setValue(0)
@@ -227,7 +227,7 @@ def update_live_status(app: Ui_MainWindow, live_meas: MultiState):
         app.pB_start_meas.setStatusTip(
             "Pause aquisition of measurement dataset (Ctrl + Shift +Space)"
         )
-    elif live_meas.is_set(LiveMeasState.Paused):
+    elif meas_status.is_set(LiveMeasState.Paused):
         app.lab_live_meas_status.setText("Paused")
         app.lab_live_meas_status.setStyleSheet("background-color: yellow")
         app.pB_start_meas.setText("Resume")
@@ -241,7 +241,7 @@ add_func_to_catalog(update_live_status)
 
 @dataclass
 class LiveStatus(EventDataClass):
-    live_meas: MultiState
+    live_meas: str
     func: str = update_live_status.__name__
 
 
