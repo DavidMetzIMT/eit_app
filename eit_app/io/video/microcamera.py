@@ -316,13 +316,10 @@ class VideoCaptureModule(object):
     a live, a measuring and an idle mode using a worker thread
     """
 
-    def __init__(
-        self, capture_type: CaptureDevices, queue_out: Queue
-    ) -> None:
+    def __init__(self, capture_type: CaptureDevices ) -> None:
 
         super().__init__()
         self.queue_in = Queue()  # recieve path were the frame has to be saved
-        # self.queue_out = queue_out  # send the Qimage to dipslay
         self.worker = Poller(name="live_capture", pollfunc=self._poll, sleeptime=0.05)
         self.worker.start()
         self.worker.start_polling()
@@ -342,13 +339,14 @@ class VideoCaptureModule(object):
         self.new_image=Signal(self)
 
 
-    def add_path(self, frame_path=None,**kwargs):
+    def add_path(self, frame_path:str='None',**kwargs):
 
         # if isinstance(data, dict):
         #     data= Data2Compute(**data)
-
         if not isinstance(frame_path, str):
             logger.error(f'wrong type of data, type str expected: {frame_path=}')
+            return
+        if frame_path=='None':
             return
         self.queue_in.put(frame_path)
 
@@ -394,7 +392,7 @@ class VideoCaptureModule(object):
                                 }
         """
         if size not in IMG_SIZES:
-            logger.error(f"Wrong imgae size : {size}")
+            logger.error(f"Wrong image size : {size}")
             return
         self.image_size = IMG_SIZES[size]
         self.capture_type.set_settings(size=self.image_size)
@@ -444,7 +442,6 @@ class VideoCaptureModule(object):
             return
         path = self.queue_in.get()
         QtImage = self.snapshot(path)
-        # self.queue_out.put(QtImage)
         self.emit_new_image(QtImage)
 
 
@@ -454,7 +451,6 @@ class VideoCaptureModule(object):
         Read and post the actual image in queue out (eg. for display on GUI)
         """
         QtImage = self.snapshot()
-        # self.queue_out.put(QtImage)
         self.emit_new_image(QtImage)
 
     def emit_new_image(self,QtImage):
@@ -498,7 +494,6 @@ class VideoCaptureModule(object):
         frame = self.capture_type.load_frame(path)
         QtImage = self.capture_type.get_Qimage(frame)
         logger.debug(f'\nImage "{path}" - Loaded')
-        # self.queue_out.put(QtImage)
         self.emit_new_image(QtImage)
 
 
