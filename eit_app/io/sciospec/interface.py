@@ -54,6 +54,7 @@ from eit_app.io.sciospec.com_constants import *
 # from eit_app.io.sciospec.hw_interfaces import HWInterface
 from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.thread_process.signal import Signal
+from glob_utils.flags.flag import CustomFlag
 
 
 __author__ = "David Metz"
@@ -95,12 +96,16 @@ class Interface(ABC):
     """"""
     new_rx_frame:Signal # Signal used to transmit new rx frame
     error:Signal # Signal used to transmit error occruring during opening, writing, or listening process
+    is_connected : CustomFlag
+
 
     def __init__(self, name_listener_thread:str='listener' , sleeptime:float= 0.01) -> None:
         super().__init__()
 
         self.new_rx_frame= Signal(self)
         self.error = Signal(self)
+        self.is_connected = CustomFlag()
+        self.is_connected.clear()
         
         self.listener = Poller(
             name= name_listener_thread, sleeptime=sleeptime, pollfunc=self._poll
@@ -151,6 +156,7 @@ class SciospecSerialInterface(Interface):
         super().__init__(name_listener_thread='serial listener' , sleeptime= 0.01)
         self.rx_frame = None  # last response retrieved by polling
         self.serial_port = Serial()
+        self.is_connected.set(self.serial_port.is_open)
         self.ports_available = []
         logger.debug("__init__ SerialInterface - done")
     
@@ -166,16 +172,21 @@ class SciospecSerialInterface(Interface):
         if baudrate is None:
             baudrate= SERIAL_BAUD_RATE_DEFAULT
         success = self._open(port= port, baudrate= str(baudrate),**kwargs)
+        self.is_connected.set(self.serial_port.is_open)
         logger.debug(f"Connection serial port: {port} - {SUCCESS[success]}")
         self.listener.start_polling() 
-        return  success
+        return success
     
     # @abstractmethod
-    def close(self):
+    def close(self)->bool:
         """Close serial interface"""
-        self.listener.stop_polling()  
-        logger.debug(f"Disconnection serial port: {self.get_port_name()} - {SUCCESS[True]}")
-        self.serial_port.close()  # close the serial interface
+        self.listener.stop_polling()
+        port= self.get_port_name()
+        success= self._close()
+        self.is_connected.set(self.serial_port.is_open)
+        logger.debug(f"Disconnection serial port: {port} - {SUCCESS[success]}")
+        return success
+
     
     # @abstractmethod
     def write(self, data: list[bytes])-> bool:
@@ -302,17 +313,15 @@ class SciospecSerialInterface(Interface):
 
     @_catch_error(return_success=True)
     def _open(self, **kwargs):
-        port = kwargs.get("port", None)
-        self.serial_port = Serial(**kwargs)
+        self.serial_port=Serial(**kwargs)
         # read everything the device could send
         self.serial_port.reset_output_buffer()
         self.serial_port.reset_input_buffer()
         self.serial_port.flush()
-        # self.listener.stop_polling()
-        # self._stop_measurements() # if sciospec not stopped before
-        # self._clear_unwanted_rx_frames()
-        # self.listener.start_polling() 
-        
+
+    @_catch_error(return_success=True)
+    def _close(self, **kwargs):
+        self.serial_port.close()  # close the serial interface
 
     @_catch_error(return_success=True)
     def _write(self, data: list[bytes]):
