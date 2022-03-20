@@ -13,7 +13,7 @@ from eit_app.app.gui_utils import (
     set_slider,
     set_table_widget,
 )
-from eit_app.io.sciospec.device_setup import SciospecSetup
+from eit_app.io.sciospec.setup import SciospecSetup
 from eit_model.imaging_type import (
     Imaging,
     AbsoluteImaging,
@@ -62,10 +62,10 @@ class EventsAgent:
             logger.error("data are not compatible for update")
             return
 
-        logger.info(f"thread update_event {threading.get_ident()}")
+        # logger.info(f"thread update_event {threading.get_ident()}")
         data = self._mk_dict(data)
         func = data.pop("func")
-        logger.debug(f"updating {func=} with {data=}")
+        # logger.debug(f"updating {func=} with {data=}")
         self.events[func](**data)
 
 ################################################################################
@@ -173,7 +173,7 @@ def update_device_setup(
     app.label_Steps.setStyleSheet(color)
 
     set_table_widget(app.tw_exc_pattern, setup.get_exc_pattern(), 0)
-    update_freqs_list(app, setup.get_freqs())
+    update_freqs_list(app, setup.get_freqs_list())
 
 
 add_func_to_catalog(update_device_setup)
@@ -303,16 +303,16 @@ class ReplayButton(EventDataClass):
 def update_imaging_inputs_fields(app: Ui_MainWindow, imaging: Imaging):
     """Activate deactive the input fileddepending on the imaging type"""
 
-    meas_0 = {"show": True, "lab_text": "Meas. Frequency"}
-    meas_1 = {"show": False, "lab_text": "Meas. Frequency"}
+    meas_0 = {"show": False, "lab_text": "Ref. Frequency"}
+    meas_1 = {"show": True, "lab_text": "Meas. Frequency"}
     ref = {"show": False, "lab_text": "Reference frame #"}
+
     if isinstance(imaging, AbsoluteImaging):
         pass
     elif isinstance(imaging, TimeDifferenceImaging):
-        ref = {"show": True, "lab_text": "Reference frame #"}
+        ref["show"]= True
     elif isinstance(imaging, FrequenceDifferenceImaging):
-        meas_0 = {"show": True, "lab_text": "Ref. Frequence"}
-        meas_1 = {"show": True, "lab_text": "Meas. Frequency"}
+        meas_0["show"]= True
 
     app.cB_ref_frame_idx.setEnabled(ref["show"])
     app.lab_ref_frame_idx.setEnabled(ref["show"])
@@ -337,23 +337,23 @@ class ImagingInputs(EventDataClass):
 
 
 # -------------------------------------------------------------------------------
-## Update eitdata plot options
+## Update EITData plot options
 # -------------------------------------------------------------------------------
 
 
-def update_eitdata_plots_options(app: Ui_MainWindow):
-    """Activate/deactivate checkbox for eitdata plots"""
+def update_EITData_plots_options(app: Ui_MainWindow):
+    """Activate/deactivate checkbox for EITData plots"""
     app.chB_Uplot.setEnabled(app.chB_plot_graph.isChecked())
     app.chB_diff.setEnabled(app.chB_plot_graph.isChecked())
     app.chB_y_log.setEnabled(app.chB_plot_graph.isChecked())
 
 
-add_func_to_catalog(update_eitdata_plots_options)
+add_func_to_catalog(update_EITData_plots_options)
 
 
 @dataclass
-class EITdataPlotOptions(EventDataClass):
-    func: str = update_eitdata_plots_options.__name__
+class EITDataPlotOptions(EventDataClass):
+    func: str = update_EITData_plots_options.__name__
 
 
 # -------------------------------------------------------------------------------
