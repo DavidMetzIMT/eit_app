@@ -57,6 +57,7 @@ class ComputeMeas:
         self.solver: eit_model.solver_abc.Solver = None
         self.rec_enable=False
         self.computed= Signal(self)
+        self.params=None
     
     def send_2_plot(self, data):
         self.plot_cllbck(data)
@@ -81,6 +82,9 @@ class ComputeMeas:
 
     def set_eit_model(self, eit_model: eit_model.model.EITModel):
         self.eit_model = eit_model
+    
+    def set_rec_params(self, params):
+        self.params=params
 
     def enable_rec(self, enable:bool=True):
         self.rec_enable= enable
@@ -93,7 +97,7 @@ class ComputeMeas:
 
     @catch_error
     def init_solver(self):
-        img_rec, data_sim=self.solver.prepare_rec()
+        img_rec, data_sim=self.solver.prepare_rec(self.params)
         self.computed.fire(data=Data2Plot(img_rec, {}, LayoutEITImage2D))
         self.computed.fire(data=Data2Plot(data_sim, {},LayoutEITData))
         # self.send_2_plot(Data2Plot(img_rec,{}))
