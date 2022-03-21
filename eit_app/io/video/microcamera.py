@@ -27,11 +27,16 @@ from typing import Any
 
 import cv2
 from glob_utils.files.files import is_file
+from glob_utils.pth.path_utils import get_datetime_s
 import numpy as np
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.threads_worker import Poller
-from glob_utils.flags.flag import CustomFlag
+from glob_utils.flags.flag import CustomFlag, MultiStatewSignal
+from glob_utils.msgbox import askokcancelMsgBox, infoMsgBox, errorMsgBox
+
 from PyQt5.QtGui import QImage
+
+from eit_app.update_event import CaptureDevAvailables, CaptureMode, CaptureStatus
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -212,6 +217,7 @@ class MicroUSBCamera(CaptureDevices):
         self.devices_available[name]
         self.device = cv2.VideoCapture(self.devices_available[name], cv2.CAP_DSHOW)
         self._check_device()
+        
 
     def get_devices_available(self) -> dict[str, Any]:
         for index, _ in enumerate(range(10)):
@@ -286,63 +292,96 @@ class MicroUSBCamera(CaptureDevices):
 ################################################################################
 
 
-class CaptureStatus(Enum):
-    """Status for the Video Capture Module"""
-
-    live = auto()
-    meas = auto()
-    idle = auto()
-
-
 def handle_capture_device_error(func):
-    """Decorator to handle the errors from CaptureDevices in
+    """Decorator which handle the errors from CaptureDevices in
     Video Capture Modules
     """
-
     def wrapper(self, *args, **kwargs) -> Any:
         try:
             return func(self, *args, **kwargs)
         except NoCaptureDeviceSelected as e:
-            self.set_idle()
             logger.warning(f"No Capture Device Selected; ({e})")
+            errorMsgBox(
+                title="No Capture Device Selected",
+                message=f"{e}"
+            )
         except CaptureFrameError as e:
             logger.error(f"Capture frame failed; ({e})")
-
+            errorMsgBox(
+                title="Capture frame failed",
+                message=f"{e}"
+            )
     return wrapper
 
 
-class VideoCaptureModule(object):
-    """Handel a capture device and can provide
+class VideoCaptureAgent(object):
+    """Handle a capture device and can provide
     a live, a measuring and an idle mode using a worker thread
     """
 
-    def __init__(self, capture_type: CaptureDevices ) -> None:
+    def __init__(self, capture_type: CaptureDevices , snapshot_dir:str) -> None:
 
         super().__init__()
         self.queue_in = Queue()  # recieve path were the frame has to be saved
         self.worker = Poller(name="live_capture", pollfunc=self._poll, sleeptime=0.05)
         self.worker.start()
         self.worker.start_polling()
-        self.status = CaptureStatus.idle
-        self.capture_type = capture_type
+        self.mode = MultiStatewSignal(list(CaptureMode))
+        self.mode.reset(CaptureMode.IDLE)
+        # self.live_capture = CustomFlag()
+        self.capture_device = capture_type
+        self.snapshot_dir= snapshot_dir
+        self.aquisition_device_is_measuring= CustomFlag()
+        self.was_mode = CaptureMode.IDLE
 
         self.image_size = IMG_SIZES[list(IMG_SIZES.keys())[-1]]
         self.image_file_ext = EXT_IMG[list(EXT_IMG.keys())[0]]
         self.save_image_path = ""
         self.last_frame = None
-        self.devices: list[str] = []
-        self.processes = {
-            CaptureStatus.idle: self._idle,
-            CaptureStatus.meas: self._meas,
-            CaptureStatus.live: self._live_frame,
+        self.process = {
+            CaptureMode.IDLE: self._process_idle,
+            CaptureMode.MEASURING: self._process_meas,
+            CaptureMode.LIVE: self._process_live,
         }
         self.new_image=Signal(self)
+        self.to_gui=Signal(self)
 
+        self.mode.changed.connect(self.mode_changed) 
+
+    def emit_to_gui(self, data:Any)->None:
+        kwargs={"update_gui_data": data}
+        self.to_gui.fire(None, **kwargs)
+    
+    def emit_new_image(self,image:QImage):
+        logger.debug("video image emitted")
+        kwargs={"image":image}
+        self.new_image.fire(False, **kwargs)
+
+    def mode_changed(self):
+        """Update the was life flag, called by status changed signal"""
+        self.was_mode = self.mode.was_set()
+        mode_now:CaptureMode = self.mode.actual_state()
+        self.emit_to_gui(CaptureStatus(mode_now))
+        logger.debug(f"Capture module mode set to : {mode_now.value}")
+    
+    def set_mode(self, meas_status_dev:bool ,**kwargs):
+        """Set internal mode depending on the measuring status of 
+        the acquisition device 
+
+        this method is called by a signal from the device at fro each status changes
+
+        if meas_status_dev is `True` the capture_module is set to meas mode
+        otherwise the capture_module is set back to live or to idle mode"""
+        if not isinstance(meas_status_dev, bool):
+            return
+
+        if self.aquisition_device_is_measuring.is_set():
+            self.mode.change_state(CaptureMode.MEASURING) 
+        else:
+            self.mode.change_state(self.was_mode)
 
     def add_path(self, frame_path:str='None',**kwargs):
 
-        # if isinstance(data, dict):
-        #     data= Data2Compute(**data)
         if not isinstance(frame_path, str):
             logger.error(f'wrong type of data, type str expected: {frame_path=}')
             return
@@ -350,34 +389,27 @@ class VideoCaptureModule(object):
             return
         self.queue_in.put(frame_path)
 
-    def set_capture_type(self, capture_type: CaptureDevices) -> None:
-        """Set the type of capture device
 
-        Args:
-            capture_type (CaptureDevices): a CaptureDevices object
-        """
-        self.capture_type = capture_type
-
-    def get_devices_available(self) -> list[str]:
+    def get_devices_available(self)-> None:
         """Return a list of the name of the availbale devices
 
         Returns:
             list[str]: names of the available devices
         """
-        self.devices = list(self.capture_type.get_devices_available().keys())
-        logger.info(f"Capture devices available: {list(self.devices)}")
-        return self.devices
+        devices = self.capture_device.get_devices_available()
+        logger.info(f"Capture devices available: {list(devices)}")
+        self.emit_to_gui(CaptureDevAvailables(devices))
 
     @handle_capture_device_error
-    def select_device(self, name: str) -> None:
+    def connect_device(self, name: str) -> None:
         """Select a device
 
         Args:
             name (str): name of the device, which has to be in the self.devices
         """
-
-        self.capture_type.connect_device(name)
+        self.capture_device.connect_device(name)
         logger.info(f"Video capture device: {name} - CONNECTED")
+        
 
     @handle_capture_device_error
     def set_image_size(self, size: str) -> None:
@@ -395,7 +427,7 @@ class VideoCaptureModule(object):
             logger.error(f"Wrong image size : {size}")
             return
         self.image_size = IMG_SIZES[size]
-        self.capture_type.set_settings(size=self.image_size)
+        self.capture_device.set_settings(size=self.image_size)
 
     def set_image_file_format(self, file_ext=list(EXT_IMG.keys())[0]) -> None:
         """Set the file format for image saving
@@ -407,58 +439,65 @@ class VideoCaptureModule(object):
         self.image_file_ext = EXT_IMG[file_ext]
         logger.debug(f"image_file_ext selected {self.image_file_ext}")
 
-    def set_idle(self) -> None:
-        """Set Idle Mode"""
-        self.status = CaptureStatus.idle
-        logger.debug("Idle mode")
+    def start_stop_capture(self, *args, **kwargs) -> None:
+        """Start or Stop Live Capture,
+        toggle between both modis IDLE and LIVE
+        if MEASURING mode active nothing will be done!
+        """
+        if self.mode.is_set(CaptureMode.MEASURING):
+            return
+        
+        if self.mode.is_set(CaptureMode.IDLE):
+            self.mode.change_state(CaptureMode.LIVE)
+        else:
+            self.mode.change_state(CaptureMode.IDLE)
 
-    def set_meas(self) -> None:
-        """Set Measuring Mode"""
-        self.status = CaptureStatus.meas
-        logger.debug("Meas mode")
-
-    def set_live(self) -> None:
-        """Set Live Mode"""
-        self.status = CaptureStatus.live
-        logger.debug("Live mode")
+    def capture_stop(self, *args, **kwargs) -> None:
+        """Force the capture module to stop capturing,
+        """
+        if self.mode.is_set(CaptureMode.MEASURING):
+            infoMsgBox(
+                title="Measurements are running",
+                message="Stop first Measurements"
+            )
+        
+        self.mode.change_state(CaptureMode.IDLE)
 
     def _poll(self) -> None:
         """Call the process corresponding to the actual status"""
-        self.processes[self.status]()
+        self.process[self.mode.actual_state()]()
 
-    def _idle(self) -> None:
-        """Idle process
+    def _process_idle(self) -> None:
+        """Idle process"""
 
-        Do Nothing
-        """
-
-    def _meas(self) -> None:
+    def _process_meas(self) -> None:
         """Measuring process
 
         Wait on queue_in for a path where actual frame has to be saved.
-        and post the actual image in queue out (eg. for display on GUI)
+        and emit the actual image in queue out (eg. for display on GUI)
         """
         if self.queue_in.empty():
             return
         path = self.queue_in.get()
-        QtImage = self.snapshot(path)
-        self.emit_new_image(QtImage)
+        image = self._snapshot(path)
+        self.emit_new_image(image)
 
-
-    def _live_frame(self) -> None:
-        """Live process
-
-        Read and post the actual image in queue out (eg. for display on GUI)
+    def _process_live(self) -> None:
+        """Live process: Read and emit the actual image (eg. for display on GUI)
         """
-        QtImage = self.snapshot()
-        self.emit_new_image(QtImage)
+        image = self._snapshot()
+        self.emit_new_image(image)
 
-    def emit_new_image(self,QtImage):
 
-        self.new_image.fire(False, image=QtImage)
+    def build_snapshot_path(self)->str:
+        return os.path.join(self.snapshot_dir, f"Snapshot_{get_datetime_s()}")
+
+    def snapshot(self, *args, **kwargs) -> QImage:
+        path= self.build_snapshot_path()
+        return self._snapshot(path)
 
     @handle_capture_device_error
-    def snapshot(self, path: str = None) -> QImage:
+    def _snapshot(self, path: str = None) -> QImage:
         """Make a snapshot and return a Qt image
 
         Args:
@@ -469,12 +508,12 @@ class VideoCaptureModule(object):
             QImage: captured Qt image
         """
 
-        frame = self.capture_type.capture_frame()
-        QtImage = self.capture_type.get_Qimage(frame)
+        frame = self.capture_device.capture_frame()
+        QtImage = self.capture_device.get_Qimage(frame)
         if path and isinstance(path, str):
             path, _ = os.path.splitext(path)
             path = path + self.image_file_ext
-            self.capture_type.save_frame(frame, path)
+            self.capture_device.save_frame(frame, path)
             logger.debug(f"Image saved in {path}")
         return QtImage
 
@@ -486,15 +525,15 @@ class VideoCaptureModule(object):
             path (str, optional): . Defaults to None.
         """
         if path is None:
-            return self.snapshot()  # capture actual frame
+            return self._snapshot()  # capture actual frame
 
         _, ext = os.path.split(path)
         if ext not in list(EXT_IMG.values()) and not is_file(path):
             return None
-        frame = self.capture_type.load_frame(path)
-        QtImage = self.capture_type.get_Qimage(frame)
+        frame = self.capture_device.load_frame(path)
+        image = self.capture_device.get_Qimage(frame)
         logger.debug(f'\nImage "{path}" - Loaded')
-        self.emit_new_image(QtImage)
+        self.emit_new_image(image)
 
 
 def convert_frame_to_Qt_format(frame: np.ndarray) -> QImage:
