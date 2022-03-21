@@ -24,12 +24,12 @@ from dataclasses import dataclass
 import os
 from logging import getLogger
 from sys import argv
-from typing import Tuple, Union
+from typing import Any, Tuple, Union
 
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs
 from glob_utils.msgbox import infoMsgBox, warningMsgBox, errorMsgBox
-from eit_app.update_event import FrameInfo, FrameProgress
+from eit_app.update_event import FrameInfo, FrameProgress, MeasDatasetLoaded
 from eit_app.eit.computation import  Data2Compute
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.setup import SciospecSetup
@@ -399,7 +399,7 @@ class MeasurementDataset(object):
         self._autosave.set()
         self._save_img = CustomFlag()
         self.new_frame=Signal(self)
-        self.rx_frame_progression=Signal(self)
+        self.to_gui=Signal(self)
 
         # self.data_in = Queue()
         # self.adding_worker = Poller(
@@ -540,11 +540,12 @@ class MeasurementDataset(object):
 
     def emit_progression(self)->None:
         """Send signal to update Frame aquisition progress bar"""
-        kwargs= {
-            "update_gui_data": FrameProgress(self.get_frame_cnt(), self.get_filling())
-        }
         logger.debug(f'Emit progression frame# {self.get_frame_cnt()} fill:{self.get_filling()} ')
-        self.rx_frame_progression.fire(False, **kwargs)
+        self.emit_to_gui(FrameProgress(self.get_frame_cnt(), self.get_filling()))
+
+    def emit_to_gui(self, data:Any)->None:
+        kwargs={"update_gui_data": data}
+        self.to_gui.fire(None, **kwargs)
 
     ## =========================================================================
     ##  Save load
@@ -622,6 +623,7 @@ class MeasurementDataset(object):
     def load(self, dir_path: str = None) -> Union[list[str], None]:
         """Load a measurement files contained in measurement dataset directory"""
         self.load_json(dir_path)
+        self.emit_to_gui(MeasDatasetLoaded(self.output_dir, self.frame_cnt))
     
     @catch_error
     def load_json(self, dir_path: str = None) -> Union[list[str], None]:
