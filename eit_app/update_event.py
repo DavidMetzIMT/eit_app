@@ -1,5 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass, is_dataclass
+from distutils.log import debug
 from enum import Enum, auto
 from logging import getLogger
 import threading
@@ -10,8 +11,9 @@ from eit_app.gui import Ui_MainWindow
 from eit_app.gui_utils import (
     change_value_withblockSignal,
     set_comboBox_items,
-    set_slider,
-    set_table_widget,
+    set_QSlider_position,
+    set_QSlider_scale,
+    set_QTableWidget,
 )
 from eit_app.io.sciospec.setup import SciospecSetup
 from eit_model.imaging_type import (
@@ -21,6 +23,7 @@ from eit_model.imaging_type import (
     FrequenceDifferenceImaging,
 )
 from glob_utils.flags.flag import CustomFlag, MultiState
+from glob_utils.decorator.decorator import catch_error
 
 logger = getLogger(__name__)
 
@@ -55,6 +58,7 @@ class EventsAgent:
         d["app"] = self.app
         return d
 
+    @catch_error
     def post_event_data(self, data:EventDataClass):
         """Run the update event correspoding to the event data"""
 
@@ -62,10 +66,10 @@ class EventsAgent:
             logger.error("data are not compatible for update")
             return
 
-        # logger.info(f"thread update_event {threading.get_ident()}")
+        logger.info(f"thread update_event {threading.get_ident()}")
         data = self._mk_dict(data)
         func = data.pop("func")
-        # logger.debug(f"updating {func=} with {data=}")
+        logger.debug(f"updating {func=} with {data=}")
         self.events[func](**data)
 
 ################################################################################
@@ -88,7 +92,7 @@ def add_func_to_catalog(func:Callable):
 
 
 # -------------------------------------------------------------------------------
-## Update available devices
+## Update available EIT devices
 # -------------------------------------------------------------------------------
 
 
@@ -104,6 +108,24 @@ add_func_to_catalog(update_available_devices)
 class DevAvailables(EventDataClass):
     device: dict
     func: str = update_available_devices.__name__
+
+# -------------------------------------------------------------------------------
+## Update available capture devices
+# -------------------------------------------------------------------------------
+
+
+def update_available_capture_devices(app: Ui_MainWindow, device: dict):
+    """Refesh the list of devices in the comboBox"""
+    items = list(device) or ["None device"]
+    set_comboBox_items(app.cB_video_devices, items)
+
+
+add_func_to_catalog(update_available_capture_devices)
+
+@dataclass
+class CaptureDevAvailables(EventDataClass):
+    device: dict
+    func: str = update_available_capture_devices.__name__
 
 
 # -------------------------------------------------------------------------------
@@ -143,14 +165,14 @@ def update_device_setup(
     """Actualize the inputs fields for the setup of the device coresponding to it"""
     app.lE_sn.setText(setup.get_sn())
     ## Update EthernetConfig
-    app.chB_dhcp.setChecked(bool(setup.get_dhcp()))
-    app.lE_ip.setText(setup.get_ip())
-    app.lE_mac.setText(setup.get_mac())
+    app.chB_dhcp.setChecked(bool(setup.ethernet_config.get_dhcp()))
+    app.lE_ip.setText(setup.ethernet_config.get_ip())
+    app.lE_mac.setText(setup.ethernet_config.get_mac())
 
     ## Update OutputConfig Stamps
-    app.chB_exc_stamp.setChecked(bool(setup.get_exc_stamp()))
-    app.chB_current_stamp.setChecked(bool(setup.get_current_stamp()))
-    app.chB_time_stamp.setChecked(bool(setup.get_time_stamp()))
+    app.chB_exc_stamp.setChecked(bool(setup.output_config.get_exc_stamp()))
+    app.chB_current_stamp.setChecked(bool(setup.output_config.get_current_stamp()))
+    app.chB_time_stamp.setChecked(bool(setup.output_config.get_time_stamp()))
 
     # Update Measurement Setups
     change_value_withblockSignal(app.sBd_frame_rate.setValue, setup.get_frame_rate())
@@ -172,7 +194,7 @@ def update_device_setup(
     app.label_minF.setStyleSheet(color)
     app.label_Steps.setStyleSheet(color)
 
-    set_table_widget(app.tw_exc_pattern, setup.get_exc_pattern(), 0)
+    set_QTableWidget(app.tw_exc_pattern, setup.get_exc_pattern(), 0)
     update_freqs_list(app, setup.get_freqs_list())
 
 
@@ -201,48 +223,99 @@ def update_freqs_list(app: Ui_MainWindow, freqs: List[Any]):
 ## Update live measurements state
 # -------------------------------------------------------------------------------
 
+@dataclass
+class MeasStatusButtonData:
+    lab_txt:str
+    lab_style:str
+    pB_txt:str
+    pB_status_tip:str
 
-class LiveMeasState(Enum):
-    Idle = auto()
-    Measuring = auto()
-    Paused = auto()
+class MeasuringStates(Enum):
+    IDLE = MeasStatusButtonData(
+        lab_txt="Idle",
+        lab_style="background-color: red",
+        pB_txt="Start",
+        pB_status_tip="Start aquisition of a new measurement dataset (Ctrl + Shift +Space)"
+    )
+    MEASURING = MeasStatusButtonData(
+        lab_txt="Measuring",
+        lab_style="background-color: green",
+        pB_txt="Pause",
+        pB_status_tip="Pause aquisition of measurement dataset (Ctrl + Shift +Space)"
+    )
+    PAUSED = MeasStatusButtonData(
+        lab_txt="Paused",
+        lab_style="background-color: yellow",
+        pB_txt="Resume",
+        pB_status_tip="Restart aquisition of measurement dataset (Ctrl + Shift +Space)"
+    )
 
-
-def update_live_status(app: Ui_MainWindow, meas_status: str):
+def update_meas_status(app: Ui_MainWindow, meas_status: MeasuringStates):
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
-
-    if meas_status.is_set(LiveMeasState.Idle):
-        app.lab_live_meas_status.setText("Idle")
-        app.lab_live_meas_status.setStyleSheet("background-color: red")
-        app.pB_start_meas.setText("Start")
-        app.pB_start_meas.setStatusTip(
-            "Start aquisition of a new measurement dataset (Ctrl + Shift +Space)"
-        )
-    elif meas_status.is_set(LiveMeasState.Measuring):
-        app.lab_live_meas_status.setText("Measuring")
-        app.lab_live_meas_status.setStyleSheet("background-color: green")
-        app.meas_progress_bar.setValue(0)
-        app.pB_start_meas.setText("Pause")
-        app.pB_start_meas.setStatusTip(
-            "Pause aquisition of measurement dataset (Ctrl + Shift +Space)"
-        )
-    elif meas_status.is_set(LiveMeasState.Paused):
-        app.lab_live_meas_status.setText("Paused")
-        app.lab_live_meas_status.setStyleSheet("background-color: yellow")
-        app.pB_start_meas.setText("Resume")
-        app.pB_start_meas.setStatusTip(
-            "Restart aquisition of measurement dataset (Ctrl + Shift +Space)"
-        )
+    v:MeasStatusButtonData= meas_status.value    
+    app.lab_live_meas_status.setText(v.lab_txt)
+    app.lab_live_meas_status.setStyleSheet(v.lab_style)
+    app.pB_start_meas.setText(v.pB_txt)
+    app.pB_start_meas.setStatusTip(v.pB_status_tip)
 
 
-add_func_to_catalog(update_live_status)
+add_func_to_catalog(update_meas_status)
 
 
 @dataclass
-class LiveStatus(EventDataClass):
-    live_meas: str
-    func: str = update_live_status.__name__
+class MeasuringStatus(EventDataClass):
+    meas_status: MeasuringStates
+    func: str = update_meas_status.__name__
+
+
+# -------------------------------------------------------------------------------
+## Update live measurements state
+# -------------------------------------------------------------------------------
+
+@dataclass
+class CaptureStatusButtonData:
+    lab_txt:str
+    lab_style:str
+    pB_txt:str 
+    pB_status_tip:str =""
+    pB_enable:bool = True
+
+class CaptureMode(Enum):
+    IDLE = CaptureStatusButtonData(
+        lab_txt="Idle",
+        lab_style="background-color: red",
+        pB_txt="Start capture",
+        pB_status_tip=""
+    )
+    MEASURING = CaptureStatusButtonData(
+        lab_txt="Measuring",
+        lab_style="background-color: blue",
+        pB_txt="Start capture",
+        pB_enable = False
+    )
+    LIVE = CaptureStatusButtonData(
+        lab_txt="Live",
+        lab_style="background-color: green",
+        pB_txt="Stop capture"
+    )
+
+def update_capture_status(app: Ui_MainWindow, capture_mode: CaptureMode):
+    """Update the live measurements status label and the mesurements
+    start/pause/resume button"""
+    v:CaptureStatusButtonData= capture_mode.value    
+    app.lab_capture_mode.setText(v.lab_txt)
+    app.lab_capture_mode.setStyleSheet(v.lab_style)
+    app.pB_capture_start_stop.setText(v.pB_txt)
+    app.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
+    app.pB_capture_start_stop.setEnabled(v.pB_enable)
+
+add_func_to_catalog(update_capture_status)
+
+@dataclass
+class CaptureStatus(EventDataClass):
+    capture_mode: CaptureMode
+    func: str = update_capture_status.__name__
 
 
 # -------------------------------------------------------------------------------
@@ -365,8 +438,11 @@ def update_progress_acquired_frame(
     app: Ui_MainWindow, idx_frame: int = 0, progression: int = 0
 ):
     """Update the progression bar and the idx of the aquired frame"""
-    app.sB_actual_frame_cnt.setValue(idx_frame)
+    logger.debug('update_progress_acquired_frame-in')
+    if idx_frame is not None:
+        app.sB_actual_frame_cnt.setValue(idx_frame)
     app.meas_progress_bar.setValue(progression)
+    logger.debug('update_progress_acquired_frame-ou')
 
 
 add_func_to_catalog(update_progress_acquired_frame)
@@ -374,6 +450,7 @@ add_func_to_catalog(update_progress_acquired_frame)
 
 @dataclass
 class FrameProgress(EventDataClass):
+    """Set idx_frame to `None` to NOT update it """
     idx_frame: int = 0
     progression: int = 0
     func: str = update_progress_acquired_frame.__name__
@@ -436,7 +513,7 @@ def update_dataset_loaded(app: Ui_MainWindow, dataset_dir: str, nb_loaded_frame:
     app.tE_load_dataset_dir.setText(dataset_dir)
     set_comboBox_items(app.cB_current_idx_frame, list(range(nb_loaded_frame)))
     set_comboBox_items(app.cB_ref_frame_idx, list(range(nb_loaded_frame)))
-    set_slider(app.slider_replay, 0, 0, nb_loaded_frame - 1, 1)
+    set_QSlider_scale(app.slider_replay, nb_pos=nb_loaded_frame)
 
 
 add_func_to_catalog(update_dataset_loaded)
