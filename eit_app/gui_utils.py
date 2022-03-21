@@ -47,7 +47,7 @@ def set_comboBox_items(
     #     comboBox.activated.connect(handler)
 
 
-def set_table_widget(
+def set_QTableWidget(
     tableWidget: QTableWidget, list2display: List[List[float]], decimal=4
 ):
     """_summary_
@@ -76,49 +76,61 @@ def set_table_widget(
         tableWidget.clearContents()
 
 
-def set_slider(
-    slider: QSlider,
-    set_pos=0,
-    pos_min=0,
-    pos_max=None,
-    single_step=1,
-    page_step=1,
-    next=False,
-    loop=True,
-):
-    """_summary_
+
+
+def set_QSlider_scale(slider:QSlider, nb_pos:int=10)->None:
+    """Set scale of Qslider
 
     Args:
-        slider (QSlider): _description_
-        set_pos (int, optional): _description_. Defaults to 0.
-        pos_min (int, optional): _description_. Defaults to 0.
-        pos_max (_type_, optional): _description_. Defaults to None.
-        single_step (int, optional): _description_. Defaults to 1.
-        page_step (int, optional): _description_. Defaults to 1.
-        next (bool, optional): _description_. Defaults to False.
-        loop (bool, optional): _description_. Defaults to True.
-
-    Returns:
-        _type_: _description_
+        slider (QSlider): slider object to set
+        nb_pos (int, optional): number of position on the scale. Defaults to 10.
     """
-    if not next:
-        if set_pos == -1:
-            slider.setSliderPosition(slider.maximum())
-        else:
-            slider.setSliderPosition(set_pos)
-    elif slider.sliderPosition() == slider.maximum():
-        if loop:
-            slider.setSliderPosition(0)
+    if nb_pos is not None and nb_pos > 0:  # change axis of slider only when the max change!
+        slider.setMaximum(nb_pos-1)
+        slider.setMinimum(0)
+        slider.setSingleStep(1)
+        slider.setPageStep(1)
+
+def set_QSlider_position(slider: QSlider, pos:int=0):
+    """Place the cursor as the passed position
+
+    Args:
+        slider (QSlider): slider object to set
+        pos (int, optional): position to set. Defaults to `0`. 
+        If pos is `-1` the slider will be set to the end
+        Pos has to be btw -1 >= pos >= slidermax, otherwise nothing will be done!
+    """
+    max_slider=slider.maximum()
+    if pos.__lt__(-1) or pos.__gt__(max_slider):
+        logger.error(f"Slider positionshould be between -1 and {max_slider}")
+        return
+    elif pos.__eq__(-1):
+        slider.setSliderPosition(max_slider)
     else:
-        slider.setSliderPosition(slider.sliderPosition() + 1)
+        slider.setSliderPosition(pos)
 
-    if pos_max is not None:  # change axis of slider only when the max change!
-        slider.setMaximum(pos_max)
-        slider.setMinimum(pos_min)
-        slider.setSingleStep(single_step)
-        slider.setPageStep(page_step)
+def inc_QSlider_position(slider: QSlider, forward:bool=True, loop:bool=True):
+    """Increment the position of the cursor
 
-    return slider.sliderPosition(), slider.maximum()
+    Args:
+        slider (QSlider): slider object to set
+        set_pos (int, optional): position. Defaults to `0`. 
+        If set to `-1` the slider will be set to the end
+    """
+    inc= {True:1, False:-1}
+    pos= slider.sliderPosition()
+    max_slider=slider.maximum()
+    nb_pos= max_slider+1
+
+    pos= pos + inc[forward]
+    pos = pos % nb_pos if loop else pos
+
+    if pos.__lt__(-1):
+        pos = 0
+    if pos.__gt__(max_slider):
+        pos = max_slider
+
+    set_QSlider_position(slider, pos)
 
 
 def change_value_withblockSignal(method: Callable, val):
