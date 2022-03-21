@@ -28,8 +28,8 @@ from typing import Tuple, Union
 
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs
-from eit_app.app.dialog_boxes import show_msgBox
-from eit_app.app.update_event import FrameInfo, FrameProgress
+from glob_utils.msgbox import infoMsgBox, warningMsgBox, errorMsgBox
+from eit_app.update_event import FrameInfo, FrameProgress
 from eit_app.eit.computation import  Data2Compute
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.setup import SciospecSetup
@@ -249,7 +249,7 @@ class MeasurementFrame(object):
         self._meas_stream_max = (len(self.excitation) * 2)
         self._meas_stream_cnt = 0
         self.info = self.build_info()
-        logger.debug(f"init Frame:{self.__dict__}")
+        logger.debug(f"Initialisation of Frame:{self.__dict__}")
     
     def set_from_dict(self, **kwargs):
         """Set attributes by passing kwargs or a dict.
@@ -296,8 +296,10 @@ class MeasurementFrame(object):
         The number of added meas stream is compared to the expected number."""
         return self._meas_stream_cnt == self._meas_stream_max
 
-    def add_data(self, rx_meas_stream:list[bytes], **kwargs):
+    def add_data(self, rx_meas_stream:list[bytes]= None, **kwargs):
         """add rx data to this frame"""
+        if rx_meas_stream is None:
+            return
         stream=RXMeasStreamData(rx_meas_stream, self.excitation)
         self.add_rx_stream(stream)
 
@@ -319,17 +321,6 @@ class MeasurementFrame(object):
             #   meas stream : exc m, freq n, group 1 >> _meas_stream_cnt += 1
             #   meas stream : exc m, freq n, group 2 >> _meas_stream_cnt += 1
             self._meas_stream_cnt += 1 
-   
-    # def extract_meas_stream(self, rx_frame:list[bytes]):
-    #     """Extract the measurement stream data out of rx_frame"""
-    #     rx_data = rx_frame[OPTION_BYTE_INDX:-1]
-    #     return RXMeasStreamData(
-    #         ch_group= rx_data[0],
-    #         exc_indx= self._find_excitation_indx(rx_data[1:3]),
-    #         freq_indx= convertBytes2Int(rx_data[3:5]),
-    #         time_stamp= convertBytes2Int(rx_data[5:9]),
-    #         voltage= convert_meas_data(rx_data[9:]),
-    #     )
 
     def add_rx_stream(self, stream:RXMeasStreamData):
         """Send stream to be added in corresponding EITmeas item """
@@ -408,19 +399,29 @@ class MeasurementDataset(object):
         self._autosave.set()
         self._save_img = CustomFlag()
         self.new_frame=Signal(self)
+        self.rx_frame_progression=Signal(self)
+
+        # self.data_in = Queue()
+        # self.adding_worker = Poller(
+        #     name="add_to_dataset", pollfunc=self.poll_data_in, sleeptime=0.01
+        # )
+        # self.adding_worker.start()
+        # self.adding_worker.start_polling()
      
     ## =========================================================================
     ##  Aquisition
     ## =========================================================================
 
-    def initForAquisition(self, dev_setup: SciospecSetup, name_measurement: str = None)-> Tuple[str, str]:
-
+    def init_4_start(self, dev_setup: SciospecSetup = None, **kwargs)-> None:
+        
+        if dev_setup is None:
+            return
         self.time_stamps = get_datetime_s()
-        self.name = name_measurement
         folder= append_date_time(self.name, self.time_stamps)
         self.output_dir = None
         if self._autosave.is_set():
             self.output_dir = mk_new_dir(folder, APP_DIRS.get(AppDirs.meas_set))
+            dev_setup.save(self.output_dir)
 
         self.dev_setup = dev_setup
         self.frame_cnt = 0
@@ -429,32 +430,35 @@ class MeasurementDataset(object):
         self._flag_new_meas.reset()
         
         self._rx_meas_frame= self.get_new_frame_for_acquisition()
-        return self.name, self.output_dir
 
-    def get_new_frame_for_acquisition(self)-> MeasurementFrame:
-        return MeasurementFrame(
-            index= self.frame_cnt,
-            dataset_name=self.name,
-            dev_setup= self.dev_setup,
-            output_dir=self.output_dir,
-            time_stamp= self.time_stamps
-        )
+    def set_name(self, name:str=None, *args, **kwargs)->None:
+        if name is None:
+            return
+        self.name = name
 
-    def reinit_4_pause(self):
+    def reinit_4_pause(self, reinit_4_pause:str= None,**kwargs):
+        if reinit_4_pause is None:
+            return
         self._rx_meas_frame= self.get_new_frame_for_acquisition()
-    
-    def from_device(self, **kwargs):
-        if rx_frame := kwargs.get("rx_meas_stream", None):
-            self.add_to_dataset(rx_frame)
-        if reinit_4_pause := kwargs.get("reinit_4_pause", None):
-            self.reinit_4_pause()
 
-    def add_to_dataset(self, rx_frame:list[bytes]):
+    def add_data(self,rx_meas_stream:list[bytes] = None, **kwargs):
+        # if rx_meas_stream is None:
+        #     return
+        # self.data_in.put(rx_meas_stream)
+        self.add_to_dataset(rx_meas_stream)
+    
+    # def poll_data_in(self):
+    #     if self.data_in.empty():
+    #         return
+    #     rx_meas_stream= self.data_in.get()
+    #     self.add_to_dataset(rx_meas_stream)
+    @catch_error
+    def add_to_dataset(self, rx_meas_stream:list[bytes] = None, **kwargs):
         """add the data from the rx_frame in the dataset
         (is called when measuring rx_frame have been recieved)
         attention for_ser need to be defined"""
-
-        self._rx_meas_frame.add_data(rx_frame)
+        
+        self._rx_meas_frame.add_data(rx_meas_stream)
         self.emit_progression()
 
         if not self._rx_meas_frame.is_complete():
@@ -470,6 +474,15 @@ class MeasurementDataset(object):
         self.frame_cnt += 1
         self._flag_new_meas.set_edge_up()
         self._rx_meas_frame= self.get_new_frame_for_acquisition()
+
+    def get_new_frame_for_acquisition(self)-> MeasurementFrame:
+        return MeasurementFrame(
+            index= self.frame_cnt,
+            dataset_name=self.name,
+            dev_setup= self.dev_setup,
+            output_dir=self.output_dir,
+            time_stamp= self.time_stamps
+        )
 
     def set_ref_frame(self, idx: int = 0, path: str = None):
         """Latch Frame[indx] as reference for time difference mode"""
@@ -528,11 +541,10 @@ class MeasurementDataset(object):
     def emit_progression(self)->None:
         """Send signal to update Frame aquisition progress bar"""
         kwargs= {
-            "update_data": FrameProgress(self.get_frame_cnt(), self.get_filling())
+            "update_gui_data": FrameProgress(self.get_frame_cnt(), self.get_filling())
         }
         logger.debug(f'Emit progression frame# {self.get_frame_cnt()} fill:{self.get_filling()} ')
-        self.new_frame.fire(False, **kwargs)
-
+        self.rx_frame_progression.fire(False, **kwargs)
 
     ## =========================================================================
     ##  Save load
@@ -591,7 +603,7 @@ class MeasurementDataset(object):
             filenames = search_for_file_with_ext(dir_path, ext=ext)
         except FileNotFoundError as e:
             logger.warning(f"FileNotFoundError: ({e})")
-            show_msgBox(f"{e}", "FileNotFoundError", "Warning")
+            warningMsgBox( "FileNotFoundError", f"{e}",)
             return None
 
         for filename in filenames:
@@ -599,10 +611,9 @@ class MeasurementDataset(object):
                 filenames.remove(filename)
 
         if not filenames:
-            show_msgBox(
-                f"No Frames-files in directory: {dir_path}!",
+            warningMsgBox(
                 "Files Not Found",
-                "Warning"
+                f"No Frames-files in directory: {dir_path}!"
             )
             return None
 
@@ -611,37 +622,6 @@ class MeasurementDataset(object):
     def load(self, dir_path: str = None) -> Union[list[str], None]:
         """Load a measurement files contained in measurement dataset directory"""
         self.load_json(dir_path)
-
-    # @catch_error
-    # def load_pkl(self, dir_path: str = None) -> Union[list[str], None]:
-    #     """Load a measurement files contained in measurement dataset directory"""
-    #     dir_path= self._get_meas_dir(dir_path)
-    #     if dir_path is None:
-    #         return None
-
-    #     filenames= self._get_all_frame_file(dir_path, ext=FileExt.pkl)
-    #     if filenames is None:
-    #         return None
-        
-    #     for file in filenames:
-    #         filepath = os.path.join(dir_path, file)
-    #         loaded_frame = self.load_frame(filepath)
-    #         self.meas_frame.append(loaded_frame)
-    #         # correct the frame path (if dataset dir moved...)
-    #         self.meas_frame[-1].path = filepath
-    #         self.meas_frame[-1].build_info()
-
-    #     self.time_stamps = self.meas_frame[0].time_stamp
-    #     _, self.name = os.path.split(dir_path)
-    #     self.output_dir = dir_path
-    #     self.dev_setup = self.meas_frame[0]._dev_setup
-
-    #     self._rx_meas_frame = None #not used with loaded dataset
-    #     self._ref_frame_idx =0 # reset to initial frame
-    #     self._flag_new_meas.reset()
-    #     self.frame_cnt = len(self.meas_frame) 
-
-    #     return filenames
     
     @catch_error
     def load_json(self, dir_path: str = None) -> Union[list[str], None]:
@@ -796,7 +776,7 @@ if __name__ == "__main__":
     print(os.path.split('E:/Software_dev/Python/eit_app/measurements/reffish_0.1uA_1k_d100_20220301_152132'))
     
     d = MeasurementDataset(1)
-    d.initForAquisition(SciospecSetup(32))
+    # d.initForAquisition(SciospecSetup(32))
     d.save_meas_frame()
 
     # d.load_meas_dir()
