@@ -173,7 +173,7 @@ class SciospecSerialInterface(Interface):
             baudrate= SERIAL_BAUD_RATE_DEFAULT
         success = self._open(port= port, baudrate= str(baudrate),**kwargs)
         self.is_connected.set(self.serial_port.is_open)
-        logger.debug(f"Connection serial port: {port} - {SUCCESS[success]}")
+        logger.debug(f"Opening serial port: {port} - {SUCCESS[success]}")
         self.listener.start_polling() 
         return success
     
@@ -184,7 +184,7 @@ class SciospecSerialInterface(Interface):
         port= self.get_port_name()
         success= self._close()
         self.is_connected.set(self.serial_port.is_open)
-        logger.debug(f"Disconnection serial port: {port} - {SUCCESS[success]}")
+        logger.debug(f"Closing serial port: {port} - {SUCCESS[success]}")
         return success
 
     
