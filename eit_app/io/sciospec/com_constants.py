@@ -39,6 +39,12 @@ __status__ = "Production"
 ##  Diverse CONSTANTS for Sciopec device #######################################
 ################################################################################
 
+SUCCESS={
+    True: 'SUCCESS',
+    False: 'FAIL'
+}
+
+
 FRAME_LENGTH_MIN = 4
 CMD_BYTE_INDX = 0
 LENGTH_BYTE_INDX = 1
