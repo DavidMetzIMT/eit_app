@@ -23,7 +23,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../resource.qrc">
+   <iconset>
     <normaloff>:/newPrefix/icons/EIT.png</normaloff>:/newPrefix/icons/EIT.png</iconset>
   </property>
   <property name="iconSize">
@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -918,111 +918,6 @@
         <number>0</number>
        </property>
       </widget>
-      <widget class="QPushButton" name="pB_replay_goto_end">
-       <property name="geometry">
-        <rect>
-         <x>360</x>
-         <y>120</y>
-         <width>28</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Display last meas. frame (End)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../resource.qrc">
-         <normaloff>:/newPrefix/icons/icon_end.png</normaloff>:/newPrefix/icons/icon_end.png</iconset>
-       </property>
-       <property name="shortcut">
-        <string>End</string>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_replay_play">
-       <property name="geometry">
-        <rect>
-         <x>186</x>
-         <y>120</y>
-         <width>28</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Start Replay pf measurements (Ctrl +Space)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../resource.qrc">
-         <normaloff>:/newPrefix/icons/icon_play.png</normaloff>:/newPrefix/icons/icon_play.png</iconset>
-       </property>
-       <property name="shortcut">
-        <string>Ctrl+Space</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_replay_back_begin">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>120</y>
-         <width>28</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Display last meas. frame (Pos1)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset resource="../resource.qrc">
-         <normaloff>:/newPrefix/icons/icon_begin.png</normaloff>:/newPrefix/icons/icon_begin.png</iconset>
-       </property>
-       <property name="shortcut">
-        <string>Home</string>
-       </property>
-       <property name="checkable">
-        <bool>false</bool>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
       <widget class="QDoubleSpinBox" name="sB_replay_time">
        <property name="geometry">
         <rect>
@@ -1184,6 +1079,214 @@ p, li { white-space: pre-wrap; }
          <height>20</height>
         </rect>
        </property>
+      </widget>
+      <widget class="QSplitter" name="splitter">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>120</y>
+         <width>381</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <widget class="QPushButton" name="pB_replay_begin">
+        <property name="statusTip">
+         <string>Display last meas. frame (Pos1)</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/icons/icon_begin.png</normaloff>:/icons/icons/icon_begin.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>Home</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pB_replay_back">
+        <property name="statusTip">
+         <string>Start Replay pf measurements (Ctrl +Space)</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/icons/icon_back.png</normaloff>:/icons/icons/icon_back.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Space</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pB_replay_play">
+        <property name="statusTip">
+         <string>Start Replay pf measurements (Ctrl +Space)</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/icons/icon_play.png</normaloff>:/icons/icons/icon_play.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Space</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pB_replay_next">
+        <property name="statusTip">
+         <string>Start Replay pf measurements (Ctrl +Space)</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/icons/icon_next.png</normaloff>:/icons/icons/icon_next.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Space</string>
+        </property>
+        <property name="checkable">
+         <bool>false</bool>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pB_replay_end">
+        <property name="statusTip">
+         <string>Display last meas. frame (End)</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/icons/icon_end.png</normaloff>:/icons/icons/icon_end.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>End</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pB_replay_stop">
+        <property name="statusTip">
+         <string>Display last meas. frame (End)</string>
+        </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resource.qrc">
+          <normaloff>:/icons/icons/icon_stop.png</normaloff>:/icons/icons/icon_stop.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>16</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>End</string>
+        </property>
+        <property name="autoDefault">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
+        </property>
+       </widget>
       </widget>
      </widget>
      <widget class="QPushButton" name="pB_load_eidors_fwd_solution">
@@ -1774,7 +1877,7 @@ p, li { white-space: pre-wrap; }
        <string/>
       </property>
      </widget>
-     <widget class="QPushButton" name="pB_capture_start">
+     <widget class="QPushButton" name="pB_capture_start_stop">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -1847,6 +1950,25 @@ p, li { white-space: pre-wrap; }
       </property>
       <property name="text">
        <string>Snapshot</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="lab_capture_mode">
+      <property name="geometry">
+       <rect>
+        <x>280</x>
+        <y>30</y>
+        <width>121</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="autoFillBackground">
+       <bool>true</bool>
+      </property>
+      <property name="text">
+       <string>Meas status</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </widget>
@@ -2315,7 +2437,7 @@ p, li { white-space: pre-wrap; }
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
-  <include location="../resource.qrc"/>
+  <include location="resource.qrc"/>
  </resources>
  <connections/>
 </ui>
