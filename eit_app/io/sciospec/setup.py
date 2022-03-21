@@ -1,11 +1,10 @@
 from genericpath import isdir
 import os
 from logging import getLogger
-from typing import  Tuple, Union
+from typing import  Any, Tuple, Union
 from matplotlib import pyplot as plt
 
 import numpy as np
-from eit_app.app.dialog_boxes import show_msgBox
 from eit_app.io.sciospec.com_constants import *
 from eit_app.io.sciospec.utils import *
 
@@ -71,7 +70,7 @@ class DeviceInfos(SetupBase):
         self.sn = [0, 0, 0, 0, 0, 0, 0]
     
     def is_sn_sciopec(self):
-        logger.debug(f"{self.sn}")
+        # logger.debug(f"{self.sn}")
         return self.sn != [0, 0, 0, 0, 0, 0, 0]
 
     #---------------------------------------------------------------------------
@@ -98,7 +97,7 @@ class DeviceInfos(SetupBase):
         length = LENGTH_SERIAL_NUMBER
         self.sn = rx_op_data[:length]
         self.build_sn_formated()
-        logger.debug(f"SN:{self.sn}, {self.sn_formated}")
+        # logger.debug(f"SN:{self.sn}, {self.sn_formated}")
         
         
     def build_sn_formated(self):
@@ -128,7 +127,7 @@ class OutputConfig(SetupBase):
     def __init__(self) -> None:
         self.reinit()
     
-    def reinit(self) -> None:
+    def reinit(self) -> None: # set all to True!
         self.exc_stamp = True
         self.current_stamp = True
         self.time_stamp = True
@@ -161,25 +160,25 @@ class OutputConfig(SetupBase):
         """Set value of excitation stamp from output config:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set"""
-        self.exc_stamp = (
-            True  # bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
-        )
+        # self.exc_stamp = (
+        #     bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
+        # )
 
     def set_current_stamp(self, value: Union[list[bytes], bool], in_bytes: bool = False):
         """Set value of current stamp from output config:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set"""
-        self.current_stamp = (
-            True  # bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
-        )
+        # self.current_stamp = (
+        #     bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
+        # )
 
     def set_time_stamp(self, value: Union[list[bytes], bool], in_bytes: bool = False):
         """Set value of time stamp from output config:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set"""
-        self.time_stamp = (
-            True  # bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
-        )
+        # self.time_stamp = (
+        #     bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
+        # )
 
 #===============================================================================
 #     Ethernet Configuration Class
@@ -196,7 +195,7 @@ class EthernetConfig(SetupBase):
     mac: list[int]
     ip_formated: str
     mac_formated: str 
-    dhcp: bool
+    dhcp: bool 
 
     def __init__(self) -> None:
         self.reinit()
@@ -206,7 +205,7 @@ class EthernetConfig(SetupBase):
         self.mac = [0, 0, 0, 0, 0, 0]
         self.ip_formated = "0.0.0.0"
         self.mac_formated = "00:00:00:00:00:00"
-        self.dhcp = True
+        self.dhcp = True  
     #---------------------------------------------------------------------------
     # Getter
     #---------------------------------------------------------------------------
@@ -267,9 +266,7 @@ class EthernetConfig(SetupBase):
         """Set value of dhcp:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set"""
-        self.dhcp = (
-            True  # bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
-        )
+        # self.dhcp = bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
         
 #===============================================================================
 #     Frequency Configuration Class
@@ -313,7 +310,7 @@ class FrequencyConfig(SetupBase):
             freqs = np.logspace(freq_min, freq_max, self.freq_steps)
         else:
             TypeError("incorrect scale")
-        logger.debug(f"Frequency list{freqs}")
+        # logger.debug(f"Frequency list{freqs}")
         return freqs
 
     #---------------------------------------------------------------------------
@@ -441,7 +438,7 @@ class SciospecSetup(SetupBase):
         self.exc_amp = float(10.0)
         self.exc_pattern = [[1, 2], [2, 3]]
         self.exc_pattern_idx = int(0)
-        self.frame_rate = float(1.0)
+        self.set_frame_rate(1.0)
         self.burst = int(0)
         self.device_infos.reinit()
         self.output_config.reinit()
@@ -592,7 +589,7 @@ class SciospecSetup(SetupBase):
 
 
     @property
-    def max_frame_rate(self):
+    def max_frame_rate(self) -> float:
         """Compute the maximum frame rate corresponding to the actual frequencies sweep
 
         Notes
@@ -612,10 +609,7 @@ class SciospecSetup(SetupBase):
         sum_max_Tms_fi = float(max_Tms_fi.sum())
         t_min = n_inject * (t_inject + t_freq * (n_freq - 1) + sum_max_Tms_fi)
 
-        if t_min != 0.0:
-            self.max_frame_rate = float(1 / t_min)
-        if self.frame_rate > self.max_frame_rate:
-            self.frame_rate = self.max_frame_rate
+        return float(1 / t_min) if t_min != 0.0 else 1.0
         
     #---------------------------------------------------------------------------
     # Getter
@@ -731,6 +725,10 @@ class SciospecSetup(SetupBase):
             if value > 0
             else 1.0
         )
+        self._check_frame_rate()
+
+    def _check_frame_rate(self):
+        self.frame_rate = self.frame_rate if self.frame_rate < self.max_frame_rate else self.max_frame_rate
 
     def set_exc_pattern(
         self, value: Union[list[bytes], list[list[int]]], in_bytes: bool = False
@@ -750,6 +748,18 @@ class SciospecSetup(SetupBase):
         """Set value of idx of actual pattern:
         used to latch each pattern for setting exc_pattern to the device"""
         self.exc_pattern_idx = idx
+    
+    def set_freq_config(self, **kwargs)->Any:
+        """
+        kwargs:
+            freq_min (float, optional): _description_. Defaults to 1000.0.
+            freq_max (float, optional): _description_. Defaults to 10000.0.
+            freq_steps (int, optional): _description_. Defaults to 1.
+            freq_scale (str, optional): _description_. Defaults to "".
+        """
+        res = self.freq_config.set_data(**kwargs)
+        self._check_frame_rate()
+        return res
 
 
     
