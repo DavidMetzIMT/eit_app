@@ -29,9 +29,9 @@ from default.set_default_dir import APP_DIRS, AppDirs, set_ai_default_dir
 from glob_utils.msgbox import infoMsgBox, warningMsgBox, errorMsgBox
 from eit_app.gui import Ui_MainWindow as app_gui
 from eit_app.gui_utils import inc_QSlider_position, set_comboBox_items, set_QSlider_position
-from eit_app.update_event import (UPDATE_EVENTS, AutosaveOptions,
+from eit_app.update_gui import (UPDATE_EVENTS, AutosaveOptions,
                                       DevAvailables, DevSetup, DevStatus,
-                                      EITDataPlotOptions, EventDataClass, EventsAgent,
+                                      EITDataPlotOptions, EventDataClass, GuiWithUpdateAgent, UpdateAgent,
                                       FrameInfo, FrameProgress, ImagingInputs,
                                       MeasuringStates, MeasuringStatus,
                                       MeasDatasetLoaded, ReplayButton,
@@ -73,9 +73,7 @@ logger = getLogger(__name__)
 LOG_LEVELS = {"DEBUG": logging.DEBUG, "INFO": logging.INFO, "WARNING": logging.WARNING}
 
 
-
-
-class UiBackEnd(app_gui, QtWidgets.QMainWindow):
+class UiBackEnd(app_gui, QtWidgets.QMainWindow, GuiWithUpdateAgent):
     def __init__(self) -> None:
         super().__init__()
         self._initilizated = CustomFlag()
@@ -93,8 +91,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
     def _create_main_objects(self) -> None:
 
-        self.data_for_update = Queue(maxsize= 256) # TODO maybe 
-        self.update_agent=EventsAgent(self,UPDATE_EVENTS)
+        # self.data_for_update = Queue(maxsize= 256) # TODO maybe 
+        # self.update_agent=UpdateAgent(self,UPDATE_EVENTS)
 
         # set canvas
         self.plot_agent=eit_app.eit.plots.PlottingAgent()
@@ -127,7 +125,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
 
         self.computing.computed.connect(self.plot_agent.add_data2plot)
         self.dataset.new_frame.connect(self.computing.add_data2compute)
-        self.dataset.rx_frame_progression.connect(self.update_gui)
+        self.dataset.to_gui.connect(self.update_gui)
 
         self.device.to_dataset.connect(self.dataset.add_data)
         self.device.to_dataset.connect(self.dataset.reinit_4_pause)
@@ -171,7 +169,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         self.device.emit_meas_status()
 
         self.update_gui(ReplayStatus(self.replay_status))
-        self._init_update_worker()
+        # self._init_update_worker()
         logger.info(f"thread main {threading.get_ident()}") 
 
     def comboBox_init(self) -> None:
@@ -291,45 +289,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
                 return
             return func(self, *args, **kwargs)
         return wrap
-
-    def _init_update_worker(self) -> None:
-        """Start all threads used for the GUI"""
-        self.worker=CustomWorker(name="update_gui", sleeptime=0.05)
-        self.worker.progress.connect(self._process_data_for_update)
-        self.worker.start()
-        self.worker.start_polling()
-
-    ############################################################################
-    #### GUI updating methods
-    ############################################################################
-    def update_gui2(self, update_gui_data:EventDataClass=None , **kwargs):
-        """Add data to the queue data_for_update in order to update the gui
-
-        Args:
-            update_gui_data (EventDataClass, optional): should be a an EvtDataclass . Defaults to None.
-        """
-        if update_gui_data is not None:
-            self.data_for_update.put(update_gui_data)
-
-    def update_gui(self, update_gui_data:EventDataClass=None , **kwargs):
-        """Add data to the queue data_for_update in order to update the gui
-
-        Args:
-            update_gui_data (EventDataClass, optional): should be a an EvtDataclass . Defaults to None.
-        """
-        if update_gui_data is not None:
-            logger.debug('add update_gui_data')
-            self.data_for_update.put(update_gui_data)
-
-    def _process_data_for_update(self) -> None:
-        """Post update event if the queue data_for_update contain some data.
-        """
-        # self.handle_meas_status_change() # here for the momenet but optimal
-        if self.data_for_update.empty():
-            return
-        data = self.data_for_update.get(block=True)
-        logger.debug(f'_process_data_for_update Update {data}')
-        self.update_agent.post_event_data(data)
 
     ############################################################################
     #### callback for the change of status which are signal-based
@@ -454,7 +413,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
         volt = volt * self.sB_eidors_factor.value()
         self.dataset.set_voltages(volt, 0, 0)
         self.dataset.set_ref_frame(0)
-        self._replay_slider_changed()
+        # self._replay_slider_changed()
 
     def _export_data_meas_vs_eidors(self) -> None:
         """export the actual raw data in csv from"""
@@ -530,8 +489,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow):
             return
         self.device.load_setup(self.dataset.output_dir)
         self.replay_status.set()
-        self.update_gui(DevSetup(self.device.setup))
-        self.update_gui(MeasDatasetLoaded(self.dataset.output_dir, self.dataset.frame_cnt))
         self._compute_meas_frame(0)
 
     def _replay_play(self) -> None:

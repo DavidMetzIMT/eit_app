@@ -4,6 +4,7 @@ from distutils.log import debug
 from enum import Enum, auto
 from logging import getLogger
 from os import supports_dir_fd
+from queue import Queue
 import threading
 from typing import Any, Callable, List
 from PyQt5 import QtGui
@@ -26,6 +27,7 @@ from eit_model.imaging_type import (
 from glob_utils.flags.flag import CustomFlag, MultiState
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.thread_process.signal import Signal
+from glob_utils.thread_process.threads_worker import CustomWorker
 
 logger = getLogger(__name__)
 
@@ -43,7 +45,7 @@ class EventDataClass(ABC):
 # Event Agent
 ################################################################################
 
-class EventsAgent:
+class UpdateAgent:
     """This agent apply update on the GUI (app) depending on the data posted """
 
     def __init__(self, app, events) -> None:
@@ -70,10 +72,17 @@ class EventsAgent:
         func = data.pop("func")
         logger.debug(f"updating {func=} with {data=}")
         self.events[func](**data)
-
+################################################################################
+# Update events Catalog
+################################################################################
 
 class ObjWithSignalToGui(object):
+    """ Object contained in a sbcalss of GuiWithUpdateAgent should be sub class
+    of ObjWithSignalToGui by emiting 
     
+    note that in the gui the signal should be connected to ""
+    gui.obj.to_gui.connect(gui.update_gui)"""
+
     def __init__(self):
         super().__init__()
         self.to_gui=Signal(self)
@@ -81,6 +90,40 @@ class ObjWithSignalToGui(object):
     def emit_to_gui(self, data:Any)->None:
         kwargs={"update_gui_data": data}
         self.to_gui.fire(None, **kwargs)
+################################################################################
+# Update events Catalog
+################################################################################
+class GuiWithUpdateAgent(object):
+    """Base Class for Gui """
+
+    def __init__(self) -> None:
+        """Start all threads used for the GUI"""
+        self.data_for_update = Queue(maxsize= 256) # TODO maybe 
+        self.update_agent=UpdateAgent(self,UPDATE_EVENTS)
+        self.worker=CustomWorker(name="update_gui", sleeptime=0.05)
+        self.worker.progress.connect(self._process_data_for_update)
+        self.worker.start()
+        self.worker.start_polling()
+
+    def update_gui(self, update_gui_data:EventDataClass=None , **kwargs):
+        """Add data to the queue data_for_update in order to update the gui
+
+        Args:
+            update_gui_data (EventDataClass, optional): should be a an EvtDataclass . Defaults to None.
+        """
+        if update_gui_data is not None:
+            # logger.debug('add update_gui_data')
+            self.data_for_update.put(update_gui_data)
+
+    def _process_data_for_update(self) -> None:
+        """Post update event if the queue data_for_update contain some data.
+        """
+        # self.handle_meas_status_change() # here for the momenet but optimal
+        if self.data_for_update.empty():
+            return
+        data = self.data_for_update.get(block=True)
+        # logger.debug(f'_process_data_for_update Update {data}')
+        self.update_agent.post_event_data(data)
 
 
 ################################################################################
