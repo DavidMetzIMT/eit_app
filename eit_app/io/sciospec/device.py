@@ -50,8 +50,8 @@ from eit_app.io.sciospec.com_constants import (SUCCESS,
                                                SciospecCmd, SciospecOption,)
 from eit_app.io.sciospec.interface import Interface, SciospecSerialInterface
 from eit_app.io.sciospec.setup import SciospecSetup
-from eit_app.update_event import (DevAvailables, DevSetup, DevStatus, FrameInfo,
-                                  FrameProgress, MeasuringStatus, MeasuringStates)
+from eit_app.update_gui import (DevAvailables, DevSetup, DevStatus, FrameInfo,
+                                  FrameProgress, MeasuringStatus, MeasuringStates, ObjWithSignalToGui)
 from eit_app.io.sciospec.communicator import SciospecCommunicator
 from glob_utils.flags.flag import MultiStatewSignal
 from glob_utils.log.log import main_log
@@ -80,7 +80,7 @@ NONE_DEVICE = "None Device"
 
 ################################################################################
 
-class SciospecEITDevice:
+class SciospecEITDevice(ObjWithSignalToGui):
 
     """Device Class should only provide simple function to use the device such:
     - get devices
@@ -107,12 +107,13 @@ class SciospecEITDevice:
     communicator:SciospecCommunicator
 
     to_dataset:Signal # use to transmit new rx_meas_stream or cmd to dataset.
-    to_gui:Signal# use to transmit update to the gui.
+
 
 
 
     def __init__(self, n_channel:int = 32):
-
+        super().__init__()
+        
         self.n_channel = n_channel
         self.sciospec_devices = {}
         self.device_name: str = NONE_DEVICE
@@ -122,8 +123,8 @@ class SciospecEITDevice:
         self.serial_interface=SciospecSerialInterface()
         self.communicator= SciospecCommunicator()
         self.to_dataset=Signal(self)
-        self.to_gui=Signal(self)
         self.to_capture_dev=Signal(self)
+        
 
         # all the errors from the interface are catch and send through this 
         # error signal, the error are then here handled. Some of then need 
@@ -146,10 +147,6 @@ class SciospecEITDevice:
     
     def emit_dev_status(self)->None:
         self.emit_to_gui(DevStatus(self.is_connected, self.connect_prompt))
-
-    def emit_to_gui(self, data:Any)->None:
-        kwargs={"update_gui_data": data}
-        self.to_gui.fire(None, **kwargs)
     
     def emit_to_capture_dev(self)->None:
         status= self.is_measuring or self.is_paused

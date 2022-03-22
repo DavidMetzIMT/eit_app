@@ -29,7 +29,7 @@ from typing import Any, Tuple, Union
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs
 from glob_utils.msgbox import infoMsgBox, warningMsgBox, errorMsgBox
-from eit_app.update_event import FrameInfo, FrameProgress, MeasDatasetLoaded
+from eit_app.update_gui import FrameInfo, FrameProgress, MeasDatasetLoaded, ObjWithSignalToGui
 from eit_app.eit.computation import  Data2Compute
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.setup import SciospecSetup
@@ -366,7 +366,7 @@ class MeasurementFrame(object):
 ## =============================================================================
 
 
-class MeasurementDataset(object):
+class MeasurementDataset(ObjWithSignalToGui):
     """Class EITMeasSet: regroups infos and frames of measurements"""
 
     time_stamps:str
@@ -384,6 +384,7 @@ class MeasurementDataset(object):
     new_frame: Signal
 
     def __init__(self):
+        super().__init__()
         
         self.time_stamps = ''
         self.name = ''
@@ -399,7 +400,7 @@ class MeasurementDataset(object):
         self._autosave.set()
         self._save_img = CustomFlag()
         self.new_frame=Signal(self)
-        self.to_gui=Signal(self)
+
 
         # self.data_in = Queue()
         # self.adding_worker = Poller(
@@ -542,10 +543,6 @@ class MeasurementDataset(object):
         """Send signal to update Frame aquisition progress bar"""
         logger.debug(f'Emit progression frame# {self.get_frame_cnt()} fill:{self.get_filling()} ')
         self.emit_to_gui(FrameProgress(self.get_frame_cnt(), self.get_filling()))
-
-    def emit_to_gui(self, data:Any)->None:
-        kwargs={"update_gui_data": data}
-        self.to_gui.fire(None, **kwargs)
 
     ## =========================================================================
     ##  Save load

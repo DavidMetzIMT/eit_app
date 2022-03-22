@@ -3,6 +3,7 @@ from dataclasses import dataclass, is_dataclass
 from distutils.log import debug
 from enum import Enum, auto
 from logging import getLogger
+from os import supports_dir_fd
 import threading
 from typing import Any, Callable, List
 from PyQt5 import QtGui
@@ -24,6 +25,7 @@ from eit_model.imaging_type import (
 )
 from glob_utils.flags.flag import CustomFlag, MultiState
 from glob_utils.decorator.decorator import catch_error
+from glob_utils.thread_process.signal import Signal
 
 logger = getLogger(__name__)
 
@@ -34,15 +36,12 @@ def is_dataclass_instance(obj):
 # Event Dataclass use to trigger an update
 ################################################################################
 
-
 class EventDataClass(ABC):
     """Abstract class of the dataclass defined for each update events"""
-
 
 ################################################################################
 # Event Agent
 ################################################################################
-
 
 class EventsAgent:
     """This agent apply update on the GUI (app) depending on the data posted """
@@ -71,6 +70,18 @@ class EventsAgent:
         func = data.pop("func")
         logger.debug(f"updating {func=} with {data=}")
         self.events[func](**data)
+
+
+class ObjWithSignalToGui(object):
+    
+    def __init__(self):
+        super().__init__()
+        self.to_gui=Signal(self)
+
+    def emit_to_gui(self, data:Any)->None:
+        kwargs={"update_gui_data": data}
+        self.to_gui.fire(None, **kwargs)
+
 
 ################################################################################
 # Update events Catalog

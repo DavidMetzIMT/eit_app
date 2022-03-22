@@ -36,7 +36,7 @@ from glob_utils.msgbox import askokcancelMsgBox, infoMsgBox, errorMsgBox
 
 from PyQt5.QtGui import QImage
 
-from eit_app.update_event import CaptureDevAvailables, CaptureMode, CaptureStatus
+from eit_app.update_gui import CaptureDevAvailables, CaptureMode, CaptureStatus, ObjWithSignalToGui
 
 __author__ = "David Metz"
 __copyright__ = "Copyright (c) 2021"
@@ -314,7 +314,7 @@ def handle_capture_device_error(func):
     return wrapper
 
 
-class VideoCaptureAgent(object):
+class VideoCaptureAgent(ObjWithSignalToGui):
     """Handle a capture device and can provide
     a live, a measuring and an idle mode using a worker thread
     """
@@ -344,13 +344,8 @@ class VideoCaptureAgent(object):
             CaptureMode.LIVE: self._process_live,
         }
         self.new_image=Signal(self)
-        self.to_gui=Signal(self)
 
         self.mode.changed.connect(self.mode_changed) 
-
-    def emit_to_gui(self, data:Any)->None:
-        kwargs={"update_gui_data": data}
-        self.to_gui.fire(None, **kwargs)
     
     def emit_new_image(self,image:QImage):
         logger.debug("video image emitted")
