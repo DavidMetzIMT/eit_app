@@ -92,8 +92,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         self.device = SciospecEITDevice(32)
 
-        self.replay_status = CustomFlagwSignals()
-        self.replay_timerqt= QtCore.QTimer()
+        # self.replay_status = CustomFlagwSignals()
+        # self.replay_timerqt= QtCore.QTimer()
 
         self.replay_agent= ReplayMeasurementsAgent()
 
@@ -562,13 +562,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             file_ext=self.cB_img_file_ext.currentText()
         )
 
-    def get_picture(self, idx_frame: int) -> None:
-        if not self.replay_status.is_set():  # only in replay mode
-            return
-        path = self.dataset.get_meas_path(idx_frame)
-        path, _ = os.path.splitext(path)
-        path = path + self.capture_agent.image_file_ext
-        self.capture_agent.load_image(path)
+    # def get_picture(self, idx_frame: int) -> None:
+    #     if not self.replay_status.is_set():  # only in replay mode
+    #         return
+    #     path = self.dataset.get_meas_path(idx_frame)
+    #     path, _ = os.path.splitext(path)
+    #     path = path + self.capture_agent.image_file_ext
+    #     self.capture_agent.load_image(path)
 
     ############################################################################
     #### Plotting

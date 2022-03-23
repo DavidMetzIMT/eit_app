@@ -1,19 +1,24 @@
-from enum import Enum
 import os
+from enum import Enum
 from logging import getLogger
 from queue import Queue
-from glob_utils.files.files import is_file
-from glob_utils.pth.path_utils import get_datetime_s
+from typing import Tuple
+
 import numpy as np
-from glob_utils.thread_process.signal import Signal
-from glob_utils.thread_process.threads_worker import Poller
+from eit_app.com_channels import (AddToGuiSignal, DataSaveLoadImage,
+                                  DataSetStatusWMeas, DataSetStatusWReplay,
+                                  SignalReciever)
+from eit_app.io.video.device_abs import (CaptureDevices,
+                                         handle_capture_device_error)
+from eit_app.update_gui import (CaptureStatus, EvtDataCaptureDevices,
+                                EvtDataCaptureStatusChanged)
+from glob_utils.files.files import is_file, append_extension
 from glob_utils.flags.status import AddStatus
 from glob_utils.msgbox import infoMsgBox
+from glob_utils.pth.path_utils import get_datetime_s
+from glob_utils.thread_process.signal import Signal
+from glob_utils.thread_process.threads_worker import Poller
 from PyQt5.QtGui import QImage
-from eit_app.io.video.device_abs import CaptureDevices, handle_capture_device_error
-from eit_app.com_channels import AddToGuiSignal, DataSaveLoadImage, DataSetStatusWMeas, DataSetStatusWReplay, SignalReciever
-from eit_app.update_gui import EvtDataCaptureDevices, CaptureStatus, EvtDataCaptureStatusChanged
-
 
 logger = getLogger(__name__)
 
@@ -52,8 +57,6 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.worker.start()
         self.worker.start_polling()
 
-
-        # self.live_capture = CustomFlag()
         self.capture_device = capture_type
         self.snapshot_dir= snapshot_dir
 
@@ -70,7 +73,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
 
     
     def emit_new_image(self,image:QImage):
-        logger.debug("video image emitted")
+        # logger.debug("video image emitted")
         kwargs={"image":image}
         self.new_image.emit(**kwargs)
 
@@ -94,7 +97,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         if meas_status_dev:
             self.set_status(CaptureStatus.MEASURING) 
         else:
-            self.set_old_status()
+            self.reset_to_last_status()
     
     def set_status_w_replay(self, data:DataSetStatusWReplay)-> None:
         """Set internal mode depending on the replay status
@@ -110,14 +113,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             self.set_status(CaptureStatus.IDLE) 
 
     def add_path(self, data:DataSaveLoadImage,**kwargs)-> None:
-
-        path= data.path
-        # if not isinstance(path, str):
-        #     logger.error(f'wrong type of data, type str expected: {path=}')
-        #     return
-        if path=='None':
-            return
-        self.queue_in.put(path)
+        self.queue_in.put(data.frame_path)
 
 
     def get_devices_available(self)-> None:
@@ -199,6 +195,11 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
 
     def _process_idle(self) -> None:
         """Idle process"""
+        if self.queue_in.empty():
+            return
+        path = self.queue_in.get()
+        image, frame = self.load_image(path)
+        self.emit_new_image(image)
 
     def _process_meas(self) -> None:
         """Measuring process
@@ -209,25 +210,28 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         if self.queue_in.empty():
             return
         path = self.queue_in.get()
-        image = self._snapshot(path)
+        image, frame = self._snapshot()
+        self.save_image(frame, path)
         self.emit_new_image(image)
 
     def _process_live(self) -> None:
         """Live process: Read and emit the actual image (eg. for display on GUI)
         """
-        image = self._snapshot()
+        image, frame = self._snapshot()
         self.emit_new_image(image)
-
 
     def build_snapshot_path(self)->str:
         return os.path.join(self.snapshot_dir, f"Snapshot_{get_datetime_s()}")
+        
 
-    def snapshot(self, *args, **kwargs) -> QImage:
+    def snapshot(self, *args, **kwargs) -> None:
+        image, frame = self._snapshot()
         path= self.build_snapshot_path()
-        return self._snapshot(path)
+        self.save_image(frame, path)
+        self.emit_new_image(image)
 
     @handle_capture_device_error
-    def _snapshot(self, path: str = None) -> QImage:
+    def _snapshot(self, path: str = None) -> Tuple[QImage, np.ndarray]:
         """Make a snapshot and return a Qt image
 
         Args:
@@ -239,15 +243,10 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         """
 
         frame = self.capture_device.capture_frame()
-        QtImage = self.capture_device.get_Qimage(frame)
-        if path and isinstance(path, str):
-            path, _ = os.path.splitext(path)
-            path = path + self.image_file_ext
-            self.capture_device.save_frame(frame, path)
-            logger.debug(f"Image saved in {path}")
-        return QtImage
+        image = self.capture_device.get_Qimage(frame)
+        return image, frame
 
-    def load_image(self, path: str = None):
+    def load_image(self, path: str = None)-> Tuple[QImage, np.ndarray]:
         """Load an image out of an file in which a frame (ndarray) has been
         saved
 
@@ -255,7 +254,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             path (str, optional): . Defaults to None.
         """
         if path is None:
-            return self._snapshot()  # capture actual frame
+            return
 
         _, ext = os.path.split(path)
         if ext not in list(EXT_IMG.values()) and not is_file(path):
@@ -263,7 +262,16 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         frame = self.capture_device.load_frame(path)
         image = self.capture_device.get_Qimage(frame)
         logger.debug(f'\nImage "{path}" - Loaded')
-        self.emit_new_image(image)
+        return image, frame
+
+    def save_image(self, frame:np.ndarray, path:str):
+        if path is None:
+            return
+        
+        logger.debug(f"Image saved in {path}")
+        path= append_extension(path, self.image_file_ext)
+        self.capture_device.save_frame(frame, path)
+        
 
 
 def convert_frame_to_Qt_format(frame: np.ndarray) -> QImage:

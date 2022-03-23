@@ -92,7 +92,7 @@ class AddToDatasetSignal(object):
 ################################################################################
 @dataclass
 class DataSaveLoadImage:
-    path:str
+    frame_path:str
 @dataclass
 class DataSetStatusWMeas:
     meas_status_dev:bool
