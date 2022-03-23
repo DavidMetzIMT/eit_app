@@ -1,10 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass, is_dataclass
-from distutils.log import debug
-from enum import Enum, auto
+from enum import Enum
 from logging import getLogger
-from os import supports_dir_fd
-from queue import Queue
 import threading
 from typing import Any, Callable, List
 from PyQt5 import QtGui
@@ -12,8 +9,9 @@ from PyQt5 import QtGui
 from eit_app.gui import Ui_MainWindow
 from eit_app.gui_utils import (
     change_value_withblockSignal,
-    set_comboBox_items,
     set_QSlider_position,
+    set_comboBox_index,
+    set_comboBox_items,
     set_QSlider_scale,
     set_QTableWidget,
 )
@@ -24,10 +22,9 @@ from eit_model.imaging_type import (
     TimeDifferenceImaging,
     FrequenceDifferenceImaging,
 )
-from glob_utils.flags.flag import CustomFlag, MultiState
 from glob_utils.decorator.decorator import catch_error
-from glob_utils.thread_process.signal import Signal
-from glob_utils.thread_process.threads_worker import CustomWorker
+from glob_utils.flags.status import BaseStatus
+
 
 logger = getLogger(__name__)
 
@@ -72,58 +69,7 @@ class UpdateAgent:
         func = data.pop("func")
         logger.debug(f"updating {func=} with {data=}")
         self.events[func](**data)
-################################################################################
-# Update events Catalog
-################################################################################
 
-class ObjWithSignalToGui(object):
-    """ Object contained in a sbcalss of GuiWithUpdateAgent should be sub class
-    of ObjWithSignalToGui by emiting 
-    
-    note that in the gui the signal should be connected to ""
-    gui.obj.to_gui.connect(gui.update_gui)"""
-
-    def __init__(self):
-        super().__init__()
-        self.to_gui=Signal(self)
-
-    def emit_to_gui(self, data:Any)->None:
-        kwargs={"update_gui_data": data}
-        self.to_gui.fire(None, **kwargs)
-################################################################################
-# Update events Catalog
-################################################################################
-class GuiWithUpdateAgent(object):
-    """Base Class for Gui """
-
-    def __init__(self) -> None:
-        """Start all threads used for the GUI"""
-        self.data_for_update = Queue(maxsize= 256) # TODO maybe 
-        self.update_agent=UpdateAgent(self,UPDATE_EVENTS)
-        self.worker=CustomWorker(name="update_gui", sleeptime=0.05)
-        self.worker.progress.connect(self._process_data_for_update)
-        self.worker.start()
-        self.worker.start_polling()
-
-    def update_gui(self, update_gui_data:EventDataClass=None , **kwargs):
-        """Add data to the queue data_for_update in order to update the gui
-
-        Args:
-            update_gui_data (EventDataClass, optional): should be a an EvtDataclass . Defaults to None.
-        """
-        if update_gui_data is not None:
-            # logger.debug('add update_gui_data')
-            self.data_for_update.put(update_gui_data)
-
-    def _process_data_for_update(self) -> None:
-        """Post update event if the queue data_for_update contain some data.
-        """
-        # self.handle_meas_status_change() # here for the momenet but optimal
-        if self.data_for_update.empty():
-            return
-        data = self.data_for_update.get(block=True)
-        # logger.debug(f'_process_data_for_update Update {data}')
-        self.update_agent.post_event_data(data)
 
 
 ################################################################################
@@ -159,7 +105,7 @@ def update_available_devices(app: Ui_MainWindow, device: dict):
 add_func_to_catalog(update_available_devices)
 
 @dataclass
-class DevAvailables(EventDataClass):
+class EvtDataSciospecDevices(EventDataClass):
     device: dict
     func: str = update_available_devices.__name__
 
@@ -177,7 +123,8 @@ def update_available_capture_devices(app: Ui_MainWindow, device: dict):
 add_func_to_catalog(update_available_capture_devices)
 
 @dataclass
-class CaptureDevAvailables(EventDataClass):
+class EvtDataCaptureDevices(EventDataClass):
+    """ Do not set func"""
     device: dict
     func: str = update_available_capture_devices.__name__
 
@@ -199,7 +146,8 @@ add_func_to_catalog(update_device_status)
 
 
 @dataclass
-class DevStatus(EventDataClass):
+class EvtDataSciospecDevConnected(EventDataClass):
+    
     connected: bool
     connect_prompt: str
     func: str = update_device_status.__name__
@@ -256,7 +204,7 @@ add_func_to_catalog(update_device_setup)
 
 
 @dataclass
-class DevSetup(EventDataClass):
+class EvtDataSciospecDevSetup(EventDataClass):
     setup: SciospecSetup
     set_freq_max_enable: bool = True
     error: bool = False
@@ -267,47 +215,45 @@ class DevSetup(EventDataClass):
 ## Update Frequency list for the imaging inputs
 # -------------------------------------------------------------------------------
 
-
 def update_freqs_list(app: Ui_MainWindow, freqs: List[Any]):
     set_comboBox_items(app.cB_freq_meas_0, list(freqs))
     set_comboBox_items(app.cB_freq_meas_1, list(freqs))
-
 
 # -------------------------------------------------------------------------------
 ## Update live measurements state
 # -------------------------------------------------------------------------------
 
 @dataclass
-class MeasStatusButtonData:
+class MeasuringStatusUpdateData:
     lab_txt:str
     lab_style:str
     pB_txt:str
     pB_status_tip:str
 
-class MeasuringStates(Enum):
-    IDLE = MeasStatusButtonData(
+class MeasuringStatus(BaseStatus):
+    IDLE = MeasuringStatusUpdateData(
         lab_txt="Idle",
         lab_style="background-color: red",
         pB_txt="Start",
         pB_status_tip="Start aquisition of a new measurement dataset (Ctrl + Shift +Space)"
     )
-    MEASURING = MeasStatusButtonData(
+    MEASURING = MeasuringStatusUpdateData(
         lab_txt="Measuring",
         lab_style="background-color: green",
         pB_txt="Pause",
         pB_status_tip="Pause aquisition of measurement dataset (Ctrl + Shift +Space)"
     )
-    PAUSED = MeasStatusButtonData(
+    PAUSED = MeasuringStatusUpdateData(
         lab_txt="Paused",
         lab_style="background-color: yellow",
         pB_txt="Resume",
         pB_status_tip="Restart aquisition of measurement dataset (Ctrl + Shift +Space)"
     )
 
-def update_meas_status(app: Ui_MainWindow, meas_status: MeasuringStates):
+def update_meas_status(app: Ui_MainWindow, meas_status: MeasuringStatus):
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
-    v:MeasStatusButtonData= meas_status.value    
+    v:MeasuringStatusUpdateData= meas_status.value    
     app.lab_live_meas_status.setText(v.lab_txt)
     app.lab_live_meas_status.setStyleSheet(v.lab_style)
     app.pB_start_meas.setText(v.pB_txt)
@@ -318,109 +264,100 @@ add_func_to_catalog(update_meas_status)
 
 
 @dataclass
-class MeasuringStatus(EventDataClass):
-    meas_status: MeasuringStates
+class EvtDataSciospecDevMeasuringStatusChanged(EventDataClass):
+    meas_status: MeasuringStatus
     func: str = update_meas_status.__name__
-
 
 # -------------------------------------------------------------------------------
 ## Update live measurements state
 # -------------------------------------------------------------------------------
 
 @dataclass
-class CaptureStatusButtonData:
+class CaptureStatusUpdateData:
     lab_txt:str
     lab_style:str
     pB_txt:str 
     pB_status_tip:str =""
     pB_enable:bool = True
 
-class CaptureMode(Enum):
-    IDLE = CaptureStatusButtonData(
+class CaptureStatus(BaseStatus):
+    IDLE = CaptureStatusUpdateData(
         lab_txt="Idle",
         lab_style="background-color: red",
         pB_txt="Start capture",
         pB_status_tip=""
     )
-    MEASURING = CaptureStatusButtonData(
+    MEASURING = CaptureStatusUpdateData(
         lab_txt="Measuring",
         lab_style="background-color: blue",
         pB_txt="Start capture",
         pB_enable = False
     )
-    LIVE = CaptureStatusButtonData(
+    LIVE = CaptureStatusUpdateData(
         lab_txt="Live",
         lab_style="background-color: green",
         pB_txt="Stop capture"
     )
 
-def update_capture_status(app: Ui_MainWindow, capture_mode: CaptureMode):
+def update_capture_mode(app: Ui_MainWindow, capture_mode: CaptureStatus):
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
-    v:CaptureStatusButtonData= capture_mode.value    
+    v:CaptureStatusUpdateData= capture_mode.value    
     app.lab_capture_mode.setText(v.lab_txt)
     app.lab_capture_mode.setStyleSheet(v.lab_style)
     app.pB_capture_start_stop.setText(v.pB_txt)
     app.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
     app.pB_capture_start_stop.setEnabled(v.pB_enable)
 
-add_func_to_catalog(update_capture_status)
+add_func_to_catalog(update_capture_mode)
 
 @dataclass
-class CaptureStatus(EventDataClass):
-    capture_mode: CaptureMode
-    func: str = update_capture_status.__name__
+class EvtDataCaptureStatusChanged(EventDataClass):
+    capture_mode: CaptureStatus
+    func: str = update_capture_mode.__name__
 
 
 # -------------------------------------------------------------------------------
 ## Update replay status
 # -------------------------------------------------------------------------------
+@dataclass
+class ReplayStatusUpdateData:
+    lab_txt:str
+    lab_style:str
+    pB_icon:str = ":/newPrefix/icons/icon_play.png"
+
+class ReplayStatus(BaseStatus):
+    OFF = ReplayStatusUpdateData(
+        lab_txt="REPLAY OFF",
+        lab_style="background-color: red",
+    )
+    IDLE = ReplayStatusUpdateData(
+        lab_txt="REPLAY ON",
+        lab_style="background-color: green",
+    )
+    PLAYING = ReplayStatusUpdateData(
+        lab_txt="REPLAY RUN",
+        lab_style="background-color: blue",
+        pB_icon=":/newPrefix/icons/icon_pause.png"
+    )
 
 
-def update_replay_status(app: Ui_MainWindow, status: CustomFlag):
+def update_replay_status(app: Ui_MainWindow, status: ReplayStatus):
     """Update the status label"""
-
-    if status.is_set():
-        app.lab_replay_status.setText("REPLAY ON")
-        app.lab_replay_status.setStyleSheet("background-color: green")
-    else:
-        app.lab_replay_status.setText("REPLAY OFF")
-        app.lab_replay_status.setStyleSheet("background-color: grey")
-        # set_slider(app.slider_replay, set_pos=0)
-
+    v:ReplayStatusUpdateData= status.value 
+    app.lab_replay_status.setText(v.lab_txt)
+    app.lab_replay_status.setStyleSheet(v.lab_style)
+    icon = QtGui.QIcon()
+    icon.addPixmap(QtGui.QPixmap(v.pB_icon), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+    app.pB_replay_play.setIcon(icon)
 
 add_func_to_catalog(update_replay_status)
 
 
 @dataclass
-class ReplayStatus(EventDataClass):
-    status: CustomFlag
+class EvtDataReplayStatusChanged(EventDataClass):
+    status: ReplayStatus
     func: str = update_replay_status.__name__
-
-# -------------------------------------------------------------------------------
-## Update replay play/pause button
-# -------------------------------------------------------------------------------
-
-
-def update_replay_button(app: Ui_MainWindow, play_active:bool):
-    """Update the status label"""
-
-    if play_active:
-        icon_path = ":/newPrefix/icons/icon_pause.png"
-    else:
-        icon_path = ":/newPrefix/icons/icon_play.png"
-
-    icon = QtGui.QIcon()
-    icon.addPixmap(QtGui.QPixmap(icon_path), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-    app.pB_replay_play.setIcon(icon)
-
-add_func_to_catalog(update_replay_button)
-
-
-@dataclass
-class ReplayButton(EventDataClass):
-    play_active: bool
-    func: str = update_replay_button.__name__
 
 # -------------------------------------------------------------------------------
 ## Update imaging inputs fields
@@ -458,7 +395,7 @@ add_func_to_catalog(update_imaging_inputs_fields)
 
 
 @dataclass
-class ImagingInputs(EventDataClass):
+class EvtDataImagingInputsChanged(EventDataClass):
     imaging: Imaging
     func: str = update_imaging_inputs_fields.__name__
 
@@ -479,7 +416,7 @@ add_func_to_catalog(update_EITData_plots_options)
 
 
 @dataclass
-class EITDataPlotOptions(EventDataClass):
+class EvtDataEITDataPlotOptionsChanged(EventDataClass):
     func: str = update_EITData_plots_options.__name__
 
 
@@ -503,7 +440,7 @@ add_func_to_catalog(update_progress_acquired_frame)
 
 
 @dataclass
-class FrameProgress(EventDataClass):
+class EvtDataNewFrameProgress(EventDataClass):
     """Set idx_frame to `None` to NOT update it """
     idx_frame: int = 0
     progression: int = 0
@@ -524,7 +461,7 @@ add_func_to_catalog(update_frame_info)
 
 
 @dataclass
-class FrameInfo(EventDataClass):
+class EvtDataNewFrameInfo(EventDataClass):
     info: str = ""
     func: str = update_frame_info.__name__
 
@@ -552,12 +489,12 @@ add_func_to_catalog(update_autosave_options)
 
 
 @dataclass
-class AutosaveOptions(EventDataClass):
+class EvtDataAutosaveOptionsChanged(EventDataClass):
     func: str = update_autosave_options.__name__
 
 
 # -------------------------------------------------------------------------------
-## Update live measurements state (after loading a measurement dataset)
+## Update replay measurements state (after loading a measurement dataset)
 # -------------------------------------------------------------------------------
 
 
@@ -574,13 +511,34 @@ add_func_to_catalog(update_dataset_loaded)
 
 
 @dataclass
-class MeasDatasetLoaded(EventDataClass):
+class EvtDataMeasDatasetLoaded(EventDataClass):
     dataset_dir: str
     nb_loaded_frame: int
     func: str = update_dataset_loaded.__name__
 
+# -------------------------------------------------------------------------------
+## Update replay idx (after loading a measurement dataset)
+# -------------------------------------------------------------------------------
+
+
+def update_replay_frame_changed(app: Ui_MainWindow, idx: int):
+    """update the path of the loaded dataset and init the combosboxes and slider
+    for the nb of loaded frames"""
+    set_comboBox_index(app.cB_current_idx_frame, index=idx)
+    set_QSlider_position(app.slider_replay, pos= idx)
+
+
+add_func_to_catalog(update_replay_frame_changed)
+
+
+@dataclass
+class EvtDataReplayFrameChanged(EventDataClass):
+    idx: int
+    func: str = update_replay_frame_changed.__name__
+
 
 if __name__ == "__main__":
     """"""
-    a=DevAvailables('')
+    a=EvtDataSciospecDevices('')
     print(a)
+    print(MeasuringStatus.IDLE._name_.lower())

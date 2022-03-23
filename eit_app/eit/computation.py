@@ -1,45 +1,25 @@
-from dataclasses import dataclass
-import enum
 from queue import Queue
 import logging
-from typing import Tuple
-
-import numpy as np
 from eit_model.imaging_type import Imaging
-from eit_app.eit.plots import Data2Plot, LayoutEITChannelVoltage, LayoutEITImage2D, LayoutEITData
+from eit_app.eit.plots import LayoutEITChannelVoltage, LayoutEITImage2D, LayoutEITData
 from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.decorator.decorator import catch_error
-from glob_utils.thread_process.signal import Signal
 import eit_model.solver_abc
 import eit_model.model
-
-
-class Data4GUI:
-    def pack():
-        """"""
-
-    def unpack():
-        """"""
-
+from eit_app.com_channels import AddToPlotSignal, Data2Compute, SignalReciever, Data2Plot 
 
 logger = logging.getLogger(__name__)
 
 
-class RecCMDs(enum.Enum):
-    initialize = enum.auto()
-    reconstruct = enum.auto()
-
-
-@dataclass
-class Data2Compute():
-    v_ref:np.ndarray =None
-    v_meas:np.ndarray = None
-    labels:list = None
-    
-
-class ComputeMeas:
+class ComputingAgent(SignalReciever, AddToPlotSignal):
     def __init__(self):
         """Constructor"""
+        super().__init__()
+
+        self.init_reciever(
+            data_callbacks={ Data2Compute: self.add_data2compute }
+        )
+
         self.input_buf = Queue()
         # self.output_buf_func = output_buf_func
         # self.plot_cllbck= send_2_plot
@@ -56,7 +36,7 @@ class ComputeMeas:
         self.extract_voltages = False
         self.solver: eit_model.solver_abc.Solver = None
         self.rec_enable=False
-        self.computed= Signal(self)
+        # self.computed= Signal(self)
         self.params=None
     
     def send_2_plot(self, data):
@@ -66,8 +46,8 @@ class ComputeMeas:
 
         # if isinstance(data, dict):
         #     data= Data2Compute(**data)
-        if data is None:
-            return
+        # if data is None:
+        #     return
 
         if not isinstance(data, Data2Compute):
             logger.error(f'wrong type of data, type Data2Compute expected: {data=}')
@@ -98,8 +78,10 @@ class ComputeMeas:
     @catch_error
     def init_solver(self):
         img_rec, data_sim=self.solver.prepare_rec(self.params)
-        self.computed.fire(data=Data2Plot(img_rec, {}, LayoutEITImage2D))
-        self.computed.fire(data=Data2Plot(data_sim, {},LayoutEITData))
+        self.to_plot.emit(Data2Plot(img_rec, {}, LayoutEITImage2D))
+        self.to_plot.emit(Data2Plot(data_sim, {},LayoutEITData))
+        # self.computed.fire(data=Data2Plot(img_rec, {}, LayoutEITImage2D))
+        # self.computed.fire(data=Data2Plot(data_sim, {},LayoutEITData))
         # self.send_2_plot(Data2Plot(img_rec,{}))
         # self.send_2_plot()
 
@@ -124,12 +106,15 @@ class ComputeMeas:
         # prepocess eitdata for eit_imaging
         eit_data, labels = self.eit_imaging.process_data(
             **data.__dict__, eit_model= self.eit_model)
-        self.computed.fire(data=Data2Plot(eit_data, labels, LayoutEITData))
+        self.to_plot.emit(Data2Plot(eit_data, labels, LayoutEITData))
+        # self.computed.fire(data=Data2Plot(eit_data, labels, LayoutEITData))
 
         # prepocess channel voltages for visualisation
         ch_data, ch_labels = self.ch_imaging.process_data(
              **data.__dict__, eit_model= self.eit_model)
-        self.computed.fire(data=Data2Plot(ch_data, ch_labels, LayoutEITChannelVoltage))
+        self.to_plot.emit(Data2Plot(ch_data, ch_labels, LayoutEITChannelVoltage))
+
+        # self.computed.fire(data=Data2Plot(ch_data, ch_labels, LayoutEITChannelVoltage))
 
         logger.info(f"{data.labels[1][0]} - Voltages preproccessed")
 
@@ -139,7 +124,13 @@ class ComputeMeas:
             logger.warning("Solver not set ")
             return
         img_rec = self.solver.rec(eit_data)
+        self.to_plot.emit(Data2Plot(img_rec, labels,LayoutEITImage2D))
 
-        self.computed.fire(data=Data2Plot(img_rec, labels,LayoutEITImage2D))
+        # self.computed.fire(data=Data2Plot(img_rec, labels,LayoutEITImage2D))
         logger.info(f"Frame #{data.labels[1][0]} - Image rec")
 
+
+if __name__ == "__main__":
+    """"""
+    a = ComputingAgent()
+    a.to_plot

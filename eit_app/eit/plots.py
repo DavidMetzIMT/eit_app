@@ -1,27 +1,17 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from logging import getLogger
 from queue import Queue
 from typing import Any
-
 import matplotlib.backends.backend_qt5agg
 import matplotlib.pyplot
 import PyQt5.QtWidgets
 from glob_utils.thread_process.threads_worker import Poller
 from matplotlib.figure import Figure
-
 import eit_model.data
 import eit_model.plot
+from eit_app.com_channels import Data2Plot, SignalReciever
 
 logger = getLogger(__name__)
-
-
-@dataclass
-class Data2Plot:
-    data:Any=None
-    labels:dict=field(default_factory=lambda:{})
-    destination:Any=None
-
 
 class CustomLayout(ABC):
     """descripe a sort of plot"""
@@ -179,12 +169,13 @@ class CanvasLayout(object):
         self.layout_type.build(self.figure,data)
         self.canvas.draw()
 
-class PlottingAgent(object):
+class PlottingAgent(SignalReciever):
 
     canvaslayout:list[CanvasLayout]
 
     def __init__(self):
         """Constructor"""
+        self.init_reciever(data_callbacks={Data2Plot:self.add_data2plot})
         self.input_buf = Queue()
         self.worker = Poller(
             name="plot", pollfunc=self.poll_input_buffer, sleeptime=0.01

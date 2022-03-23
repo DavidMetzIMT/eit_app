@@ -34,7 +34,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
+
 from __future__ import print_function
+import contextlib
 from abc import ABC, abstractmethod
 
 from glob import glob
@@ -200,7 +202,7 @@ class SciospecSerialInterface(Interface):
         if self.rx_frame is None:
             return
         kwargs= {"rx_frame": self.rx_frame}
-        self.new_rx_frame.fire(False, **kwargs)
+        self.new_rx_frame.emit(**kwargs)
     
 
     def _catch_error(return_result:bool= False, return_success:bool= False):
@@ -224,15 +226,15 @@ class SciospecSerialInterface(Interface):
                     if "PermissionError(13" in error.__str__():
                         self.close()
                     kwargs= {"error": error}
-                    self.error.fire(False, **kwargs)
+                    self.error.emit(**kwargs)
                     # logger.debug(traceback.format_exc())
                 except PortNotOpenError as error:
                     kwargs= {"error": error}
-                    self.error.fire(False, **kwargs)
+                    self.error.emit(**kwargs)
                     # logger.debug(traceback.format_exc())
                 except OSError as error:
                     kwargs= {"error": error}
-                    self.error.fire(False, **kwargs)
+                    self.error.emit(**kwargs)
                     # logger.debug(traceback.format_exc())
 
                 if return_result:
@@ -270,7 +272,7 @@ class SciospecSerialInterface(Interface):
             list[str]: A list of the serial ports available on the system
         """
         if platform.startswith("win"):
-            ports = ["COM%s" % (i + 1) for i in range(256)]
+            ports = [f"COM{i + 1}" for i in range(256)]
         elif platform.startswith("linux") or platform.startswith("cygwin"):
             # this excludes your current terminal "/dev/tty"
             ports = glob("/dev/tty[A-Za-z]*")
@@ -281,13 +283,10 @@ class SciospecSerialInterface(Interface):
 
         actual_ports = []
         for port in ports:
-            try:
+            with contextlib.suppress(OSError, SerialException):
                 ser = Serial(port, str(SERIAL_BAUD_RATE_DEFAULT), timeout=None)
                 actual_ports.append(port)
                 ser.close()
-            except (OSError, SerialException):
-                pass
-
         self.ports_available = actual_ports
 
         msg = f"Available serial ports : {self.ports_available}"

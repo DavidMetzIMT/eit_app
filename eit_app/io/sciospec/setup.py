@@ -552,7 +552,7 @@ class SciospecSetup(SetupBase):
         return path
 
 
-    def load(self, dir: str = None):
+    def load(self, dir: str = None, **kwargs):
         """Load the setup out of a pkl file"""
         filepath = None
         try:

@@ -1,34 +1,10 @@
-#!C:\Anaconda3\envs\py38_app python
-# -*- coding: utf-8 -*-
 
-"""  Classes and function to interact with the Sciospec EIT device
-
-Copyright (C) 2021  David Metz
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. """
-
-
-from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum
 from logging import getLogger
-from queue import Queue
 from time import sleep
 from typing import Any, Union
 
-# from eit_app.update_event import DevStatus
-from eit_app.io.sciospec.com_constants import (SUCCESS,
-                                               CMD_GET_DEVICE_INFOS,
+from eit_app.io.sciospec.com_constants import (CMD_GET_DEVICE_INFOS,
                                                CMD_GET_ETHERNET_CONFIG,
                                                CMD_GET_MEAS_SETUP,
                                                CMD_GET_OUTPUT_CONFIG,
@@ -36,7 +12,7 @@ from eit_app.io.sciospec.com_constants import (SUCCESS,
                                                CMD_SET_MEAS_SETUP,
                                                CMD_SET_OUTPUT_CONFIG,
                                                CMD_SOFT_RESET,
-                                               CMD_START_STOP_MEAS, 
+                                               CMD_START_STOP_MEAS,
                                                OP_BURST_COUNT,
                                                OP_CURRENT_STAMP, OP_DHCP,
                                                OP_EXC_AMPLITUDE,
@@ -46,41 +22,45 @@ from eit_app.io.sciospec.com_constants import (SUCCESS,
                                                OP_MAC_ADRESS, OP_NULL,
                                                OP_RESET_SETUP, OP_START_MEAS,
                                                OP_STOP_MEAS, OP_TIME_STAMP,
-
-                                               SciospecCmd, SciospecOption,)
-from eit_app.io.sciospec.interface import Interface, SciospecSerialInterface
-from eit_app.io.sciospec.setup import SciospecSetup
-from eit_app.update_gui import (DevAvailables, DevSetup, DevStatus, FrameInfo,
-                                  FrameProgress, MeasuringStatus, MeasuringStates, ObjWithSignalToGui)
+                                               SUCCESS, SciospecCmd,
+                                               SciospecOption)
 from eit_app.io.sciospec.communicator import SciospecCommunicator
-from glob_utils.flags.flag import MultiStatewSignal
+from eit_app.io.sciospec.interface import SciospecSerialInterface
+from eit_app.io.sciospec.measurement import (DataAddRxMeasStream,
+                                             DataInit4Start, DataReInit4Pause)
+from eit_app.io.sciospec.setup import SciospecSetup
+from eit_app.io.video.capture import DataSetStatusWMeas
+from eit_app.com_channels import (AddToCaptureSignal, AddToDatasetSignal,
+                                    AddToGuiSignal, DataCheckBurst,
+                                    DataLoadSetup, SignalReciever)
+from eit_app.update_gui import (EvtDataNewFrameInfo, EvtDataNewFrameProgress,
+                                EvtDataSciospecDevConnected,
+                                EvtDataSciospecDevices,
+                                EvtDataSciospecDevMeasuringStatusChanged,
+                                EvtDataSciospecDevSetup, MeasuringStatus)
+from glob_utils.flags.status import AddStatus, MultiStatewSignal
 from glob_utils.log.log import main_log
 from glob_utils.msgbox import errorMsgBox, infoMsgBox, warningMsgBox
-
-
-from glob_utils.thread_process.signal import Signal
-
 from serial import (  # get from http://pyserial.sourceforge.net/
     PortNotOpenError, SerialException)
-
-__author__ = "David Metz"
-__copyright__ = "Copyright (c) 2021"
-__credits__ = ["David Metz"]
-__license__ = "GPLv3"
-__version__ = "2.0.0"
-__maintainer__ = "David Metz"
-__email__ = "d.metz@tu-bs.de"
-__status__ = "Production"
 
 logger = getLogger(__name__)
 
 NONE_DEVICE = "None Device"
 
-################################################################################
 
 ################################################################################
 
-class SciospecEITDevice(ObjWithSignalToGui):
+################################################################################
+
+
+class SciospecEITDevice(
+    SignalReciever,
+    AddStatus, 
+    AddToGuiSignal, 
+    AddToDatasetSignal, 
+    AddToCaptureSignal
+):
 
     """Device Class should only provide simple function to use the device such:
     - get devices
@@ -96,8 +76,6 @@ class SciospecEITDevice(ObjWithSignalToGui):
     # Actual name of the device
     device_name: str
 
-    meas_status:MultiStatewSignal
-
     setup:SciospecSetup 
     serial_interface:SciospecSerialInterface
     
@@ -106,25 +84,22 @@ class SciospecEITDevice(ObjWithSignalToGui):
     # two different Signals new_rx_meas_stream/new_rx_setup_stream
     communicator:SciospecCommunicator
 
-    to_dataset:Signal # use to transmit new rx_meas_stream or cmd to dataset.
-
-
-
 
     def __init__(self, n_channel:int = 32):
         super().__init__()
-        
+
+        self.init_status(status_values=MeasuringStatus)
+        self.init_reciever(
+            data_callbacks={
+                DataLoadSetup: self.load_setup_from_signal,
+                DataCheckBurst: self.check_burst}# TODO
+        )
         self.n_channel = n_channel
         self.sciospec_devices = {}
         self.device_name: str = NONE_DEVICE
-        self.meas_status= MultiStatewSignal(list(MeasuringStates))
-        self.meas_status.change_state(MeasuringStates.IDLE)
         self.setup = SciospecSetup(self.n_channel)
         self.serial_interface=SciospecSerialInterface()
         self.communicator= SciospecCommunicator()
-        self.to_dataset=Signal(self)
-        self.to_capture_dev=Signal(self)
-        
 
         # all the errors from the interface are catch and send through this 
         # error signal, the error are then here handled. Some of then need 
@@ -133,40 +108,47 @@ class SciospecEITDevice(ObjWithSignalToGui):
         #send the new to be processed by the communicator
         self.serial_interface.new_rx_frame.connect(self.communicator.add_rx_frame)
         # output signal of the communicator
-        self.communicator.new_rx_meas_stream.connect(self.emit_to_dataset)
+        self.communicator.new_rx_meas_stream.connect(self.emit_new_rx_meas_stream)
         self.communicator.new_rx_setup_stream.connect(self.setup.set_data)
-        self.meas_status.changed.connect(self.emit_meas_status)
+        # self.meas_status.changed.connect(self.emit_meas_status)
 
+    
+    ## =========================================================================
+    ##  
+    ## =========================================================================
+    
+    # @abstractmethod - AddStatus
+    def status_has_changed(self, status:Enum, was_status:Enum)->None:
+        self.to_gui.emit(EvtDataSciospecDevMeasuringStatusChanged(status))
+        meas_status_dev=self.is_measuring or self.is_paused
+        self.to_capture.emit(DataSetStatusWMeas(meas_status_dev))
+
+    @property
+    def is_measuring(self)->bool:
+        """"""
+        return self.is_status(MeasuringStatus.MEASURING)
+    @property
+    def is_paused(self)->bool:
+        """"""
+        return self.is_status(MeasuringStatus.PAUSED)
+    @property
+    def is_idle(self)->bool:
+        """"""
+        return self.is_status(MeasuringStatus.IDLE)
+    
     ## =========================================================================
     ##  Methods to update gui
     ## =========================================================================    
     
-    def emit_meas_status(self)->None:
-        self.emit_to_gui(MeasuringStatus(self.meas_status.state))
-        self.emit_to_capture_dev()
-    
-    def emit_dev_status(self)->None:
-        self.emit_to_gui(DevStatus(self.is_connected, self.connect_prompt))
-    
-    def emit_to_capture_dev(self)->None:
-        status= self.is_measuring or self.is_paused
-        kwargs={"meas_status_dev": status}
-        self.to_capture_dev.fire(None, **kwargs)
+    def to_gui_emit_connect_status(self)->None:
+        self.to_gui.emit(EvtDataSciospecDevConnected(self.is_connected, self.connect_prompt))
 
     ## =========================================================================
     ##  Methods for dataset
     ## =========================================================================    
-    
-    def emit_to_dataset(self, **kwargs)->None:
-        self.to_dataset.fire(None, **kwargs)
-    
-    def dataset_init_for_pause(self)->None:
-        kwargs={'reinit_4_pause': 'reinit_4_pause'} # value is not important
-        self.emit_to_dataset(**kwargs)
-    
-    def dataset_init_for_start(self)->None:
-        kwargs={'dev_setup': self.setup} # value is not important
-        self.emit_to_dataset(**kwargs)
+    def emit_new_rx_meas_stream(self, **kwargs):
+        #TODO re 
+        self.to_dataset.emit(DataAddRxMeasStream(kwargs['rx_meas_stream']))
     
     ## =========================================================================
     ##  methods for interface
@@ -208,22 +190,6 @@ class SciospecEITDevice(ObjWithSignalToGui):
     def connect_prompt(self)->bool:
         return f'{self.device_name} - CONNECTED'
 
-    ## =========================================================================
-    ##  
-    ## =========================================================================
-    #     
-    @property
-    def is_measuring(self)->bool:
-        """"""
-        return self.meas_status.is_set(MeasuringStates.MEASURING)
-    @property
-    def is_paused(self)->bool:
-        """"""
-        return self.meas_status.is_set(MeasuringStates.PAUSED)
-    @property
-    def is_idle(self)->bool:
-        """"""
-        return self.meas_status.is_set(MeasuringStates.IDLE)
 
     ## =========================================================================
     ##  Methods on Comunicator
@@ -237,7 +203,7 @@ class SciospecEITDevice(ObjWithSignalToGui):
     # def listen_activate(self, activate:bool=True):
     #     """"""
 
-    def check_nb_meas_reached(self, idx:int,**kwargs) -> None:
+    def check_burst(self, data:DataCheckBurst,**kwargs) -> None:
         """Check if the number of Burst(measurements) is reached,
         in that case the measurement mode will be stopped on the device
         
@@ -246,7 +212,7 @@ class SciospecEITDevice(ObjWithSignalToGui):
         if not self.is_measuring:
             return
         burst = self.setup.get_burst()
-        if burst > 0 and idx == burst:
+        if burst > 0 and data.nb_frame_measured == burst:
             self.stop_meas()
 
     def check_not_measuring(force_stop: bool = False):
@@ -315,7 +281,7 @@ class SciospecEITDevice(ObjWithSignalToGui):
             if device_name is not None:
                 self.sciospec_devices[device_name] = port
                 self.device_name= device_name
-        self.emit_to_gui(DevAvailables(self.sciospec_devices))
+        self.to_gui.emit(EvtDataSciospecDevices(self.sciospec_devices))
         logger.info(f"Sciospec devices available: {list(self.sciospec_devices)}")
         return self.sciospec_devices
 
@@ -332,7 +298,7 @@ class SciospecEITDevice(ObjWithSignalToGui):
             self.get_device_infos()
 
         self.device_name = self.device_name if success else NONE_DEVICE
-        self.emit_dev_status()
+        self.to_gui_emit_connect_status()
         logger.info(f"Connecting device '{self.device_name}' - {SUCCESS[success]}")
         return success
 
@@ -349,7 +315,7 @@ class SciospecEITDevice(ObjWithSignalToGui):
 
         logger.info(f"Disconnecting device '{self.device_name}' - {SUCCESS[success]}")
         self.device_name = NONE_DEVICE if success else self.device_name
-        self.emit_dev_status()
+        self.to_gui_emit_connect_status()
         self.get_devices()  # update the list of Sciospec devices available ????
 
     ## -------------------------------------------------------------------------
@@ -364,7 +330,6 @@ class SciospecEITDevice(ObjWithSignalToGui):
         """ " Disconnect actual interface"""
         return self.serial_interface.close()
 
-    
     def _check_is_sciospec_dev(self, port) -> Union[str, None]:
         """Return a device name if the device presents on the port is a 
         sciospec device otherwise return `None`"""
@@ -403,19 +368,19 @@ class SciospecEITDevice(ObjWithSignalToGui):
     
     def start_paused_resume_meas(self, *args, **kwargs)->bool:
         """"""
-        if self.meas_status.is_set(MeasuringStates.IDLE):
-            self.dataset_init_for_start()
+        if self.is_status(MeasuringStatus.IDLE):
+            self.to_dataset.emit(DataInit4Start(self.setup))
             self.start_meas()
-        elif self.meas_status.is_set(MeasuringStates.MEASURING):
+        elif self.is_status(MeasuringStatus.MEASURING):
             self.pause_meas()
-        elif self.meas_status.is_set(MeasuringStates.PAUSED):
+        elif self.is_status(MeasuringStatus.PAUSED):
             self.resume_meas()
 
     def stop_meas(self, *args, **kwargs)-> None:
         """Stop measurements"""
         if success:= self._stop_meas():
-            self.meas_status.change_state(MeasuringStates.IDLE)
-            self.emit_to_gui(FrameProgress( 0, 0))
+            self.set_status(MeasuringStatus.IDLE)
+            self.to_gui.emit(EvtDataNewFrameProgress( 0, 0))
         logger.info(f"Stop Measurements - {SUCCESS[success]}")
 
     ## -------------------------------------------------------------------------
@@ -426,8 +391,8 @@ class SciospecEITDevice(ObjWithSignalToGui):
     def start_meas(self) -> bool:  # sourcery skip: class-extract-method
         """Start measurements"""
         if success:= self._start_meas():
-            self.meas_status.change_state(MeasuringStates.MEASURING)
-            self.emit_to_gui(FrameInfo(""))
+            self.set_status(MeasuringStatus.MEASURING)
+            self.to_gui.emit(EvtDataNewFrameInfo(""))
         logger.info(f"Start Measurements - {SUCCESS[success]}")
         return success
 
@@ -435,16 +400,16 @@ class SciospecEITDevice(ObjWithSignalToGui):
     def resume_meas(self) -> bool:
         """resume measurements"""
         if success:= self._start_meas():
-            self.meas_status.change_state(MeasuringStates.MEASURING)
+            self.set_status(MeasuringStatus.MEASURING)
         logger.info(f"Resume Measurements - {SUCCESS[success]}")
         return success
 
     def pause_meas(self)-> None:
         """Pause measurements"""
         if success:= self._stop_meas():
-            self.meas_status.change_state(MeasuringStates.PAUSED)
-            self.dataset_init_for_pause()
-            self.emit_to_gui(FrameProgress( None, 0)) # not update idx_frame
+            self.set_status(MeasuringStatus.PAUSED)
+            self.to_dataset.emit(DataReInit4Pause())
+            self.to_gui.emit(EvtDataNewFrameProgress( None, 0)) # not update idx_frame
         logger.info(f"Pause Measurements - {SUCCESS[success]}")
 
         
@@ -469,7 +434,7 @@ class SciospecEITDevice(ObjWithSignalToGui):
         """Ask for the serial nummer of the Device"""
         self.send_communicator(CMD_GET_DEVICE_INFOS, OP_NULL)
         self.communicator.wait_not_busy()
-        self.emit_to_gui(DevSetup(self.setup))
+        self.to_gui.emit(EvtDataSciospecDevSetup(self.setup))
         logger.debug(f'Get Info Device: {self.setup.device_infos.get_sn()}')
 
     @check_not_measuring()
@@ -508,7 +473,7 @@ class SciospecEITDevice(ObjWithSignalToGui):
         self.send_communicator(CMD_GET_ETHERNET_CONFIG, OP_MAC_ADRESS)
         self.send_communicator(CMD_GET_ETHERNET_CONFIG, OP_DHCP)
         self.communicator.wait_not_busy()
-        self.emit_to_gui(DevSetup(self.setup))
+        self.to_gui.emit(EvtDataSciospecDevSetup(self.setup))
         logger.info("Getting device setup - done")
     
     @check_not_measuring()
@@ -528,13 +493,17 @@ class SciospecEITDevice(ObjWithSignalToGui):
         to set dir use kwargs dir="the/path/to/save"
         """
         self.setup.save(**kwargs)
+    
+    def load_setup_from_signal(self, data:DataLoadSetup)->None:
+        self.load_setup(dir=data.dir)
+
 
     def load_setup(self, *args,  **kwargs)->None:
         """Load Setup
         to set dir use kwargs dir="the/path/to/load"
         """
         self.setup.load(**kwargs)
-        self.emit_to_gui(DevSetup(self.setup))
+        self.to_gui.emit(EvtDataSciospecDevSetup(self.setup))
 
 
 
@@ -553,8 +522,8 @@ if __name__ == "__main__":
     print(SUCCESS[True])
     print(SUCCESS[False])
 
-    meas_status= MultiStatewSignal(list(MeasuringStates))
-    meas_status.change_state(MeasuringStates.IDLE)
+    meas_status= MultiStatewSignal(list(MeasuringStatus))
+    meas_status.change_state(MeasuringStatus.IDLE)
 
     print(meas_status.state.value)
 

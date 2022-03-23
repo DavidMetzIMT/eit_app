@@ -1,66 +1,34 @@
-#!C:\Anaconda3\envs\py38_app python
-# -*- coding: utf-8 -*-
-
-"""  Class to interact with the Sciospec device
-
-Copyright (C) 2021  David Metz
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. """
-
-
-
-from dataclasses import dataclass
 import os
+from dataclasses import dataclass
 from logging import getLogger
 from sys import argv
-from typing import Any, Tuple, Union
+from typing import Union
 
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs
-from glob_utils.msgbox import infoMsgBox, warningMsgBox, errorMsgBox
-from eit_app.update_gui import FrameInfo, FrameProgress, MeasDatasetLoaded, ObjWithSignalToGui
-from eit_app.eit.computation import  Data2Compute
 from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
 from eit_app.io.sciospec.setup import SciospecSetup
 from eit_app.io.sciospec.utils import convert4Bytes2Float, convertBytes2Int
-from glob_utils.files.files import (
-    FileExt,
-    search_for_file_with_ext,
-)
-from glob_utils.flags.flag import CustomFlag
-from glob_utils.pth.path_utils import (
-    append_date_time,
-    get_datetime_s,
-    get_dir,
-    mk_new_dir,
-)
-from glob_utils.unit.unit import eng
-from glob_utils.decorator.decorator import catch_error
-
-from glob_utils.thread_process.signal import Signal
-from glob_utils.types.dict import visualise, dict_nested
-from glob_utils.files.json import save_to_json, read_json
+from eit_app.com_channels import (AddToCaptureSignal, AddToComputationSignal,
+                                    AddToDeviceSignal, AddToGuiSignal,
+                                    AddToReplaySignal, Data2Compute,
+                                    DataAddRxMeasStream, DataCheckBurst,
+                                    DataEmitFrame4Computation, DataInit4Start,
+                                    DataLoadSetup, DataReInit4Pause,
+                                    DataReplayStart, DataSaveLoadImage,
+                                    SignalReciever)
+from eit_app.update_gui import (EvtDataMeasDatasetLoaded, EvtDataNewFrameInfo,
+                                EvtDataNewFrameProgress)
 from eit_model.imaging_type import IMAGING_TYPE
-
-__author__ = "David Metz"
-__copyright__ = "Copyright (c) 2021"
-__credits__ = ["David Metz"]
-__license__ = "GPLv3"
-__version__ = "2.0.0"
-__maintainer__ = "David Metz"
-__email__ = "d.metz@tu-bs.de"
-__status__ = "Production"
+from glob_utils.decorator.decorator import catch_error
+from glob_utils.files.files import FileExt, search_for_file_with_ext
+from glob_utils.files.json import read_json, save_to_json
+from glob_utils.flags.flag import CustomFlag
+from glob_utils.msgbox import warningMsgBox
+from glob_utils.pth.path_utils import (append_date_time, get_datetime_s,
+                                       get_dir, mk_new_dir)
+from glob_utils.types.dict import dict_nested, visualise
+from glob_utils.unit.unit import eng
 
 logger = getLogger(__name__)
 
@@ -361,12 +329,52 @@ class MeasurementFrame(object):
     def get_freq_val(self, idx:int)-> float:
         return self.freq_list[idx]
 
+    ## =========================================================================
+    ##  Save load
+    ## =========================================================================
+
+    @catch_error
+    def save(self, path:str=None)->None:
+        """Save the meas_frame #idx as 
+
+        Args:
+            idx (int, optional): index of the frame to save. Defaults to 0.
+        """
+
+        path= self.path if path is None else path
+        d= dict_nested(self, ignore_private=True)
+        save_to_json(path, d)
+        logger.debug(f"Frame #{self.idx} saved in: {self.path}")
+        visualise(d)
+
+    def load(self, path:str) -> bool:
+        """Load measurement frame"""
+
+        frame_as_dict = read_json(path)
+        if frame_as_dict is None:
+            return False
+
+        # correct the frame path (if dataset moved...)
+        frame_as_dict["path"]= path
+        self.set_from_dict(**frame_as_dict)
+
+        logger.debug(f"Frame #{self.idx} loaded : {self.path}")
+        visualise(frame_as_dict)
+        
+        return True
+
 ## =============================================================================
 ##  Class for the DataSet obtained from the EIT Device
 ## =============================================================================
 
-
-class MeasurementDataset(ObjWithSignalToGui):
+class MeasurementDataset(
+    SignalReciever, 
+    AddToGuiSignal, 
+    AddToDeviceSignal, 
+    AddToComputationSignal, 
+    AddToCaptureSignal,
+    AddToReplaySignal
+):
     """Class EITMeasSet: regroups infos and frames of measurements"""
 
     time_stamps:str
@@ -381,10 +389,19 @@ class MeasurementDataset(ObjWithSignalToGui):
     _flag_new_meas: CustomFlag
     _autosave: CustomFlag
     _save_img: CustomFlag
-    new_frame: Signal
+    # new_frame: Signal
 
     def __init__(self):
         super().__init__()
+
+        self.init_reciever(
+            data_callbacks={
+                DataInit4Start:self.init_4_start,
+                DataReInit4Pause:self.reinit_4_pause,
+                DataAddRxMeasStream: self.add_data,
+                DataEmitFrame4Computation:self.emit_frame_4_computatiom
+            }
+        )
         
         self.time_stamps = ''
         self.name = ''
@@ -394,65 +411,70 @@ class MeasurementDataset(ObjWithSignalToGui):
         self._rx_meas_frame= None
         self.meas_frame= []
         self._ref_frame=None
-        # self._ref_frame_idx =0
         self._flag_new_meas = CustomFlag()
         self._autosave = CustomFlag()
         self._autosave.set()
         self._save_img = CustomFlag()
-        self.new_frame=Signal(self)
 
 
-        # self.data_in = Queue()
-        # self.adding_worker = Poller(
-        #     name="add_to_dataset", pollfunc=self.poll_data_in, sleeptime=0.01
-        # )
-        # self.adding_worker.start()
-        # self.adding_worker.start_polling()
      
     ## =========================================================================
     ##  Aquisition
     ## =========================================================================
 
-    def init_4_start(self, dev_setup: SciospecSetup = None, **kwargs)-> None:
+    # def init_4_start(self, dev_setup: SciospecSetup = None, **kwargs)-> None:
         
-        if dev_setup is None:
-            return
+    #     if dev_setup is None:
+    #         return
+    #     self.time_stamps = get_datetime_s()
+    #     folder= append_date_time(self.name, self.time_stamps)
+    #     self.output_dir = None
+    #     if self._autosave.is_set():
+    #         self.output_dir = mk_new_dir(folder, APP_DIRS.get(AppDirs.meas_set))
+    #         dev_setup.save(self.output_dir)
+
+    #     self.dev_setup = dev_setup
+    #     self.frame_cnt = 0
+    #     self.meas_frame = [None]
+    #     # self._ref_frame_idx =0
+    #     self._flag_new_meas.reset()
+        
+    #     self._rx_meas_frame= self.get_new_frame_for_acquisition()
+
+    def init_4_start(self, data:DataInit4Start)-> None:
+        
+        self.dev_setup = data.dev_setup
         self.time_stamps = get_datetime_s()
         folder= append_date_time(self.name, self.time_stamps)
         self.output_dir = None
         if self._autosave.is_set():
             self.output_dir = mk_new_dir(folder, APP_DIRS.get(AppDirs.meas_set))
-            dev_setup.save(self.output_dir)
+            self.dev_setup.save(self.output_dir)
 
-        self.dev_setup = dev_setup
         self.frame_cnt = 0
         self.meas_frame = [None]
-        # self._ref_frame_idx =0
         self._flag_new_meas.reset()
-        
         self._rx_meas_frame= self.get_new_frame_for_acquisition()
+
+    # def reinit_4_pause(self, reinit_4_pause:str= None,**kwargs):
+    #     if reinit_4_pause is None:
+    #         return
+    #     self._rx_meas_frame= self.get_new_frame_for_acquisition()
+    def reinit_4_pause(self, data:DataReInit4Pause):
+        self._rx_meas_frame= self.get_new_frame_for_acquisition()
+
+    def add_data(self,data:DataAddRxMeasStream):
+        self.add_to_dataset(data.rx_meas_stream)
+    
+    def emit_frame_4_computatiom(self, data:DataEmitFrame4Computation):
+        self.emit_meas_frame(data.idx)
 
     def set_name(self, name:str=None, *args, **kwargs)->None:
         if name is None:
             return
         self.name = name
 
-    def reinit_4_pause(self, reinit_4_pause:str= None,**kwargs):
-        if reinit_4_pause is None:
-            return
-        self._rx_meas_frame= self.get_new_frame_for_acquisition()
 
-    def add_data(self,rx_meas_stream:list[bytes] = None, **kwargs):
-        # if rx_meas_stream is None:
-        #     return
-        # self.data_in.put(rx_meas_stream)
-        self.add_to_dataset(rx_meas_stream)
-    
-    # def poll_data_in(self):
-    #     if self.data_in.empty():
-    #         return
-    #     rx_meas_stream= self.data_in.get()
-    #     self.add_to_dataset(rx_meas_stream)
     @catch_error
     def add_to_dataset(self, rx_meas_stream:list[bytes] = None, **kwargs):
         """add the data from the rx_frame in the dataset
@@ -470,7 +492,7 @@ class MeasurementDataset(ObjWithSignalToGui):
         self.meas_frame[idx] = self._rx_meas_frame
         if self.frame_cnt==0:
             self._ref_frame= self._rx_meas_frame
-        self.save_meas_frame(idx)
+        self._save_meas_frame(idx)
         self.emit_meas_frame(idx)
         self.frame_cnt += 1
         self._flag_new_meas.set_edge_up()
@@ -492,10 +514,10 @@ class MeasurementDataset(ObjWithSignalToGui):
             if len(self.meas_frame)>idx:
                 self._ref_frame= self.meas_frame[idx]
             path = self.meas_frame[0].build_path(self.output_dir, idx)
-            self._ref_frame = self.load_frame(path)
+            self._ref_frame = self._load_frame(path)
 
         else:
-            meas_frame = self.load_frame(path)
+            meas_frame = self._load_frame(path)
             # self._ref_frame_idx = 0
             self.meas_frame.insert(0,meas_frame)
             self.meas_frame[0].path = path
@@ -508,9 +530,11 @@ class MeasurementDataset(ObjWithSignalToGui):
     def set_index_of_data_for_computation(self, extract_idx:ExtractIndexes):
         self.extract_idx= extract_idx
     
-    def emit_meas_frame(self, idx:int=0)->None:
+    def emit_meas_frame(self, idx:int=None)->None:
         """Send signal with corresponding frame data for 
         computation and update"""
+        if idx is None:
+            return
         self.extract_idx.set_ref_idx(idx)
         self.extract_idx.set_meas_idx(idx)
 
@@ -532,24 +556,30 @@ class MeasurementDataset(ObjWithSignalToGui):
 
         kwargs= {
             "data": Data2Compute(v_ref, v_meas, [l_ref, l_meas]), # data fro computation
-            "update_data": FrameInfo(self.get_meas_info(meas_idx)), # frame info for 
+            # "update_data": EvtDataNewFrameInfo(self.get_meas_info(meas_idx)), # frame info for 
             "frame_path": self.get_meas_path(meas_idx), # for microcamera
             "idx": self.get_frame_cnt() # for device
         }
         logger.debug(f'Emit Frame for computation {l_meas=} {l_ref=}')
-        self.new_frame.fire(False, **kwargs)
+        # self.new_frame.emit(**kwargs)
+
+        self.to_gui.emit(EvtDataNewFrameInfo(self.get_meas_info(meas_idx)))
+        self.to_device.emit(DataCheckBurst(self.get_frame_cnt()))
+        self.to_computation.emit(Data2Compute(v_ref, v_meas, [l_ref, l_meas]))
+        self.to_capture.emit(DataSaveLoadImage(self.get_meas_path(meas_idx)))
 
     def emit_progression(self)->None:
         """Send signal to update Frame aquisition progress bar"""
         logger.debug(f'Emit progression frame# {self.get_frame_cnt()} fill:{self.get_filling()} ')
-        self.emit_to_gui(FrameProgress(self.get_frame_cnt(), self.get_filling()))
+        self.to_gui.emit(EvtDataNewFrameProgress(self.get_frame_cnt(), self.get_filling()))
 
     ## =========================================================================
     ##  Save load
     ## =========================================================================
 
+    # TODO move to EITFrame
     @catch_error
-    def save_meas_frame(self, idx: int = 0, path:str=None)->None:
+    def _save_meas_frame(self, idx: int = 0, path:str=None)->None:
         """Save the meas_frame #idx as 
 
         Args:
@@ -558,34 +588,83 @@ class MeasurementDataset(ObjWithSignalToGui):
         if not self._autosave.is_set():
             return
 
-        frame= self.meas_frame[idx]
-        path= self.meas_frame[idx].path if path is None else path
+        self.meas_frame[idx].save(path)
+        # path= self.meas_frame[idx].path if path is None else path
 
-        d= dict_nested(frame, ignore_private=True)
-        visualise(d)
-        save_to_json(path, d)
+        # d= dict_nested(frame, ignore_private=True)
+        # visualise(d)
+        # save_to_json(path, d)
 
-        logger.debug(f"Frame #{self.meas_frame[idx].idx} saved in: {self.meas_frame[idx].path}")
+        # logger.debug(f"Frame #{self.meas_frame[idx].idx} saved in: {self.meas_frame[idx].path}")
 
-    def load_frame(self, filepath:str) -> MeasurementFrame:
+    # TODO move to EITFrame
+    def _load_frame(self, path:str) -> Union[MeasurementFrame, bool]:
         """Load measurement frame"""
 
-        frame_as_dict = read_json(filepath)
-        if frame_as_dict is None:
-            return None
-        visualise(frame_as_dict)
-
-        # correct the frame path (if dataset moved...)
-        frame_as_dict["path"]= filepath
-
         frame = self.get_new_frame_for_acquisition()
-        frame.set_from_dict(**frame_as_dict)
-        
-        # frame = self.get_new_frame() #create a frame for loading
-        # frame.load(filepath)
-        # return load_pickle_app(filepath)
-        return frame
+        success= frame.load(path)
+        return frame, success
+        # frame_as_dict = read_json(path)
+        # if frame_as_dict is None:
+        #     return None
+        # visualise(frame_as_dict)
 
+        # # correct the frame path (if dataset moved...)
+        # frame_as_dict["path"]= path
+
+        # frame.set_from_dict(**frame_as_dict)
+        
+        # return frame
+
+    def load(self, dir_path: str = None, **kwargs) -> Union[list[str], None]:
+        """Load a measurement files contained in measurement dataset directory"""
+        if not isinstance(dir_path, str):
+            return
+        if dir_path == 'auto':
+            dir_path= None
+        self.load_json(dir_path)
+        # Update GUI 
+        self.to_gui.emit(EvtDataMeasDatasetLoaded(self.output_dir, self.frame_cnt))
+        # load setup in device
+        self.to_device.emit(DataLoadSetup(dir_path))
+        # Start replay of the measurements
+        self.to_replay.emit(DataReplayStart(self.frame_cnt))
+    
+    @catch_error
+    def load_json(self, dir_path: str = None) -> Union[list[str], None]:
+        """Load a measurement files contained in measurement dataset directory
+        , only JSON-files"""
+        
+        if (dir_path:= self._get_meas_dir(dir_path)) is None:
+            return None
+
+        if (filenames:= self._get_all_frame_file(dir_path, ext= FileExt.json)) is None:
+            return None
+
+        # load the setup present in the directory
+        self.dev_setup= SciospecSetup(32) 
+        if self.dev_setup.load(dir_path) is None:
+            return None
+
+        # During loading of the frame the dev_setup is used to build first init 
+        # values for frame which are overwriten during loading process with 
+        # new data if contained in loaded json-file
+        self.meas_frame=[]
+        for file in filenames:
+            filepath = os.path.join(dir_path, file)
+            frame, success=self._load_frame(filepath)
+            if success:
+                self.meas_frame.append(frame)
+        
+        self.time_stamps = self.meas_frame[0].time_stamp
+        self.name = self.meas_frame[0].dataset_name
+        self.output_dir = dir_path
+        self.frame_cnt = len(self.meas_frame) 
+
+        self._rx_meas_frame = None #not used with loaded dataset
+        self._ref_frame = self.meas_frame[0] #reset for loaded dataset
+
+        return filenames
 
     def _get_meas_dir(self, dir_path:str)->Union[str, None]:
 
@@ -616,47 +695,6 @@ class MeasurementDataset(ObjWithSignalToGui):
             return None
 
         return filenames
-
-    def load(self, dir_path: str = None) -> Union[list[str], None]:
-        """Load a measurement files contained in measurement dataset directory"""
-        self.load_json(dir_path)
-        self.emit_to_gui(MeasDatasetLoaded(self.output_dir, self.frame_cnt))
-    
-    @catch_error
-    def load_json(self, dir_path: str = None) -> Union[list[str], None]:
-        """Load a measurement files contained in measurement dataset directory
-        , only JSON-files"""
-        dir_path= self._get_meas_dir(dir_path)
-        if dir_path is None:
-            return None
-        
-        filenames= self._get_all_frame_file(dir_path, ext= FileExt.json)
-        if filenames is None:
-            return None
-
-        # load the setup present in the directory
-        self.dev_setup= SciospecSetup(32) 
-        if self.dev_setup.load(dir_path) is None:
-            return None
-
-        # During loading of the frame the dev_setup is used to build first init 
-        # values for frame which are overwriten during loading process with 
-        # new data if contained in loaded json-file
-        self.meas_frame=[]
-        for file in filenames:
-            filepath = os.path.join(dir_path, file)
-            self.meas_frame.append(self.load_frame(filepath))
-        
-        self.time_stamps = self.meas_frame[0].time_stamp
-        self.name = self.meas_frame[0].dataset_name
-        self.output_dir = dir_path
-        self.frame_cnt = len(self.meas_frame) 
-
-        self._rx_meas_frame = None #not used with loaded dataset
-        self._ref_frame = self.meas_frame[0] #reset for loaded dataset
-
-        return filenames
-
     
     ## =========================================================================
     ##  Setter/getter
@@ -724,18 +762,6 @@ class MeasurementDataset(ObjWithSignalToGui):
     def get_frame_cnt(self):
         return self.frame_cnt
 
-    
-    
-
-
-
-
-
-
-
-
-
-
 def convert_meas_data(meas_data):
     """return float voltages values () corresponding to meas data (bytes single float)"""
     n_bytes_real_imag = 4  # we got 4Bytes per value
@@ -755,9 +781,9 @@ def convert_meas_data(meas_data):
 
 
 if __name__ == "__main__":
+    import glob_utils.log.log
     from eit_app.io.sciospec.measurement import MeasurementDataset
     from PyQt5.QtWidgets import QApplication
-    import glob_utils.log.log
     glob_utils.log.log.main_log()
 
     app = QApplication(argv)
@@ -776,7 +802,7 @@ if __name__ == "__main__":
     
     d = MeasurementDataset(1)
     # d.initForAquisition(SciospecSetup(32))
-    d.save_meas_frame()
+    d._save_meas_frame()
 
     # d.load_meas_dir()
     # exit(app.exec_())

@@ -11,7 +11,7 @@ from glob_utils.flags.status import AddStatus
 from glob_utils.msgbox import infoMsgBox
 from PyQt5.QtGui import QImage
 from eit_app.io.video.device_abs import CaptureDevices, handle_capture_device_error
-from eit_app.signal_btw_obj import AddToGuiSignal, DataSaveLoadImage, DataSetStatusWMeas, DataSetStatusWReplay, SignalReciever
+from eit_app.com_channels import AddToGuiSignal, DataSaveLoadImage, DataSetStatusWMeas, DataSetStatusWReplay, SignalReciever
 from eit_app.update_gui import EvtDataCaptureDevices, CaptureStatus, EvtDataCaptureStatusChanged
 
 

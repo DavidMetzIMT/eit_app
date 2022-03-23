@@ -9,42 +9,47 @@ logger = logging.getLogger(__name__)
 
 def set_comboBox_items(
     comboBox: QComboBox,
-    items: List[Any] = None,
-    reset_box: bool = True,
-    set_index: int = 0,
+    items: list[Any] = None,
+    reset_box: bool = False,
+    init_index: int = 0,
     block: bool = True,
 ) -> None:
-    """_summary_
 
-    Args:
-        comboBox (QComboBox): _description_
-        items (List[Any], optional): _description_. Defaults to None.
-        reset_box (bool, optional): _description_. Defaults to True.
-        set_index (int, optional): _description_. Defaults to 0.
-        block (bool, optional): _description_. Defaults to True.
-    """
 
     comboBox.blockSignals(block)
+
     if reset_box:
         comboBox.clear()
+
     if items is not None:
         if not items:
             logger.error("could not set combobox: ", comboBox.objectName)
         elif len(items) == 1:
-            comboBox.addItem(
-                str(items[0]),
-            )
+            comboBox.addItem(str(items[0]))
         else:
             comboBox.addItems([str(item) for item in items])
+        
+    set_comboBox_index(comboBox, init_index)
 
-    if set_index != -1:
-        comboBox.setCurrentIndex(set_index)
+    comboBox.blockSignals(False)
+    
+
+def set_comboBox_index(
+    comboBox: QComboBox,
+    index: int = 0,
+    block: bool = True,
+) -> None:
+
+
+    comboBox.blockSignals(block)
+
+    if index != -1:
+        comboBox.setCurrentIndex(index)
     else:
         comboBox.setCurrentIndex(comboBox.count() - 1)  # last item
 
     comboBox.blockSignals(False)
-    # if handler:
-    #     comboBox.activated.connect(handler)
+
 
 
 def set_QTableWidget(

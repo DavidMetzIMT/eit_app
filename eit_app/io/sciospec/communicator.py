@@ -1,24 +1,3 @@
-#!C:\Anaconda3\envs\py38_app python
-# -*- coding: utf-8 -*-
-
-"""  Classes and function to interact with the Sciospec EIT device
-
-Copyright (C) 2021  David Metz
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>. """
-
-
 from dataclasses import dataclass
 from enum import Enum
 from logging import getLogger
@@ -32,21 +11,12 @@ from eit_app.io.sciospec.com_constants import (ACK_FRAME, CMD_BYTE_INDX, SUCCESS
                                                build_cmd_frame, is_start_meas,
                                                is_stop_meas)
 from eit_app.io.sciospec.interface import Interface
-from glob_utils.flags.flag import CustomFlag, CustomTimer
+from glob_utils.flags.flag import CustomFlag
+from glob_utils.flags.timer import CustomTimer
 from glob_utils.pth.path_utils import get_datetime_s
 from glob_utils.thread_process.buffer import BufferList
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.threads_worker import Poller
-
-
-__author__ = "David Metz"
-__copyright__ = "Copyright (c) 2021"
-__credits__ = ["David Metz"]
-__license__ = "GPLv3"
-__version__ = "2.0.0"
-__maintainer__ = "David Metz"
-__email__ = "d.metz@tu-bs.de"
-__status__ = "Production"
 
 logger = getLogger(__name__)
 
@@ -88,6 +58,7 @@ class RxRespData:
     @property
     def info(self)->str:
         return f' RX_RESP : {self.rx_frame[:10]} ({self.time_stamp})'
+
 
 ################################################################################
 ## Class for Sciopec Device ####################################################
@@ -307,11 +278,11 @@ class SciospecCommunicator:
         if cmd_tag == CMD_START_STOP_MEAS.tag: # a measurement frame
             kwargs= {"rx_meas_stream": rx_frame}
             logger.debug(f"RX_MEAS: {rx_frame} -  EMITTED")
-            self.new_rx_meas_stream.fire(False, **kwargs)
+            self.new_rx_meas_stream.emit(**kwargs)
         else: # a setup frame
             kwargs= {"rx_setup_stream": rx_frame}
             logger.debug(f"RX_RESPONSE: {rx_frame} -  EMITTED")
-            self.new_rx_setup_stream.fire(False, **kwargs)
+            self.new_rx_setup_stream.emit(**kwargs)
 
     def _update_status(self):
         if self.cmd_op_hist.is_empty():
