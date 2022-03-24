@@ -79,6 +79,7 @@ class CaptureDevices(ABC):
 
     devices_available: dict[str, Any]
     device: Any
+    name:str
     initializated: CustomFlag
     settings: dict
 
@@ -98,6 +99,9 @@ class CaptureDevices(ABC):
                 raise NoCaptureDeviceSelected()
             func(self, *args, **kwargs)
         return wrap
+    
+    def set_name(self, name:str)->None:
+        self.name=name
 
     @abstractmethod
     def _post_init_(self) -> None:
@@ -114,6 +118,13 @@ class CaptureDevices(ABC):
             name (str): name of the device (one of the key returned by
             self.get_devices_available)
         """
+    @abstractmethod
+    def disconnect_device(self) -> None:
+        """Disconnect the device
+        """
+    @abstractmethod
+    def is_connected(self):
+        """"""
 
     @abstractmethod
     def get_devices_available(self) -> dict[str, Any]:

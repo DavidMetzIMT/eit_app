@@ -56,24 +56,30 @@ class MicroUSBCamera(CaptureDevices):
         }
         self.settings = {k: None for k in self.props}
 
-    def connect_device(self, name: str) -> None:
+    def connect_device(self, name: str=None) -> None:
         self.initializated.clear()
-        if name not in self.devices_available:
-            logger.error(f'Device "{name}" not available')
+        if self.name not in self.devices_available:
+            logger.error(f'Device "{self.name}" not available')
             logger.debug(f"Availabe devices:{self.devices_available}")
-            raise NoCaptureDeviceSelected(f'Device "{name}" not available')
+            raise NoCaptureDeviceSelected(f'Device "{self.name}" not available')
 
-        self.devices_available[name]
-        self.device = cv2.VideoCapture(self.devices_available[name], cv2.CAP_DSHOW)
+        self.device = cv2.VideoCapture(self.devices_available[self.name], cv2.CAP_DSHOW)
         self._check_device()
+    
+    def disconnect_device(self) -> None:
+        self.device= None
         
 
     def get_devices_available(self) -> dict[str, Any]:
+        
+        self.devices_available={}
         for index, _ in enumerate(range(10)):
             cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
             if cap.read()[0]:
                 self.devices_available[f"MicroUSB {index}"] = index
                 cap.release()
+        if self.devices_available:
+            self.name=list(self.devices_available.keys())[0]
         return self.devices_available
 
 
@@ -108,6 +114,8 @@ class MicroUSBCamera(CaptureDevices):
         return self.settings
 
     def capture_frame(self) -> np.ndarray:
+        if not self.is_connected():
+            return None
         if not self.initializated.is_set():  # raise error if no device selected
             raise NoCaptureDeviceSelected()
 
@@ -125,12 +133,18 @@ class MicroUSBCamera(CaptureDevices):
     def save_frame(self, frame: np.ndarray, file_path: str):
         cv2.imwrite(file_path, frame)
 
+
+    def is_connected(self)->bool:
+        if self.device is None:
+            return False
+        success, _ = self.device.read()
+        return success
+
     def _check_device(self):
         """Check if the device works, here we read frame and verify that it is
         succesful
         """
-        success, _ = self.device.read()
-        if success:
+        if self.is_connected:
             self.initializated.set()
         else:
             self.initializated.clear()
