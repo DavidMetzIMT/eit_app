@@ -10,7 +10,7 @@ from eit_app.com_channels import (AddToGuiSignal, DataSaveLoadImage,
                                   SignalReciever)
 from eit_app.io.video.device_abs import (CaptureDevices,
                                          handle_capture_device_error)
-from eit_app.update_gui import (CaptureStatus, EvtDataCaptureDevices,
+from eit_app.update_gui import (CaptureStatus, EvtDataCaptureDevices, EvtDataCaptureImageChanged,
                                 EvtDataCaptureStatusChanged)
 from glob_utils.files.files import is_file, append_extension
 from glob_utils.flags.status import AddStatus
@@ -65,17 +65,18 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.save_image_path = ""
         self.last_frame = None
         self.process = {
-            CaptureStatus.IDLE: self._process_idle,
+            CaptureStatus.NOT_CONNECTED: self._process_replay,
+            CaptureStatus.CONNECTED: self._process_replay,
+            CaptureStatus.REPLAY: self._process_replay,
             CaptureStatus.MEASURING: self._process_meas,
             CaptureStatus.LIVE: self._process_live,
         }
-        self.new_image=Signal(self)
+        # self.new_image=Signal(self)
 
     
     def emit_new_image(self,image:QImage):
-        # logger.debug("video image emitted")
-        kwargs={"image":image}
-        self.new_image.emit(**kwargs)
+        logger.debug("video image emitted")
+        self.to_gui.emit(EvtDataCaptureImageChanged(image))
 
     # @abstractmethod - AddStatus
     def status_has_changed(self, status:Enum, was_status:Enum)->None:
@@ -94,6 +95,9 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         if not isinstance(meas_status_dev, bool):
             return
 
+        if self.is_status(CaptureStatus.NOT_CONNECTED):
+            return
+
         if meas_status_dev:
             self.set_status(CaptureStatus.MEASURING) 
         else:
@@ -110,10 +114,13 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             return
 
         if replay_status:
-            self.set_status(CaptureStatus.IDLE) 
+            self.set_status(CaptureStatus.REPLAY)
+        else:
+            self.reset_to_last_status()
 
     def add_path(self, data:DataSaveLoadImage,**kwargs)-> None:
         self.queue_in.put(data.frame_path)
+        logger.info(f"Capture frame path added: {data.frame_path}")
 
 
     def get_devices_available(self)-> None:
@@ -126,15 +133,26 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         logger.info(f"Capture devices available: {list(devices)}")
         self.to_gui.emit(EvtDataCaptureDevices(devices))
 
+    def set_device_name(self, name:str, **kwargs)->None:
+        self.capture_device.set_name(name)
+
     @handle_capture_device_error
-    def connect_device(self, name: str) -> None:
+    def connect_device(self, name: str=None) -> None:
         """Select a device
 
         Args:
             name (str): name of the device, which has to be in the self.devices
         """
-        self.capture_device.connect_device(name)
-        logger.info(f"Video capture device: {name} - CONNECTED")
+        if self.capture_device.is_connected():
+            self.capture_device.disconnect_device()
+            self.set_status(CaptureStatus.NOT_CONNECTED) 
+            logger.info(
+                f"Video capture device: {self.capture_device.name} - DISCONNECTED")
+        else:
+            self.capture_device.connect_device()
+            self.set_status(CaptureStatus.CONNECTED)
+            logger.info(
+                f"Video capture device: {self.capture_device.name} - CONNECTED")
         
 
     @handle_capture_device_error
@@ -171,34 +189,42 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         if MEASURING mode active nothing will be done!
         """
         if self.is_status(CaptureStatus.MEASURING):
-            return
-        
-        if self.is_status(CaptureStatus.IDLE):
-            self.set_status(CaptureStatus.LIVE)
-        else:
-            self.set_status(CaptureStatus.IDLE)
-
-    def capture_stop(self, *args, **kwargs) -> None:
-        """Force the capture module to stop capturing,
-        """
-        if self.is_status(CaptureStatus.MEASURING):
             infoMsgBox(
                 title="Measurements are running",
                 message="Stop first Measurements"
             )
-        
-        self.set_status(CaptureStatus.IDLE)
+            return
+
+        if self.is_status(CaptureStatus.NOT_CONNECTED):
+            infoMsgBox(
+                title="No Capture device connected",
+                message="Connect first a capture device!"
+            )
+            logger.info("No Capture device connected - Connect first capture device!")
+            return
+                
+        if self.is_status(CaptureStatus.CONNECTED):
+            self.set_status(CaptureStatus.LIVE)
+        else:
+            self.set_status(CaptureStatus.CONNECTED)
 
     def _poll(self) -> None:
         """Call the process corresponding to the actual status"""
+        # logger.info("replay thread running")
         self.process[self.get_status()]()
 
     def _process_idle(self) -> None:
         """Idle process"""
+
+    def _process_replay(self) -> None:
+        """Idle process"""
         if self.queue_in.empty():
             return
         path = self.queue_in.get()
+        logger.info("replay loading image")
         image, frame = self.load_image(path)
+        if image is None:
+            return
         self.emit_new_image(image)
 
     def _process_meas(self) -> None:
@@ -211,6 +237,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             return
         path = self.queue_in.get()
         image, frame = self._snapshot()
+        if image is None:
+            return
         self.save_image(frame, path)
         self.emit_new_image(image)
 
@@ -218,6 +246,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         """Live process: Read and emit the actual image (eg. for display on GUI)
         """
         image, frame = self._snapshot()
+        if image is None:
+            return
         self.emit_new_image(image)
 
     def build_snapshot_path(self)->str:
@@ -225,8 +255,10 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         
 
     def snapshot(self, *args, **kwargs) -> None:
-        image, frame = self._snapshot()
         path= self.build_snapshot_path()
+        image, frame = self._snapshot()
+        if image is None:
+            return
         self.save_image(frame, path)
         self.emit_new_image(image)
 
@@ -242,7 +274,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             QImage: captured Qt image
         """
 
-        frame = self.capture_device.capture_frame()
+        if (frame := self.capture_device.capture_frame()) is None:
+            return None, None
         image = self.capture_device.get_Qimage(frame)
         return image, frame
 
@@ -254,12 +287,25 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             path (str, optional): . Defaults to None.
         """
         if path is None:
-            return
+            return None, None
 
-        _, ext = os.path.split(path)
-        if ext not in list(EXT_IMG.values()) and not is_file(path):
-            return None
-        frame = self.capture_device.load_frame(path)
+        filepath=None
+
+        for ext in  list(EXT_IMG.values()):
+            filepath= append_extension(path, ext)
+            if is_file(filepath):
+                break
+        
+        if filepath is None:
+            return None, None
+        
+        # path= append_extension(path, self.image_file_ext)
+
+        # _, ext = os.path.split(path)
+        # if ext not in list(EXT_IMG.values()) and not is_file(path):
+        #     return None
+        # logger.debug(f'\nImage "{path}" - Loading')
+        frame = self.capture_device.load_frame(filepath)
         image = self.capture_device.get_Qimage(frame)
         logger.debug(f'\nImage "{path}" - Loaded')
         return image, frame
