@@ -38,7 +38,7 @@ from eit_app.update_gui import (EvtDataNewFrameInfo, EvtDataNewFrameProgress,
                                 EvtDataSciospecDevices,
                                 EvtDataSciospecDevMeasuringStatusChanged,
                                 EvtDataSciospecDevSetup, MeasuringStatus)
-from glob_utils.flags.status import AddStatus, MultiStatewSignal
+from glob_utils.flags.status import AddStatus
 from glob_utils.log.log import main_log
 from glob_utils.msgbox import errorMsgBox, infoMsgBox, warningMsgBox
 from serial import (  # get from http://pyserial.sourceforge.net/
@@ -120,7 +120,7 @@ class SciospecEITDevice(
     # @abstractmethod - AddStatus
     def status_has_changed(self, status:Enum, was_status:Enum)->None:
         self.to_gui.emit(EvtDataSciospecDevMeasuringStatusChanged(status))
-        meas_status_dev=self.is_measuring or self.is_paused
+        meas_status_dev = self.is_measuring or self.is_paused
         self.to_capture.emit(DataSetStatusWMeas(meas_status_dev))
 
     @property
@@ -134,7 +134,7 @@ class SciospecEITDevice(
     @property
     def is_idle(self)->bool:
         """"""
-        return self.is_status(MeasuringStatus.IDLE)
+        return self.is_status(MeasuringStatus.NOT_MEASURING)
     
     ## =========================================================================
     ##  Methods to update gui
@@ -147,7 +147,6 @@ class SciospecEITDevice(
     ##  Methods for dataset
     ## =========================================================================    
     def emit_new_rx_meas_stream(self, **kwargs):
-        #TODO re 
         self.to_dataset.emit(DataAddRxMeasStream(kwargs['rx_meas_stream']))
     
     ## =========================================================================
@@ -165,22 +164,9 @@ class SciospecEITDevice(
             warningMsgBox(
                 "Device not detected",
                 f"{error.__str__()}"
-
             )
-        #TODO handle of the disconnection of the device
-        # if (
-        #     self.device._not_connected()
-        #     and self.device.status_prompt != self.lab_device_status.text()
-        # ):
-        #     self.update_gui(DevStatus(self.device.connected(), self.device.status_prompt))
-        #     errorMsgBox(
-        #         "Error: Device disconnected",
-        #         "The device has been disconnected!"
-        #     )
-        #     self._refresh_device_list()
-        # elif isinstance(error, OSError):
-        #     pass
-
+            self.disconnect_device()
+            self.get_devices()
 
     @property
     def is_connected(self)->bool:
@@ -305,13 +291,15 @@ class SciospecEITDevice(
     @check_not_measuring()
     def disconnect_device(self, *args, **kwargs) -> None:
         """ Disconnect device"""
-        if not self.is_connected:
-            return
+        # if not self.is_connected:
+        #     logger.debug('already not connected')
+        #     return
 
         if (success:=self._disconnect_interface()):        
             # Some reinitializsation of internal objects after disconnection
             self.setup.reinit()
             self.serial_interface.reinit()
+            self.communicator.reinit()
 
         logger.info(f"Disconnecting device '{self.device_name}' - {SUCCESS[success]}")
         self.device_name = NONE_DEVICE if success else self.device_name
@@ -368,7 +356,7 @@ class SciospecEITDevice(
     
     def start_paused_resume_meas(self, *args, **kwargs)->bool:
         """"""
-        if self.is_status(MeasuringStatus.IDLE):
+        if self.is_status(MeasuringStatus.NOT_MEASURING):
             self.to_dataset.emit(DataInit4Start(self.setup))
             self.start_meas()
         elif self.is_status(MeasuringStatus.MEASURING):
@@ -379,7 +367,7 @@ class SciospecEITDevice(
     def stop_meas(self, *args, **kwargs)-> None:
         """Stop measurements"""
         if success:= self._stop_meas():
-            self.set_status(MeasuringStatus.IDLE)
+            self.set_status(MeasuringStatus.NOT_MEASURING)
             self.to_gui.emit(EvtDataNewFrameProgress( 0, 0))
         logger.info(f"Stop Measurements - {SUCCESS[success]}")
 
@@ -484,9 +472,9 @@ class SciospecEITDevice(
         self.send_communicator(CMD_SOFT_RESET, OP_NULL)
         self.communicator.wait_not_busy()
         sleep(10)
-        self.disconnect_device() 
         logger.info("Softreset of device - done")
         infoMsgBox("Device reset ","Reset done")
+        
 
     def save_setup(self,  *args, **kwargs)->None:
         """Save Setup
@@ -496,7 +484,6 @@ class SciospecEITDevice(
     
     def load_setup_from_signal(self, data:DataLoadSetup)->None:
         self.load_setup(dir=data.dir)
-
 
     def load_setup(self, *args,  **kwargs)->None:
         """Load Setup
@@ -521,11 +508,6 @@ if __name__ == "__main__":
     # app = QApplication(sys.argv)
     print(SUCCESS[True])
     print(SUCCESS[False])
-
-    meas_status= MultiStatewSignal(list(MeasuringStatus))
-    meas_status.change_state(MeasuringStatus.IDLE)
-
-    print(meas_status.state.value)
 
     def print_e(**kwargs):
         print(f"{kwargs=}")
