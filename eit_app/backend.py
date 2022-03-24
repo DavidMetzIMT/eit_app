@@ -24,7 +24,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import eit_app.eit.plots
 from eit_app.eit.computation import ComputingAgent
 from eit_app.eit.plots import (CanvasLayout, LayoutEITChannelVoltage,
-                               LayoutEITData, LayoutEITImage2D)
+                               LayoutEITData, LayoutEITImage2D, LayoutChannelVoltageMonitoring)
 from eit_app.gui import Ui_MainWindow as app_gui
 from eit_app.gui_utils import (set_comboBox_items)
 from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
@@ -84,6 +84,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.plot_agent.add_layouts(self.canvas_graphs)
         self.canvas_ch_graph=CanvasLayout(self, self.layout_ch_graph, LayoutEITChannelVoltage)
         self.plot_agent.add_layouts(self.canvas_ch_graph)
+        self.canvas_monitoring=CanvasLayout(self, self.layout_monitoring, LayoutChannelVoltageMonitoring)
+        self.plot_agent.add_layouts(self.canvas_monitoring)
 
         self.eit_model = eit_model.model.EITModel()
     
@@ -124,7 +126,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.replay_agent.to_capture.connect(self.capture_agent.to_reciever)
 
         self.capture_agent.to_gui.connect(self.to_reciever)
-        self.capture_agent.new_image.connect(self.display_image)
 
         # set pattern
         self.eit_model.load_defaultmatfile()
@@ -203,7 +204,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.chB_dataset_save_img.toggled.connect(self._autosave)
         self.chB_load_after_meas.toggled.connect(self._autosave)
         # frame plot/
-        self.cB_current_idx_frame.activated[int].connect(self.replay_agent.set_actual_frame)
         self.chB_plot_graph.toggled.connect(self._plots_to_show)
         self.chB_Uplot.toggled.connect(self._plots_to_show)
         self.chB_diff.toggled.connect(self._plots_to_show)
@@ -219,6 +219,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.pB_replay_back.clicked.connect(self.replay_agent.back)
         self.pB_replay_stop.clicked.connect(self.replay_agent.stop)
         self.sB_replay_time.valueChanged[float].connect(self.replay_agent.set_timeout)
+        self.cB_current_idx_frame.activated[int].connect(self.replay_agent.set_actual_frame)
         self.slider_replay.valueChanged[int].connect(self.replay_agent.set_actual_frame)
         self.pB_export_meas_csv.clicked.connect(self._export_meas_csv)
         self.pB_load_ref_dataset.clicked.connect(self._loadRef4TD)
@@ -257,11 +258,11 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._update_eit_ctlg)
 
         # Video capture
-        self.pB_refresh_video_devices.clicked.connect(self.capture_agent.get_devices_available)
+        self.pB_capture_refresh.clicked.connect(self.capture_agent.get_devices_available)
         self.pB_capture_start_stop.clicked.connect(self.capture_agent.start_stop_capture)
-        self.pB_capture_stop.clicked.connect(self.capture_agent.capture_stop)
         self.pB_capture_snapshot.clicked.connect(self.capture_agent.snapshot)
-        self.cB_video_devices.activated.connect(self._set_capture_device)
+        self.cB_video_devices.activated[str].connect(self.capture_agent.set_device_name)
+        self.pB_capture_connect.clicked.connect(self.capture_agent.connect_device)
         self.cB_img_size.activated.connect(self._set_capture_device)
         self.cB_img_file_ext.activated.connect(self._set_capture_device)
         
@@ -274,25 +275,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
                 return
             return func(self, *args, **kwargs)
         return wrap
-
-    ############################################################################
-    #### callback for the change of status which are signal-based
-    ############################################################################
-    
-    # def handle_meas_status_change(self):
-    #     if self.device.is_measuring or self.device.is_paused:
-    #         self.replay_status.clear()
-    #         # self.capture_module.set_meas()
-    #     else:
-    #         # self.capture_module.set_idle()
-    #         self._live_capture_start(look_memory_flag=True)
-    
-    #     self.update_gui(ReplayStatus(self.replay_status))
-
-    # def handle_replay_status_change(self):
-    #     """"""
-    #     self.update_gui(ReplayStatus(self.replay_status))
-    #     self.replay_status.ack_change()
 
     ############################################################################
     #### Logging
@@ -450,87 +432,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             f"Autosave: {self.dataset._autosave.is_set()}, save_img:{self.dataset._save_img.is_set()}"
         )
         self.update_gui(EvtDataAutosaveOptionsChanged())
-        
 
-    # def _load_meas_set(self) -> None:
-    #     """the callback has to be witouh arguments!"""
-    #     self._load_meas_set()
-
-    # @_abort_if_measuring
-    # @catch_error
-    # def _load_meas_set(self, dir_path: str = None) -> None:
-    #     """[summary]
-
-    #     Args:
-    #         dir_path (str, optional): [description]. Defaults to None.
-    #     """
-    #     if self.live_capture.is_set():
-    #         self._live_capture_stop()
-    #         infoMsgBox("Live video still running","Live video stopped")
-
-    #     self.replay_status.clear()
-    #     files= self.dataset.load(dir_path)
-    #     if files is not None:
-    #         return
-    #     self.device.load_setup(self.dataset.output_dir)
-    #     self.replay_status.set()
-    #     self._compute_meas_frame(0)
-
-    # def _replay_play(self) -> None:
-        
-    #     logger.debug(f"{self.replay_timerqt.isActive()}")
-    #     if self.replay_timerqt.isActive():
-    #         logger.debug("PAUSE")
-    #         self._replay_stop()
-    #     else:
-    #         logger.debug("PLAY")
-    #         self._replay_set_timeout()
-    #         self.replay_timerqt.start()
-
-    #     # self.update_gui(ReplayButton(self.replay_timerqt.isActive()))
-
-    # def _replay_begin(self) -> None:
-    #     set_QSlider_position(self.slider_replay, pos=0)
-
-    # def _replay_end(self) -> None:
-    #     set_QSlider_position(self.slider_replay, pos=-1)
-    
-    # def _replay_next(self) -> None:
-    #     inc_QSlider_position(self.slider_replay, forward=True)
-
-    # def _replay_back(self) -> None:
-    #     inc_QSlider_position(self.slider_replay, forward=False)
-
-    # def _replay_stop(self) -> None:
-    #     """[summary]"""
-    #     self.replay_timerqt.stop()
-    #     # self.update_gui(ReplayButton(self.replay_timerqt.isActive()))
-
-    # def _replay_slider_changed(self) -> None:
-    #     idx_frame = self.slider_replay.sliderPosition()
-    #     self.cB_current_idx_frame.setCurrentIndex(idx_frame)
-    #     self._compute_meas_frame(idx_frame)
-
-    # def _current_frame_selected(self) -> None:
-    #     idx_frame = self.cB_current_idx_frame.currentIndex()
-    #     set_QSlider_position(self.slider_replay, pos=idx_frame)
-    #     self._compute_meas_frame(idx_frame)
-
-    # def _replay_set_timeout(self) -> None:
-    #     msec=int(self.sB_replay_time.value()*1000)
-    #     logger.info(f"new Timeout in msec:{msec}")
-    #     self.replay_timerqt.setInterval(msec)
-    
-    # @_abort_if_measuring
-    # def _compute_meas_frame(self, idx_frame: int = 0) -> None:
-    #     if not self.replay_status.is_set() :
-    #         warningMsgBox(
-    #             "Replay mode not activated",
-    #             "First load a measuremment dataset"
-    #         )
-    #         return
-    #     self.dataset.emit_meas_frame(idx_frame)
-    #     self.get_picture(idx_frame=idx_frame)
 
     def _export_meas_csv(self) -> None:
         """Export the actual measurments frames in csv"""
@@ -556,19 +458,11 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
     @_abort_if_measuring
     def _set_capture_device(self,*args, **kwargs) -> None:
 
-        self.capture_agent.connect_device(self.cB_video_devices.currentText())
+        # self.capture_agent.connect_device(self.cB_video_devices.currentText())
         self.capture_agent.set_image_size(self.cB_img_size.currentText())
         self.capture_agent.set_image_file_format(
             file_ext=self.cB_img_file_ext.currentText()
         )
-
-    # def get_picture(self, idx_frame: int) -> None:
-    #     if not self.replay_status.is_set():  # only in replay mode
-    #         return
-    #     path = self.dataset.get_meas_path(idx_frame)
-    #     path, _ = os.path.splitext(path)
-    #     path = path + self.capture_agent.image_file_ext
-    #     self.capture_agent.load_image(path)
 
     ############################################################################
     #### Plotting
@@ -614,15 +508,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.canvas_rec.set_visible(self.chB_plot_image_rec.isChecked())
         self.computing.enable_rec(self.chB_plot_image_rec.isChecked())
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
-
-
-    def display_image(self, image: QtGui.QImage= None, **kwargs) -> None:
-
-        if not isinstance(image, QtGui.QImage):
-            logger.warning(f"{image=} is not an QtGui.QImage")
-            return
-        self.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
-        
 
     
     # def kill_workers(self) -> None:
