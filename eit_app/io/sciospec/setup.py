@@ -534,7 +534,7 @@ class SciospecSetup(SetupBase):
 
 
     def save(self, dir: str = None)-> Union[str, None]:
-        """Save the setup in pkl file"""
+        """Save the setup in json file"""
 
         if not dir:
             dir = get_dir(title="Select a directory, where the setup will be saved")
@@ -553,7 +553,7 @@ class SciospecSetup(SetupBase):
 
 
     def load(self, dir: str = None, **kwargs):
-        """Load the setup out of a pkl file"""
+        """Load the setup out of a json file"""
         filepath = None
         try:
 
@@ -568,7 +568,7 @@ class SciospecSetup(SetupBase):
                     logger.warning(f"Load setup contained in dir :{dir} - Unsuccesfull")
                     return None
 
-            filepath = os.path.join(dir, filepath[0])
+                filepath = os.path.join(dir, filepath[0])
 
             # load_pickle_app(file_path, self)
 
