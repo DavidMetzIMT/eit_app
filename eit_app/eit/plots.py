@@ -105,23 +105,37 @@ class LayoutEITChannelVoltage(CustomLayout):
         """Custom initialization"""
         self.allowed_data_type=(eit_model.data.EITData)
         self.plotter=[
-            eit_model.plot.EITUPlot(),
-            eit_model.plot.EITUPlotDiff()
+            eit_model.plot.EITUPlot()
         ]
 
     # @abstractmethod
     def _build(self, fig:Figure, data:Any, labels:dict):
 
-        # ax = [fig.add_subplot(2, 1, 1), fig.add_subplot(2, 1, 2)]
         ax = fig.add_subplot(1, 1, 1)
-
         lab = labels.get(self.plotter[0].type)
         fig, ax = self.plotter[0].plot(fig, ax, data, lab)
+        fig.set_tight_layout(True)
 
-        # lab = labels.get(self.plotter[1].type)
-        # fig, ax[1] = self.plotter[1].plot(fig, ax[1], data, lab)
-        # ax[1].sharex(ax[1])
-        # ax[0].set_xlabel("")
+class LayoutChannelVoltageMonitoring(CustomLayout):
+    """_summary_
+
+    Args:
+        CustomPlots (_type_): _description_
+    """
+
+    def _post_init_(self):
+        """Custom initialization"""
+        self.allowed_data_type=(eit_model.data.EITMeasMonitoring)
+        self.plotter=[
+            eit_model.plot.MeasErrorPlot()
+        ]
+
+    # @abstractmethod
+    def _build(self, fig:Figure, data:Any, labels:dict):
+
+        ax = fig.add_subplot(1, 1, 1)
+        lab = labels.get(self.plotter[0].type)
+        fig, ax = self.plotter[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
     
 
@@ -175,7 +189,10 @@ class PlottingAgent(SignalReciever):
 
     def __init__(self):
         """Constructor"""
-        self.init_reciever(data_callbacks={Data2Plot:self.add_data2plot})
+        super().__init__()
+        self.init_reciever(
+            data_callbacks={Data2Plot:self.add_data2plot}
+        )
         self.input_buf = Queue()
         self.worker = Poller(
             name="plot", pollfunc=self.poll_input_buffer, sleeptime=0.01
