@@ -1,11 +1,13 @@
 from queue import Queue
 import logging
 from eit_model.imaging_type import Imaging
-from eit_app.eit.plots import LayoutEITChannelVoltage, LayoutEITImage2D, LayoutEITData
+import numpy as np
+from eit_app.eit.plots import LayoutChannelVoltageMonitoring, LayoutEITChannelVoltage, LayoutEITImage2D, LayoutEITData
 from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.decorator.decorator import catch_error
 import eit_model.solver_abc
 import eit_model.model
+import eit_model.data
 from eit_app.com_channels import AddToPlotSignal, Data2Compute, SignalReciever, Data2Plot 
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         self.rec_enable=False
         # self.computed= Signal(self)
         self.params=None
+        self.reset_eitmonitoringdata()
     
     def send_2_plot(self, data):
         self.plot_cllbck(data)
@@ -65,6 +68,9 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
     
     def set_rec_params(self, params):
         self.params=params
+    
+    def reset_eitmonitoringdata(self):
+        self.eitmonitoringdata= eit_model.data.EITMeasMonitoring()
 
     def enable_rec(self, enable:bool=True):
         self.rec_enable= enable
@@ -113,6 +119,13 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         ch_data, ch_labels = self.ch_imaging.process_data(
              **data.__dict__, eit_model= self.eit_model)
         self.to_plot.emit(Data2Plot(ch_data, ch_labels, LayoutEITChannelVoltage))
+
+        # volt, frame_idx= 1,1
+        # self.eitmonitoringdata.add(volt, frame_idx)
+
+        v = np.random.randn(256, 9)
+        d = eit_model.data.EITMeasMonitoring(volt_frame=v)
+        self.to_plot.emit(Data2Plot(d, ch_labels, LayoutChannelVoltageMonitoring))
 
         # self.computed.fire(data=Data2Plot(ch_data, ch_labels, LayoutEITChannelVoltage))
 
