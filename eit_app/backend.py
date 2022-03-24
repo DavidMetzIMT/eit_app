@@ -27,12 +27,12 @@ from eit_app.eit.plots import (CanvasLayout, LayoutEITChannelVoltage,
                                LayoutEITData, LayoutEITImage2D, LayoutChannelVoltageMonitoring)
 from eit_app.gui import Ui_MainWindow as app_gui
 from eit_app.gui_utils import (set_comboBox_items)
-from eit_app.io.sciospec.com_constants import OP_LINEAR, OP_LOG
-from eit_app.io.sciospec.device import SciospecEITDevice
-from eit_app.io.sciospec.measurement import ExtractIndexes, MeasurementDataset
-from eit_app.io.sciospec.replay import ReplayMeasurementsAgent
-from eit_app.io.video.microcam import MicroUSBCamera
-from eit_app.io.video.capture import EXT_IMG, IMG_SIZES,VideoCaptureAgent
+from eit_app.sciospec.com_constants import OP_LINEAR, OP_LOG
+from eit_app.sciospec.device import SciospecEITDevice
+from eit_app.sciospec.measurement import ExtractIndexes, MeasurementDataset
+from eit_app.sciospec.replay import ReplayMeasurementsAgent
+from eit_app.video.microcam import MicroUSBCamera
+from eit_app.video.capture import EXT_IMG, IMG_SIZES,VideoCaptureAgent
 from eit_app.com_channels import AddUpdateAgent
 
 from eit_app.update_gui import (EvtDataAutosaveOptionsChanged,

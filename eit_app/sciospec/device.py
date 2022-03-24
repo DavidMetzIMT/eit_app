@@ -4,7 +4,7 @@ from logging import getLogger
 from time import sleep
 from typing import Any, Union
 
-from eit_app.io.sciospec.com_constants import (CMD_GET_DEVICE_INFOS,
+from eit_app.sciospec.com_constants import (CMD_GET_DEVICE_INFOS,
                                                CMD_GET_ETHERNET_CONFIG,
                                                CMD_GET_MEAS_SETUP,
                                                CMD_GET_OUTPUT_CONFIG,
@@ -24,12 +24,12 @@ from eit_app.io.sciospec.com_constants import (CMD_GET_DEVICE_INFOS,
                                                OP_STOP_MEAS, OP_TIME_STAMP,
                                                SUCCESS, SciospecCmd,
                                                SciospecOption)
-from eit_app.io.sciospec.communicator import SciospecCommunicator
-from eit_app.io.sciospec.interface import SciospecSerialInterface
-from eit_app.io.sciospec.measurement import (DataAddRxMeasStream,
+from eit_app.sciospec.communicator import SciospecCommunicator
+from eit_app.sciospec.interface import SciospecSerialInterface
+from eit_app.sciospec.measurement import (DataAddRxMeasStream,
                                              DataInit4Start, DataReInit4Pause)
-from eit_app.io.sciospec.setup import SciospecSetup
-from eit_app.io.video.capture import DataSetStatusWMeas
+from eit_app.sciospec.setup import SciospecSetup
+from eit_app.video.capture import DataSetStatusWMeas
 from eit_app.com_channels import (AddToCaptureSignal, AddToDatasetSignal,
                                     AddToGuiSignal, DataCheckBurst,
                                     DataLoadSetup, SignalReciever)

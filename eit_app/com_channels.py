@@ -7,7 +7,7 @@ from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.threads_worker import CustomWorker
 import numpy as np
-from eit_app.io.sciospec.setup import SciospecSetup
+from eit_app.sciospec.setup import SciospecSetup
 from eit_app.update_gui import UPDATE_EVENTS, EventDataClass, UpdateAgent
 
 

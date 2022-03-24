@@ -51,9 +51,9 @@ from serial import (
     SerialException,
     PortNotOpenError,
 )  # get from http://pyserial.sourceforge.net/
-from eit_app.io.sciospec.com_constants import *
+from eit_app.sciospec.com_constants import *
 
-# from eit_app.io.sciospec.hw_interfaces import HWInterface
+# from eit_app.sciospec.hw_interfaces import HWInterface
 from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.thread_process.signal import Signal
 from glob_utils.flags.flag import CustomFlag

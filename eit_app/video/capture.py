@@ -8,7 +8,7 @@ import numpy as np
 from eit_app.com_channels import (AddToGuiSignal, DataSaveLoadImage,
                                   DataSetStatusWMeas, DataSetStatusWReplay,
                                   SignalReciever)
-from eit_app.io.video.device_abs import (CaptureDevices,
+from eit_app.video.device_abs import (CaptureDevices,
                                          handle_capture_device_error)
 from eit_app.update_gui import (CaptureStatus, EvtDataCaptureDevices, EvtDataCaptureImageChanged,
                                 EvtDataCaptureStatusChanged)

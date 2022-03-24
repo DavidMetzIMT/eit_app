@@ -15,7 +15,7 @@ from eit_app.gui_utils import (
     set_QSlider_scale,
     set_QTableWidget,
 )
-from eit_app.io.sciospec.setup import SciospecSetup
+from eit_app.sciospec.setup import SciospecSetup
 from eit_model.imaging_type import (
     Imaging,
     AbsoluteImaging,

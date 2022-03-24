@@ -1,11 +1,11 @@
 import os
-from eit_app.io.sciospec.setup import SciospecSetup
-from eit_app.io.sciospec.measurement import MeasurementFrame, MeasurementDataset
+from eit_app.sciospec.setup import SciospecSetup
+from eit_app.sciospec.measurement import MeasurementFrame, MeasurementDataset
 from glob_utils.pth.path_utils import get_dir
 from glob_utils.types.dict import visualise, dict_nested
 from glob_utils.files.json import save_to_json, read_json
 from glob_utils.files.files import save_as_txt
-# from eit_app.io.sciospec.meas_dataset_o import EitMeasurementSet as DSOld
+# from eit_app.sciospec.meas_dataset_o import EitMeasurementSet as DSOld
 
 
 if __name__ == "__main__":

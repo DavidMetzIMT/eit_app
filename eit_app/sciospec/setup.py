@@ -5,8 +5,8 @@ from typing import  Any, Tuple, Union
 from matplotlib import pyplot as plt
 
 import numpy as np
-from eit_app.io.sciospec.com_constants import *
-from eit_app.io.sciospec.utils import *
+from eit_app.sciospec.com_constants import *
+from eit_app.sciospec.utils import *
 
 from glob_utils.files.files import (
     DataLoadedNotCompatibleError,

@@ -24,9 +24,9 @@ from typing import Any
 
 import cv2
 import numpy as np
-from eit_app.io.video.device_abs import (CaptureDevices, CaptureFrameError,
+from eit_app.video.device_abs import (CaptureDevices, CaptureFrameError,
                                       NoCaptureDeviceSelected)
-from eit_app.io.video.capture import convert_frame_to_Qt_format
+from eit_app.video.capture import convert_frame_to_Qt_format
 from PyQt5.QtGui import QImage
 
 __author__ = "David Metz"

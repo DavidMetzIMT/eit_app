@@ -3,14 +3,14 @@ from enum import Enum
 from logging import getLogger
 from queue import Queue
 from time import sleep
-from eit_app.io.sciospec.com_constants import (ACK_FRAME, CMD_BYTE_INDX, SUCCESS,
+from eit_app.sciospec.com_constants import (ACK_FRAME, CMD_BYTE_INDX, SUCCESS,
                                                CMD_START_STOP_MEAS, NONE_ACK,
                                                OPTION_BYTE_INDX, SCIOSPEC_ACK,
                                                Answer, SciospecAck,
                                                SciospecCmd, SciospecOption,
                                                build_cmd_frame, is_start_meas,
                                                is_stop_meas)
-from eit_app.io.sciospec.interface import Interface
+from eit_app.sciospec.interface import Interface
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.flags.timer import CustomTimer
 from glob_utils.pth.path_utils import get_datetime_s

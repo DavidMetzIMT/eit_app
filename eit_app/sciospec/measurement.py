@@ -6,9 +6,9 @@ from typing import Union
 
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs
-from eit_app.io.sciospec.com_constants import OPTION_BYTE_INDX
-from eit_app.io.sciospec.setup import SciospecSetup
-from eit_app.io.sciospec.utils import convert4Bytes2Float, convertBytes2Int
+from eit_app.sciospec.com_constants import OPTION_BYTE_INDX
+from eit_app.sciospec.setup import SciospecSetup
+from eit_app.sciospec.utils import convert4Bytes2Float, convertBytes2Int
 from eit_app.com_channels import (AddToCaptureSignal, AddToComputationSignal,
                                     AddToDeviceSignal, AddToGuiSignal,
                                     AddToReplaySignal, Data2Compute,
@@ -736,7 +736,7 @@ def convert_meas_data(meas_data):
 
 if __name__ == "__main__":
     import glob_utils.log.log
-    from eit_app.io.sciospec.measurement import MeasurementDataset
+    from eit_app.sciospec.measurement import MeasurementDataset
     from PyQt5.QtWidgets import QApplication
     glob_utils.log.log.main_log()
 
