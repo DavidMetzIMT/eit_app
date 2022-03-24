@@ -97,10 +97,18 @@ class SciospecCommunicator:
 
         self.process_meas_enabled= CustomFlag()
         self.process_meas_enabled.clear()
+    
+    def reinit(self)->None:
+        self.status = StatusCommunicator.IDLE
+        self.cmd_op_hist.clear()
+        self.resp_hist.clear()
+
 
     def _reinit(self)->None:
         """init the"""
         self.status = StatusCommunicator.IDLE
+        self.cmd_op_hist.clear()
+        self.resp_hist.clear()
 
     def wait_not_busy(self) -> None :
         """Wait until the Communicator get all ack fro all commands send
