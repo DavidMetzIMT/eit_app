@@ -1,6 +1,7 @@
 from enum import Enum
 from logging import getLogger
-from typing import Any, Union
+from threading import Timer
+from typing import Any, Callable, Iterable, Mapping, Union
 
 from eit_app.io.sciospec.measurement import DataEmitFrame4Computation
 from eit_app.io.video.capture import DataSetStatusWReplay
@@ -44,6 +45,15 @@ def check_is_on(func):
         return wrap
 
 
+class RepeatTimer(Timer):
+
+    def run(self):
+        while not self.finished.wait(self.interval):  
+            self.function(*self.args,**self.kwargs)  
+            print(' ')  
+
+
+
 class ReplayMeasurementsAgent(
     SignalReciever,
     AddStatus, 
@@ -63,28 +73,33 @@ class ReplayMeasurementsAgent(
         self.nb_frame_loaded=0
         self.actual_frame_idx=0
 
-        self.timerqt=QtCore.QTimer()
-        self.timerqt.timeout.connect(self.next)
+        self.timeout= 1.0
+        self.set_timer()
+
+
+    def set_timer(self):
+        self.timer= RepeatTimer(self.timeout, self.next)
 
     def activate_timer(self)->None:
         """Update the was life flag, called by status changed signal"""
         if self.is_idle:
-            self.timerqt.stop()
+            self.timer.cancel()
         elif self.is_playing:
-            self.timerqt.start()
+            self.set_timer()
+            self.timer.start()
 
     # @abstractmethod - AddStatus
     def status_has_changed(self, status:Enum, was_status:Enum)->None:
         """Update the was life flag, called by status changed signal"""
         self.activate_timer()
         self.to_gui.emit(EvtDataReplayStatusChanged(status))
-        replay_status= self.is_idle or self.is_playing
+        replay_status= self.is_playing #or self.is_idle
         self.to_capture.emit(DataSetStatusWReplay(replay_status))
         logger.debug(f"ReplayMeasurements Status set to : {status.value}")
 
     @property
     def is_idle(self)->bool:
-        return self.is_status(ReplayStatus.IDLE)
+        return self.is_status(ReplayStatus.LOADED)
     
     @property
     def is_playing(self)->bool:
@@ -114,7 +129,6 @@ class ReplayMeasurementsAgent(
     ##  
     ## =========================================================================    
 
-    
     @check_is_on
     def compute_meas_frame(self, idx:int=0)->None:
         self.to_dataset.emit(DataEmitFrame4Computation(idx))
@@ -125,6 +139,7 @@ class ReplayMeasurementsAgent(
    
     def start(self, data:DataReplayStart, **kwargs)-> None:
         self.set_nb_frame_loaded(data.nb_frame)
+        self.set_status(ReplayStatus.LOADED)
         self.begin()
 
     def set_nb_frame_loaded(self, nb_frame:int):
@@ -140,16 +155,16 @@ class ReplayMeasurementsAgent(
         elif self.is_idle:
             self.set_status(ReplayStatus.PLAYING)
         elif self.is_playing:
-            self.set_status(ReplayStatus.IDLE)
+            self.set_status(ReplayStatus.LOADED)
 
     
     def begin(self) -> None:
-        self.set_actual_frame(0)
+        self._set_actual_frame(0)
         self.compute_actual_frame()
 
 
     def end(self) -> None:
-        self.set_actual_frame(self.nb_frame_loaded-1)
+        self._set_actual_frame(self.nb_frame_loaded-1)
         self.compute_actual_frame()
 
     def next(self) -> None:
@@ -175,13 +190,19 @@ class ReplayMeasurementsAgent(
 
     def stop(self) -> None:
         """[summary]"""
-        self.set_status(ReplayStatus.IDLE)
+        self.set_status(ReplayStatus.LOADED)
 
     def set_actual_frame(self, idx:int, **kwargs) -> None:
+        self._set_actual_frame(idx)
+        self.compute_actual_frame()
+    
+    def _set_actual_frame(self, idx:int)-> None:
         self.actual_frame_idx= idx
 
     def set_timeout(self, sec:float, *args,**kwargs) -> None:
         msec=int(sec*1000)
         logger.info(f"new Timeout in msec:{msec}")
-        self.timerqt.setInterval(msec)
+        self.timeout=sec
+        self.timer.cancel()
+        self.activate_timer()
 
