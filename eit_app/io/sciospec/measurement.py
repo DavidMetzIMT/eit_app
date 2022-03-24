@@ -226,7 +226,7 @@ class MeasurementFrame(object):
         # special setting of meas
         meas= kwargs.pop("meas", [])
         if isinstance(meas, list) and len(meas)>0:
-            self.meas = [VoltageMeas(**m) for m in kwargs["meas"]]
+            self.meas = [VoltageMeas(**m) for m in meas]
 
         # set all others passed attr
         for k, v in kwargs.items():
@@ -416,30 +416,9 @@ class MeasurementDataset(
         self._autosave.set()
         self._save_img = CustomFlag()
 
-
-     
     ## =========================================================================
     ##  Aquisition
     ## =========================================================================
-
-    # def init_4_start(self, dev_setup: SciospecSetup = None, **kwargs)-> None:
-        
-    #     if dev_setup is None:
-    #         return
-    #     self.time_stamps = get_datetime_s()
-    #     folder= append_date_time(self.name, self.time_stamps)
-    #     self.output_dir = None
-    #     if self._autosave.is_set():
-    #         self.output_dir = mk_new_dir(folder, APP_DIRS.get(AppDirs.meas_set))
-    #         dev_setup.save(self.output_dir)
-
-    #     self.dev_setup = dev_setup
-    #     self.frame_cnt = 0
-    #     self.meas_frame = [None]
-    #     # self._ref_frame_idx =0
-    #     self._flag_new_meas.reset()
-        
-    #     self._rx_meas_frame= self.get_new_frame_for_acquisition()
 
     def init_4_start(self, data:DataInit4Start)-> None:
         
@@ -456,10 +435,6 @@ class MeasurementDataset(
         self._flag_new_meas.reset()
         self._rx_meas_frame= self.get_new_frame_for_acquisition()
 
-    # def reinit_4_pause(self, reinit_4_pause:str= None,**kwargs):
-    #     if reinit_4_pause is None:
-    #         return
-    #     self._rx_meas_frame= self.get_new_frame_for_acquisition()
     def reinit_4_pause(self, data:DataReInit4Pause):
         self._rx_meas_frame= self.get_new_frame_for_acquisition()
 
@@ -577,7 +552,6 @@ class MeasurementDataset(
     ##  Save load
     ## =========================================================================
 
-    # TODO move to EITFrame
     @catch_error
     def _save_meas_frame(self, idx: int = 0, path:str=None)->None:
         """Save the meas_frame #idx as 
@@ -587,64 +561,44 @@ class MeasurementDataset(
         """
         if not self._autosave.is_set():
             return
-
         self.meas_frame[idx].save(path)
-        # path= self.meas_frame[idx].path if path is None else path
 
-        # d= dict_nested(frame, ignore_private=True)
-        # visualise(d)
-        # save_to_json(path, d)
-
-        # logger.debug(f"Frame #{self.meas_frame[idx].idx} saved in: {self.meas_frame[idx].path}")
-
-    # TODO move to EITFrame
     def _load_frame(self, path:str) -> Union[MeasurementFrame, bool]:
         """Load measurement frame"""
 
         frame = self.get_new_frame_for_acquisition()
         success= frame.load(path)
         return frame, success
-        # frame_as_dict = read_json(path)
-        # if frame_as_dict is None:
-        #     return None
-        # visualise(frame_as_dict)
 
-        # # correct the frame path (if dataset moved...)
-        # frame_as_dict["path"]= path
+    def load(self, *args, **kwargs)->None:
+        self.load_auto()
 
-        # frame.set_from_dict(**frame_as_dict)
-        
-        # return frame
-
-    def load(self, dir_path: str = None, **kwargs) -> Union[list[str], None]:
+    def load_auto(self, dir_path: str = None)->None:
         """Load a measurement files contained in measurement dataset directory"""
-        if not isinstance(dir_path, str):
-            return
-        if dir_path == 'auto':
-            dir_path= None
-        self.load_json(dir_path)
+        if not self.load_json(dir_path):
+            return 
         # Update GUI 
         self.to_gui.emit(EvtDataMeasDatasetLoaded(self.output_dir, self.frame_cnt))
         # load setup in device
-        self.to_device.emit(DataLoadSetup(dir_path))
+        self.to_device.emit(DataLoadSetup(self.output_dir))
         # Start replay of the measurements
         self.to_replay.emit(DataReplayStart(self.frame_cnt))
     
     @catch_error
-    def load_json(self, dir_path: str = None) -> Union[list[str], None]:
+    def load_json(self, dir_path: str = None) -> bool:
         """Load a measurement files contained in measurement dataset directory
         , only JSON-files"""
         
         if (dir_path:= self._get_meas_dir(dir_path)) is None:
-            return None
+            return False
 
         if (filenames:= self._get_all_frame_file(dir_path, ext= FileExt.json)) is None:
-            return None
+            return False
 
         # load the setup present in the directory
         self.dev_setup= SciospecSetup(32) 
         if self.dev_setup.load(dir_path) is None:
-            return None
+            return False
 
         # During loading of the frame the dev_setup is used to build first init 
         # values for frame which are overwriten during loading process with 
@@ -664,7 +618,7 @@ class MeasurementDataset(
         self._rx_meas_frame = None #not used with loaded dataset
         self._ref_frame = self.meas_frame[0] #reset for loaded dataset
 
-        return filenames
+        return True
 
     def _get_meas_dir(self, dir_path:str)->Union[str, None]:
 
