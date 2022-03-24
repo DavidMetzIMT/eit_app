@@ -2,11 +2,9 @@ from __future__ import absolute_import, division, print_function
 
 import logging
 import os
-import threading
 from logging import getLogger
 from typing import Any
 
-import eit_ai.raw_data.load_eidors as matlab
 import eit_model.model
 import eit_model.solver_pyeit
 import glob_utils.log.log
@@ -27,9 +25,9 @@ from glob_utils.files.files import (
     save_as_csv,
     search_for_file_with_ext,
 )
-from glob_utils.flags.flag import CustomFlag, CustomFlagwSignals
+from glob_utils.flags.flag import CustomFlag
 from glob_utils.msgbox import warningMsgBox
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
 import eit_app.eit.plots
 from eit_app.com_channels import AddUpdateAgent
@@ -106,21 +104,12 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             self, self.layout_monitoring, LayoutChannelVoltageMonitoring
         )
         self.plot_agent.add_layouts(self.canvas_monitoring)
-
         self.eit_model = eit_model.model.EITModel()
-
         self.computing = ComputingAgent()
         self.dataset = MeasurementDataset()
-
         self.device = SciospecEITDevice(32)
-
-        # self.replay_status = CustomFlagwSignals()
-        # self.replay_timerqt= QtCore.QTimer()
-
         self.replay_agent = ReplayMeasurementsAgent()
-
         self.live_capture = CustomFlag()
-        # setting of the camera
         self.capture_agent = VideoCaptureAgent(
             capture_type=MicroUSBCamera(), snapshot_dir=APP_DIRS.get(AppDirs.snapshot)
         )
@@ -137,7 +126,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         self.device.to_gui.connect(self.to_reciever)
         self.device.to_dataset.connect(self.dataset.to_reciever)
-
         self.device.to_capture.connect(self.capture_agent.to_reciever)
 
         self.replay_agent.to_gui.connect(self.to_reciever)
@@ -153,27 +141,19 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
     def _init_values(self) -> None:
 
-        # link callbacks
         self._link_callbacks()
         self.comboBox_init()
-
         self._update_log()
         self._get_dev_setup()
         self._plots_to_show()
         self._imaging_params_changed()
         self._ch_imaging_params()
         self._autosave()
-
         self.capture_agent.get_devices_available()
         self.capture_agent.emit_status_changed()
-
         self.device.get_devices()
         self.device.to_gui_emit_connect_status()
         self.device.emit_status_changed()
-
-        # self.update_gui(ReplayStatus(self.replay_status))
-        # self._init_update_worker()
-        logger.info(f"thread main {threading.get_ident()}")
 
     def comboBox_init(self) -> None:
         """ """
@@ -328,6 +308,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
     ############################################################################
     #### Reconstruction
     ############################################################################
+
     def _init_rec(self) -> None:
         """[summary]"""
         rec_type = self.tabW_reconstruction.currentIndex()
@@ -383,40 +364,44 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
     def _load_eidors_fwd_solution(self) -> None:  # for Jiawei master thesis
         """load eidors foward solution(voltages) out of an mat-file"""
+        warningMsgBox("Not implemented", "Not implemented")
 
-        sol = matlab.load_mat_var(initialdir=os.getcwd(), var_name="X")
-        U, _ = sol[0]
-        volt = np.array(U).reshape((16, 16))
+        # sol = matlab.load_mat_var(initialdir=os.getcwd(), var_name="X")
+        # U, _ = sol[0]
+        # volt = np.array(U).reshape((16, 16))
 
-        self.eidors_sol = volt
-        self._extracted_from__eidors_reload_9(volt)
+        # self.eidors_sol = volt
+        # self._extracted_from__eidors_reload_9(volt)
 
     def _eidors_reload(self) -> None:  # for Jiawei master thesis
         """replot the data witha different scaling factor"""
-        volt = self.eidors_sol
-        self._extracted_from__eidors_reload_9(volt)
+        warningMsgBox("Not implemented", "Not implemented")
+        # volt = self.eidors_sol
+        # self._extracted_from__eidors_reload_9(volt)
 
     def _extracted_from__eidors_reload_9(self, volt):
-        volt = volt * self.sB_eidors_factor.value()
-        self.dataset.set_voltages(volt, 0, 0)
-        self.dataset.set_ref_frame(0)
+        warningMsgBox("Not implemented", "Not implemented")
+        # volt = volt * self.sB_eidors_factor.value()
+        # self.dataset.set_voltages(volt, 0, 0)
+        # self.dataset.set_ref_frame(0)
         # self._replay_slider_changed()
 
     def _export_data_meas_vs_eidors(self) -> None:
         """export the actual raw data in csv from"""
-        frame, freq = (
-            self.slider_replay.sliderPosition(),
-            self.cB_freq_meas_0.currentIndex(),
-        )
-        data = {
-            "measurement": np.real(self.dataset.get_meas_voltage(frame, freq)[:, 0:16]),
-            "eidors": self.eidors_sol,
-        }
-        file_path = os.path.join(
-            self.dataset.output_dir, f"eidorsvsmeas#{frame}_freq{freq}"
-        )
-        save_as_csv(file_path, data)
-        logger.debug(f"Measurements VS Eidors exported as CSV in : {file_path}")
+        warningMsgBox("Not implemented", "Not implemented")
+        # frame, freq = (
+        #     self.slider_replay.sliderPosition(),
+        #     self.cB_freq_meas_0.currentIndex(),
+        # )
+        # data = {
+        #     "measurement": np.real(self.dataset.get_meas_voltage(frame, freq)[:, 0:16]),
+        #     "eidors": self.eidors_sol,
+        # }
+        # file_path = os.path.join(
+        #     self.dataset.output_dir, f"eidorsvsmeas#{frame}_freq{freq}"
+        # )
+        # save_as_csv(file_path, data)
+        # logger.debug(f"Measurements VS Eidors exported as CSV in : {file_path}")
 
     def _update_eit_ctlg(self):
         """Update catalog and if changed"""
@@ -486,7 +471,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         imaging_mode = self.cB_eit_imaging_type.currentText()
         if imaging_mode not in list(IMAGING_TYPE.keys()):
-            raise Exception(f"The imaging type {imaging_mode} ist not known")
+            raise ValueError(f"The imaging type {imaging_mode} ist not known")
         return imaging_mode
 
     def _imaging_params_changed(self) -> None:

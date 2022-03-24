@@ -1940,46 +1940,11 @@ p, li { white-space: pre-wrap; }
      </layout>
     </widget>
    </widget>
-   <widget class="QLabel" name="video_frame_miniature">
-    <property name="geometry">
-     <rect>
-      <x>740</x>
-      <y>60</y>
-      <width>201</width>
-      <height>100</height>
-     </rect>
-    </property>
-    <property name="mouseTracking">
-     <bool>false</bool>
-    </property>
-    <property name="autoFillBackground">
-     <bool>false</bool>
-    </property>
-    <property name="text">
-     <string>Live Video</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pB_somahey">
-    <property name="geometry">
-     <rect>
-      <x>820</x>
-      <y>130</y>
-      <width>75</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>PushButton</string>
-    </property>
-   </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
       <x>450</x>
-      <y>-1</y>
+      <y>0</y>
       <width>801</width>
       <height>541</height>
      </rect>
@@ -2010,9 +1975,9 @@ p, li { white-space: pre-wrap; }
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>10</y>
-       <width>680</width>
-       <height>491</height>
+       <y>20</y>
+       <width>701</width>
+       <height>501</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="layout_rec">
