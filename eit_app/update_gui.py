@@ -138,7 +138,7 @@ def update_device_status(app: Ui_MainWindow, connected: bool, connect_prompt: st
     """Actualize the status of the device"""
     app.lab_device_status.setText(connect_prompt)
     app.lab_device_status.adjustSize
-    color = "background-color: green" if connected else "background-color: red"
+    color = "background-color: green;color :white" if connected else "background-color: red;color :black"
     app.lab_device_status.setStyleSheet(color)
 
 
@@ -231,20 +231,20 @@ class MeasuringStatusUpdateData:
     pB_status_tip:str
 
 class MeasuringStatus(BaseStatus):
-    IDLE = MeasuringStatusUpdateData(
-        lab_txt="Idle",
+    NOT_MEASURING = MeasuringStatusUpdateData(
+        lab_txt="NOT MEASURING",
         lab_style="background-color: red",
         pB_txt="Start",
         pB_status_tip="Start aquisition of a new measurement dataset (Ctrl + Shift +Space)"
     )
     MEASURING = MeasuringStatusUpdateData(
-        lab_txt="Measuring",
-        lab_style="background-color: green",
+        lab_txt="MEASUREMENTS RUN",
+        lab_style="background-color: green; color :white",
         pB_txt="Pause",
         pB_status_tip="Pause aquisition of measurement dataset (Ctrl + Shift +Space)"
     )
     PAUSED = MeasuringStatusUpdateData(
-        lab_txt="Paused",
+        lab_txt="MEASUREMENTS PAUSED",
         lab_style="background-color: yellow",
         pB_txt="Resume",
         pB_status_tip="Restart aquisition of measurement dataset (Ctrl + Shift +Space)"
@@ -276,26 +276,45 @@ class EvtDataSciospecDevMeasuringStatusChanged(EventDataClass):
 class CaptureStatusUpdateData:
     lab_txt:str
     lab_style:str
-    pB_txt:str 
+    pB_txt:str ="Start capture"
     pB_status_tip:str =""
     pB_enable:bool = True
+    pB_con_txt:str ="Disconnect"
+    pB_con_status_tip:str =""
+    pB_con_enable:bool = True
 
 class CaptureStatus(BaseStatus):
-    IDLE = CaptureStatusUpdateData(
-        lab_txt="Idle",
-        lab_style="background-color: red",
+    NOT_CONNECTED = CaptureStatusUpdateData(
+        lab_txt="NOT CONNECTED",
+        lab_style="background-color: red; color :black",
+        pB_txt="Start capture",
+        pB_status_tip="",
+        pB_con_txt="Connect"
+    )
+    CONNECTED = CaptureStatusUpdateData(
+        lab_txt="CONNECTED",
+        lab_style="background-color: grey",
         pB_txt="Start capture",
         pB_status_tip=""
     )
-    MEASURING = CaptureStatusUpdateData(
-        lab_txt="Measuring",
-        lab_style="background-color: blue",
+    REPLAY = CaptureStatusUpdateData(
+        lab_txt="REPLAY",
+        lab_style="background-color: blue; color :white",
         pB_txt="Start capture",
-        pB_enable = False
+        pB_status_tip="",
+        pB_enable = False,
+        pB_con_enable = True
+    )
+    MEASURING = CaptureStatusUpdateData(
+        lab_txt="MEASURING",
+        lab_style="background-color: darkGreen; color :white",
+        pB_txt="Start capture",
+        pB_enable = False,
+        pB_con_enable = True
     )
     LIVE = CaptureStatusUpdateData(
-        lab_txt="Live",
-        lab_style="background-color: green",
+        lab_txt="LIVE",
+        lab_style="background-color: green; color :white",
         pB_txt="Stop capture"
     )
 
@@ -308,6 +327,8 @@ def update_capture_mode(app: Ui_MainWindow, capture_mode: CaptureStatus):
     app.pB_capture_start_stop.setText(v.pB_txt)
     app.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
     app.pB_capture_start_stop.setEnabled(v.pB_enable)
+    app.pB_capture_connect.setText(v.pB_con_txt)
+
 
 add_func_to_catalog(update_capture_mode)
 
@@ -324,21 +345,23 @@ class EvtDataCaptureStatusChanged(EventDataClass):
 class ReplayStatusUpdateData:
     lab_txt:str
     lab_style:str
-    pB_icon:str = ":/newPrefix/icons/icon_play.png"
+    pB_icon:str = ":/icons/icons/icon_play.png"
 
 class ReplayStatus(BaseStatus):
     OFF = ReplayStatusUpdateData(
-        lab_txt="REPLAY OFF",
-        lab_style="background-color: red",
+        lab_txt="NONE DATASET",
+        lab_style="background-color: red; color :black",
+        pB_icon= ":/icons/icons/icon_play.png"
     )
-    IDLE = ReplayStatusUpdateData(
-        lab_txt="REPLAY ON",
-        lab_style="background-color: green",
+    LOADED = ReplayStatusUpdateData(
+        lab_txt="DATASET LOADED",
+        lab_style="background-color: green; color :white",
+        pB_icon = ":/icons/icons/icon_play.png"
     )
     PLAYING = ReplayStatusUpdateData(
         lab_txt="REPLAY RUN",
-        lab_style="background-color: blue",
-        pB_icon=":/newPrefix/icons/icon_pause.png"
+        lab_style="background-color: blue; color :white",
+        pB_icon=":/icons/icons/icon_pause.png"
     )
 
 
@@ -536,9 +559,37 @@ class EvtDataReplayFrameChanged(EventDataClass):
     idx: int
     func: str = update_replay_frame_changed.__name__
 
+# -------------------------------------------------------------------------------
+## Update replay idx (after loading a measurement dataset)
+# -------------------------------------------------------------------------------
+
+def update_captured_image(app: Ui_MainWindow, image: QtGui.QImage):
+    """update the path of the loaded dataset and init the combosboxes and slider
+    for the nb of loaded frames"""
+    if not isinstance(image, QtGui.QImage):
+        logger.warning(f"{image=} is not an QtGui.QImage")
+        return
+    app.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
+
+
+add_func_to_catalog(update_captured_image)
+
+
+@dataclass
+class EvtDataCaptureImageChanged(EventDataClass):
+    image: QtGui.QImage
+    func: str = update_captured_image.__name__
+
+
+        
+
+
+
+
+
 
 if __name__ == "__main__":
     """"""
     a=EvtDataSciospecDevices('')
     print(a)
-    print(MeasuringStatus.IDLE._name_.lower())
+    print(MeasuringStatus.NOT_MEASURING._name_.lower())
