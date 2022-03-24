@@ -171,8 +171,6 @@ class SignalReciever(object):
 # Update gui channel
 ################################################################################
 
-
-
 class AddToGuiSignal(object):
     """ Object contained in a sbcalss of GuiWithUpdateAgent should be sub class
     of ObjWithSignalToGui by emiting 
@@ -183,10 +181,6 @@ class AddToGuiSignal(object):
     def __init__(self):
         super().__init__()
         self.to_gui=Signal(self)
-
-    # def emit_to_gui(self, data:EventDataClass)->None:
-    #     kwargs={"update_gui_data": data}
-    #     self.to_gui.fire(None, **kwargs)
 
 class AddUpdateAgent(SignalReciever):
     """Base Class for Gui """
@@ -202,15 +196,6 @@ class AddUpdateAgent(SignalReciever):
         self._worker.start()
         self._worker.start_polling()
 
-    # def update_gui(self, update_gui_data:EventDataClass=None , **kwargs):
-    #     """Add data to the queue data_for_update in order to update the gui
-
-    #     Args:
-    #         update_gui_data (EventDataClass, optional): should be a an EvtDataclass . Defaults to None.
-    #     """
-    #     if update_gui_data is not None:
-    #         # logger.debug('add update_gui_data')
-    #         self._data_for_update.put(update_gui_data)
     def update_gui(self, data:EventDataClass=None , **kwargs):
         """Add data to the queue data_for_update in order to update the gui
 
