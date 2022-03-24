@@ -1977,7 +1977,7 @@ p, li { white-space: pre-wrap; }
        <x>90</x>
        <y>20</y>
        <width>701</width>
-       <height>501</height>
+       <height>481</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="layout_rec">

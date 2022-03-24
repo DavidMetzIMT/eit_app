@@ -5,7 +5,7 @@ from typing import Any, Callable, Union
 
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.signal import Signal
-from glob_utils.thread_process.threads_worker import CustomWorker
+from glob_utils.thread_process.threads_worker import CustomWorker, Poller
 import numpy as np
 from eit_app.sciospec.setup import SciospecSetup
 from eit_app.update_gui import UPDATE_EVENTS, EventDataClass, UpdateAgent
@@ -215,6 +215,14 @@ class AddUpdateAgent(SignalReciever):
         self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
         self._data_for_update = Queue(maxsize=256)  # TODO maybe
         self._update_agent = UpdateAgent(self, UPDATE_EVENTS)
+        # self.processor = Poller(
+        #     name="update_gui",
+        #     pollfunc=self._process_data_for_update,
+        #     sleeptime=0.5,
+        # )
+        # self.processor.start()
+        # self.processor.start_polling()
+
         self._worker = CustomWorker(name="update_gui", sleeptime=0.05)
         self._worker.progress.connect(self._process_data_for_update)
         self._worker.start()

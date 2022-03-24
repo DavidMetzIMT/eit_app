@@ -43,8 +43,7 @@ from glob import glob
 from logging import getLogger
 from sys import platform
 from time import sleep
-from typing import Union
-from async_timeout import Any
+from typing import Union,Any
 
 from serial import (
     Serial,
