@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 def set_comboBox_items(
     comboBox: QComboBox,
     items: list[Any] = None,
-    reset_box: bool = False,
+    reset_box: bool = True,
     init_index: int = 0,
     block: bool = True,
 ) -> None:
