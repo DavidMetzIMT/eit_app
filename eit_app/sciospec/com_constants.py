@@ -39,10 +39,7 @@ __status__ = "Production"
 ##  Diverse CONSTANTS for Sciopec device #######################################
 ################################################################################
 
-SUCCESS={
-    True: 'SUCCESS',
-    False: 'FAIL'
-}
+SUCCESS = {True: "SUCCESS", False: "FAIL"}
 
 
 FRAME_LENGTH_MIN = 4
@@ -75,6 +72,7 @@ class CmdTypes(Enum):
 ##  Class of commands and options for the Sciospec device
 ################################################################################
 
+
 @dataclass
 class SciospecCmd(object):
     """Command structure description:
@@ -86,11 +84,12 @@ class SciospecCmd(object):
             1 set command with options
             2 get command with options
     """
+
     name: str = ""
     tag: bytes = 0x00
-    type:int=CmdTypes.simple
-    answer_type:int=Answer.WAIT_FOR_ACK
-    options:list=field(default_factory=lambda: [])
+    type: int = CmdTypes.simple
+    answer_type: int = Answer.WAIT_FOR_ACK
+    options: list = field(default_factory=lambda: [])
 
     def set_options(self, options: list = None) -> None:
         if isinstance(options, list):
@@ -98,6 +97,7 @@ class SciospecCmd(object):
 
     def is_set_cmd(self):
         return self.type == CmdTypes.set_w_option
+
 
 @dataclass
 class SciospecOption(object):
@@ -112,9 +112,11 @@ class SciospecOption(object):
         length_byte[1] lenght Byte for get command with options
 
     """
-    name:str=""
-    tag:bytes=0x00
-    LL_bytes:list[bytes] = field(default_factory=lambda: [0x00, 0x00])
+
+    name: str = ""
+    tag: bytes = 0x00
+    LL_bytes: list[bytes] = field(default_factory=lambda: [0x00, 0x00])
+
 
 ################################################################################
 ##  Commands and options CONSTANTS for the Sciospec device
@@ -342,12 +344,13 @@ cmds = [
 ]
 
 
-
 def is_start_meas(cmd: SciospecCmd, op: SciospecOption):
     return cmd.tag == CMD_START_STOP_MEAS.tag and op.tag == OP_START_MEAS.tag
 
+
 def is_stop_meas(cmd: SciospecCmd, op: SciospecOption):
     return cmd.tag == CMD_START_STOP_MEAS.tag and op.tag == OP_STOP_MEAS.tag
+
 
 def get_cmd(tag) -> SciospecCmd:
     for cmd in cmds:
@@ -355,14 +358,16 @@ def get_cmd(tag) -> SciospecCmd:
             return cmd
     return SciospecCmd("CMD_not_found")
 
+
 def get_op(ops: list[SciospecOption], tag) -> SciospecOption:
     for op in ops:
         if op.tag == tag:
             return op
     return SciospecOption("OP_not_found")
 
-def build_cmd_frame(cmd: SciospecCmd, op: SciospecOption, data:list[bytes]):
-    """Make the command frame to send according to the cmd, op and data """
+
+def build_cmd_frame(cmd: SciospecCmd, op: SciospecOption, data: list[bytes]):
+    """Make the command frame to send according to the cmd, op and data"""
 
     if op not in cmd.options:
         raise TypeError(
@@ -372,8 +377,10 @@ def build_cmd_frame(cmd: SciospecCmd, op: SciospecOption, data:list[bytes]):
     if cmd.type == CmdTypes.simple:  # send simple cmd (without option)
         cmd_frame = [cmd.tag, 0x00, cmd.tag]
     else:
-        LL_byte = op.LL_bytes[0] if cmd.type == CmdTypes.set_w_option else op.LL_bytes[1]
-        
+        LL_byte = (
+            op.LL_bytes[0] if cmd.type == CmdTypes.set_w_option else op.LL_bytes[1]
+        )
+
         if LL_byte == 0x00:
             raise ValueError("not allowed option for the command")
         elif LL_byte == 0x01:  # send cmd with option
@@ -391,6 +398,7 @@ def build_cmd_frame(cmd: SciospecCmd, op: SciospecOption, data:list[bytes]):
 ##  Class of acknoledgments of the Sciospec device##############################
 ################################################################################
 
+
 @dataclass
 class SciospecAck(object):
     """ACK: Acknowlegement structure description:
@@ -398,6 +406,7 @@ class SciospecAck(object):
     ack_byte: OB Byte
     self.error:  0 transmission succeed , >0 transmission error (return ack_byte)
     self.string_out: str (the string which is displaed e.g. ACK: Cmd executed)"""
+
     name: str = ""
     ack_byte: bytes = 0x00
     error: bool = False
@@ -430,9 +439,7 @@ NACK_CMD_NOT_EXCECUTED = SciospecAck(
 NACK_CMD_NOT_REGONIZED = SciospecAck(
     "NACK_Cmd_not_recognized", 0x82, True, "NACK: Cmd not recognized"
 )
-ACK_CMD_EXCECUTED = SciospecAck(
-    "ACK_Cmd_executed", 0x83, False, "ACK: Cmd executed"
-)
+ACK_CMD_EXCECUTED = SciospecAck("ACK_Cmd_executed", 0x83, False, "ACK: Cmd executed")
 ACK_SYSTEM_READY = SciospecAck(
     "ACK_System_Ready", 0x84, False, "System-Ready: System operational and ready"
 )
@@ -452,11 +459,6 @@ SCIOSPEC_ACK = [
 ]
 
 ACK_FRAME = [0x18, 0x01, 0x00, 0x18]
-
-
-
-
-
 
 
 if __name__ == "__main__":

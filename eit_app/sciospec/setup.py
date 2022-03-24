@@ -1,7 +1,7 @@
 from genericpath import isdir
 import os
 from logging import getLogger
-from typing import  Any, Tuple, Union
+from typing import Any, Tuple, Union
 from matplotlib import pyplot as plt
 
 import numpy as np
@@ -27,28 +27,30 @@ from glob_utils.files.json import save_to_json, read_json
 logger = getLogger(__name__)
 
 
-#===============================================================================
+# ===============================================================================
 #     Setup Base Class
-#===============================================================================    
+# ===============================================================================
+
 
 class SetupBase(object):
-
     def set_from_dict(self, **kwargs):
         """Set attributes by passing kwargs or a dict.
-        Kwargs should be equivalent to self.__dict__. """
+        Kwargs should be equivalent to self.__dict__."""
         if not isinstance(kwargs, dict):
             return
         # set all others passed attr
         for k, v in kwargs.items():
-            if hasattr(self, k): #key exist
-                if isinstance(getattr(self, k), SetupBase): # if is 
+            if hasattr(self, k):  # key exist
+                if isinstance(getattr(self, k), SetupBase):  # if is
                     getattr(self, k).set_from_dict(**v)
                 else:
                     setattr(self, k, v)
 
-#===============================================================================
+
+# ===============================================================================
 #     Device Informations Class
-#===============================================================================    
+# ===============================================================================
+
 
 class DeviceInfos(SetupBase):
     """Class regrouping all info about the ouput configuration of the device,
@@ -57,25 +59,26 @@ class DeviceInfos(SetupBase):
     Notes
     -----
     - see documentation of the EIT device"""
-    channel:int
-    sn_formated:str
-    sn:list[bytes]
 
-    def __init__(self, ch:int= 32) -> None:
+    channel: int
+    sn_formated: str
+    sn: list[bytes]
+
+    def __init__(self, ch: int = 32) -> None:
         self.channel = ch
         self.reinit()
-    
+
     def reinit(self) -> None:
         self.sn_formated = "00-0000-0000-0000"
         self.sn = [0, 0, 0, 0, 0, 0, 0]
-    
+
     def is_sn_sciopec(self):
         # logger.debug(f"{self.sn}")
         return self.sn != [0, 0, 0, 0, 0, 0, 0]
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     # Getter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     def get_sn(self, in_bytes: bool = False) -> Union[list[bytes], str]:
         """Return serial number:
@@ -83,10 +86,10 @@ class DeviceInfos(SetupBase):
         - in str for simple get"""
         return self.sn if in_bytes else self.sn_formated
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     # Setter
-    #---------------------------------------------------------------------------
-    
+    # ---------------------------------------------------------------------------
+
     def set_sn(self, rx_frame: Union[list[bytes], float], in_bytes: bool = True):
         """Set value of mac adress:
         - out of Bytes from the device (rx_frame)
@@ -98,20 +101,20 @@ class DeviceInfos(SetupBase):
         self.sn = rx_op_data[:length]
         self.build_sn_formated()
         # logger.debug(f"SN:{self.sn}, {self.sn_formated}")
-        
-        
+
     def build_sn_formated(self):
         ID = mkListOfHex(self.sn)
         self.sn_formated = f"{ID[0]}-{ID[1]}{ID[2]}-{ID[3]}{ID[4]}-{ID[5]}{ID[6]}"
 
-    def set_sn_direct(self, sn:list[bytes]):
-        self.sn= sn
+    def set_sn_direct(self, sn: list[bytes]):
+        self.sn = sn
         self.build_sn_formated()
 
 
-#===============================================================================
+# ===============================================================================
 #     Output Configuration Class
-#===============================================================================    
+# ===============================================================================
+
 
 class OutputConfig(SetupBase):
     """Class regrouping all info about the ouput configuration of the device,
@@ -120,20 +123,22 @@ class OutputConfig(SetupBase):
     Notes
     -----
     - see documentation of the EIT device"""
-    exc_stamp :bool
-    current_stamp :bool
-    time_stamp :bool
+
+    exc_stamp: bool
+    current_stamp: bool
+    time_stamp: bool
 
     def __init__(self) -> None:
         self.reinit()
-    
-    def reinit(self) -> None: # set all to True!
+
+    def reinit(self) -> None:  # set all to True!
         self.exc_stamp = True
         self.current_stamp = True
         self.time_stamp = True
-    #---------------------------------------------------------------------------
+
+    # ---------------------------------------------------------------------------
     # Getter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     def get_exc_stamp(self, in_bytes: bool = False) -> Union[list[bytes], bool]:
         """Return excitation stamp from output config:
@@ -145,17 +150,17 @@ class OutputConfig(SetupBase):
         """Return current stamp from output config:
         - in Bytes for sending to the device
         - in bool for simple get"""
-        return  [int(self.current_stamp)] if in_bytes  else self.current_stamp
+        return [int(self.current_stamp)] if in_bytes else self.current_stamp
 
     def get_time_stamp(self, in_bytes: bool = False) -> Union[list[bytes], bool]:
         """Return time stamp from output config:
         - in Bytes for sending to the device
         - in bool for simple get"""
-        return  [int(self.time_stamp)]    if in_bytes     else self.time_stamp
+        return [int(self.time_stamp)] if in_bytes else self.time_stamp
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     # Setter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     def set_exc_stamp(self, value: Union[list[bytes], bool], in_bytes: bool = False):
         """Set value of excitation stamp from output config:
         - out of Bytes from the device (rx_frame)
@@ -164,7 +169,9 @@ class OutputConfig(SetupBase):
         #     bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
         # )
 
-    def set_current_stamp(self, value: Union[list[bytes], bool], in_bytes: bool = False):
+    def set_current_stamp(
+        self, value: Union[list[bytes], bool], in_bytes: bool = False
+    ):
         """Set value of current stamp from output config:
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set"""
@@ -180,9 +187,11 @@ class OutputConfig(SetupBase):
         #     bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
         # )
 
-#===============================================================================
+
+# ===============================================================================
 #     Ethernet Configuration Class
-#===============================================================================    
+# ===============================================================================
+
 
 class EthernetConfig(SetupBase):
     """Class regrouping all info about the ethernet configuration of the device:
@@ -191,24 +200,26 @@ class EthernetConfig(SetupBase):
     Notes
     -----
     - see documentation of the EIT device"""
+
     ip: list[int]
     mac: list[int]
     ip_formated: str
-    mac_formated: str 
-    dhcp: bool 
+    mac_formated: str
+    dhcp: bool
 
     def __init__(self) -> None:
         self.reinit()
-    
+
     def reinit(self) -> None:
         self.ip = [0, 0, 0, 0]
         self.mac = [0, 0, 0, 0, 0, 0]
         self.ip_formated = "0.0.0.0"
         self.mac_formated = "00:00:00:00:00:00"
-        self.dhcp = True  
-    #---------------------------------------------------------------------------
+        self.dhcp = True
+
+    # ---------------------------------------------------------------------------
     # Getter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     def get_ip(self, in_bytes: bool = False) -> Union[list[bytes], str]:
         """Return ip adress:
@@ -227,10 +238,10 @@ class EthernetConfig(SetupBase):
         - in Bytes for sending to the device
         - in bool for simple get"""
         return [int(self.dhcp)] if in_bytes else self.dhcp
-    
-    #---------------------------------------------------------------------------
+
+    # ---------------------------------------------------------------------------
     # Setter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     def set_ip(self, value: Union[list[bytes], str], in_bytes: bool = False) -> None:
         """Set value of ip adress:
         - out of Bytes from the device (rx_frame)
@@ -255,9 +266,7 @@ class EthernetConfig(SetupBase):
             length = LENGTH_MAC_ADRESS
             self.mac = data[:length]
             ID = mkListOfHex(data[:length])
-            self.mac_formated = (
-                f"{ID[0]}:{ID[1]}:{ID[2]}:{ID[3]}:{ID[4]}:{ID[5]}"
-            )
+            self.mac_formated = f"{ID[0]}:{ID[1]}:{ID[2]}:{ID[3]}:{ID[4]}:{ID[5]}"
 
         else:
             raise Exception("Error in use of this method")
@@ -267,10 +276,12 @@ class EthernetConfig(SetupBase):
         - out of Bytes from the device (rx_frame)
         - from a bool for simple set"""
         # self.dhcp = bool(value[DATA_START_INDX:-1][0]) if in_bytes else value
-        
-#===============================================================================
+
+
+# ===============================================================================
 #     Frequency Configuration Class
-#===============================================================================    
+# ===============================================================================
+
 
 class FrequencyConfig(SetupBase):
     """Class regrouping all parameters for the frequency sweep configuration
@@ -280,7 +291,7 @@ class FrequencyConfig(SetupBase):
     -----
     - see documentation of the EIT device"""
 
-    freq_min:float
+    freq_min: float
     freq_max: float
     freq_steps: int
     freq_scale: str
@@ -295,7 +306,7 @@ class FrequencyConfig(SetupBase):
         self.freq_scale = OP_LINEAR.name
 
     @property
-    def freqs_list(self)-> list[float]:
+    def freqs_list(self) -> list[float]:
         """Make the Frequencies list of frequencies accoreding to the
         frequency sweep configuration
 
@@ -313,9 +324,9 @@ class FrequencyConfig(SetupBase):
         # logger.debug(f"Frequency list{freqs}")
         return freqs
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     # Getter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     def get_data(self, in_bytes: bool = False) -> list[bytes]:
         """Return the used frequence config:
@@ -325,9 +336,7 @@ class FrequencyConfig(SetupBase):
         data = []
         data = convertFloat2Bytes(self.freq_min)
         data.extend(convertFloat2Bytes(self.freq_max))
-        data.extend(
-            convertInt2Bytes(self.freq_steps, 2)
-        )  # Steps is defined on 2 bytes
+        data.extend(convertInt2Bytes(self.freq_steps, 2))  # Steps is defined on 2 bytes
         if self.freq_scale == OP_LINEAR.name:
             data.append(OP_LINEAR.tag)
         elif self.freq_scale == OP_LOG.name:
@@ -336,9 +345,9 @@ class FrequencyConfig(SetupBase):
             raise TypeError("wrong Scale Str")
         return data
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     # Setter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     def set_data(
         self, value: list[bytes] = None, in_bytes: bool = False, **kwargs
     ) -> None:
@@ -352,7 +361,7 @@ class FrequencyConfig(SetupBase):
                 freq_min=convert4Bytes2Float(data[:4]),
                 freq_max=convert4Bytes2Float(data[4:8]),
                 freq_steps=convertBytes2Int(data[8:10]),
-                freq_scale=scale[data[10]]
+                freq_scale=scale[data[10]],
             )
 
         else:
@@ -366,7 +375,7 @@ class FrequencyConfig(SetupBase):
         freq_max: float = 10000.0,
         freq_steps: int = 1,
         freq_scale: str = "",
-    ) ->Tuple[bool, bool]:
+    ) -> Tuple[bool, bool]:
         """_summary_
 
         Args:
@@ -403,9 +412,9 @@ class FrequencyConfig(SetupBase):
         return set_freq_max_enable, error
 
 
-#===============================================================================
+# ===============================================================================
 #     Sciospec Setup Class
-#=============================================================================== 
+# ===============================================================================
 class SciospecSetup(SetupBase):
     """Class regrouping all info (serial number, Ethernet config, etc.),
     meas. parameters (excitation pattern, amplitude, etc.), etc. of the device.
@@ -414,19 +423,19 @@ class SciospecSetup(SetupBase):
     -----
     - see documentation of the EIT device"""
 
-    exc_amp : float
-    exc_pattern : list[list[int]]
-    exc_pattern_idx : int
-    frame_rate : float
-    burst : int
-    device_infos : DeviceInfos
-    output_config : OutputConfig
-    ethernet_config : EthernetConfig
-    freq_config : FrequencyConfig
+    exc_amp: float
+    exc_pattern: list[list[int]]
+    exc_pattern_idx: int
+    frame_rate: float
+    burst: int
+    device_infos: DeviceInfos
+    output_config: OutputConfig
+    ethernet_config: EthernetConfig
+    freq_config: FrequencyConfig
 
-    def __init__(self, n_channel:int):
-        
-        self.device_infos =DeviceInfos(n_channel)
+    def __init__(self, n_channel: int):
+
+        self.device_infos = DeviceInfos(n_channel)
         self.output_config = OutputConfig()
         self.ethernet_config = EthernetConfig()
         self.freq_config = FrequencyConfig()
@@ -445,12 +454,14 @@ class SciospecSetup(SetupBase):
         self.ethernet_config.reinit()
         self.freq_config.reinit()
         logger.debug("Reinitialisation of SciospecSetup - DONE")
-    
+
     def is_sciospec(self):
         return self.device_infos.is_sn_sciopec()
-    
+
     def build_sciospec_device_name(self, port):
-        return f'Device (SN: {self.get_sn()}) on "{port}"' if self.is_sciospec() else None
+        return (
+            f'Device (SN: {self.get_sn()}) on "{port}"' if self.is_sciospec() else None
+        )
 
     def define_data_access(self):
 
@@ -504,8 +515,8 @@ class SciospecSetup(SetupBase):
             CMD_GET_DEVICE_INFOS.tag: {OP_NULL.tag: self.device_infos.set_sn}  # ,
             # CMD_GET_CURRENT_SETTING.tag:{:}
         }
-    
-    def get_data(self, cmd: SciospecCmd, op: SciospecOption)->list[bytes]:
+
+    def get_data(self, cmd: SciospecCmd, op: SciospecOption) -> list[bytes]:
 
         try:
             return self._get_data_access[cmd.tag][op.tag](in_bytes=True) or [0x00]
@@ -513,16 +524,18 @@ class SciospecSetup(SetupBase):
             msg = f'Setup data for "{cmd.name}"({cmd.tag})/"{op.name}"({op.tag}) - NOT FOUND'
             logger.warning(msg)
             return [0x00]
-        
-    def set_data(self, rx_setup_stream:list[bytes], **kwargs)-> None:
+
+    def set_data(self, rx_setup_stream: list[bytes], **kwargs) -> None:
         """"""
         cmd_tag = rx_setup_stream[CMD_BYTE_INDX]
-        if ( OP_NULL.tag in self._set_data_access[cmd_tag] ):  # some answer do not have options (meas, sn)
+        if (
+            OP_NULL.tag in self._set_data_access[cmd_tag]
+        ):  # some answer do not have options (meas, sn)
             op_tag = OP_NULL.tag
         else:
             op_tag = rx_setup_stream[OPTION_BYTE_INDX]
 
-        try: 
+        try:
             self._set_data_access[cmd_tag][op_tag](rx_setup_stream, True)
         except KeyError as e:
             cmd = get_cmd(cmd_tag)
@@ -532,8 +545,7 @@ class SciospecSetup(SetupBase):
 
         logger.debug(f"RX_SETUP: {rx_setup_stream} -  TREATED")
 
-
-    def save(self, dir: str = None)-> Union[str, None]:
+    def save(self, dir: str = None) -> Union[str, None]:
         """Save the setup in json file"""
 
         if not dir:
@@ -545,12 +557,11 @@ class SciospecSetup(SetupBase):
 
         # save_as_pickle(file, self)
 
-        d= dict_nested(self, ignore_private=True)
+        d = dict_nested(self, ignore_private=True)
         visualise(d)
         save_to_json(path, d)
         logger.info(f"Setup: {self.__dict__} \n saved in file : {dir} ")
         return path
-
 
     def load(self, dir: str = None, **kwargs):
         """Load the setup out of a json file"""
@@ -563,7 +574,7 @@ class SciospecSetup(SetupBase):
             elif isdir(dir):
                 files = search_for_file_with_ext(dir, ext=FileExt.json)
                 filepath = [f for f in files if "setup_" in f]
-            
+
                 if not filepath:
                     logger.warning(f"Load setup contained in dir :{dir} - Unsuccesfull")
                     return None
@@ -583,10 +594,6 @@ class SciospecSetup(SetupBase):
             # show_msgBox('Loading cancelled','', "I")
             logger.info(f"Loading cancelled {e}")
         return filepath
-
-
-
-
 
     @property
     def max_frame_rate(self) -> float:
@@ -610,10 +617,10 @@ class SciospecSetup(SetupBase):
         t_min = n_inject * (t_inject + t_freq * (n_freq - 1) + sum_max_Tms_fi)
 
         return float(1 / t_min) if t_min != 0.0 else 1.0
-        
-    #---------------------------------------------------------------------------
+
+    # ---------------------------------------------------------------------------
     # Getter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
     def get_channel(self):
         """Return the number of channnel used in the device"""
@@ -662,7 +669,7 @@ class SciospecSetup(SetupBase):
     def get_freq_steps(self) -> int:
         """Return the number of steps used between min and max frequencies to build the frequencies list"""
         return self.freq_config.freq_steps
-    
+
     def get_freqs_list(self) -> list[float]:
         """Make the frequencies list and return it"""
         return self.freq_config.freqs_list
@@ -678,17 +685,17 @@ class SciospecSetup(SetupBase):
             if in_bytes
             else self.exc_pattern
         )
-    
+
     def get_sn(self, in_bytes: bool = False) -> Union[list[bytes], str]:
         """Return serial number
         - in str for simple get"""
         return self.device_infos.get_sn(in_bytes)
 
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
     # Setter
-    #---------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------
 
-    def set_sn(self, sn:list[bytes]) -> str:
+    def set_sn(self, sn: list[bytes]) -> str:
         """Set directly the serial number"""
         self.device_infos.set_sn_direct(sn)
 
@@ -728,7 +735,11 @@ class SciospecSetup(SetupBase):
         self._check_frame_rate()
 
     def _check_frame_rate(self):
-        self.frame_rate = self.frame_rate if self.frame_rate < self.max_frame_rate else self.max_frame_rate
+        self.frame_rate = (
+            self.frame_rate
+            if self.frame_rate < self.max_frame_rate
+            else self.max_frame_rate
+        )
 
     def set_exc_pattern(
         self, value: Union[list[bytes], list[list[int]]], in_bytes: bool = False
@@ -748,8 +759,8 @@ class SciospecSetup(SetupBase):
         """Set value of idx of actual pattern:
         used to latch each pattern for setting exc_pattern to the device"""
         self.exc_pattern_idx = idx
-    
-    def set_freq_config(self, **kwargs)->Any:
+
+    def set_freq_config(self, **kwargs) -> Any:
         """
         kwargs:
             freq_min (float, optional): _description_. Defaults to 1000.0.
@@ -762,15 +773,11 @@ class SciospecSetup(SetupBase):
         return res
 
 
-    
-    
-
-
 if __name__ == "__main__":
 
-    s= SciospecSetup(32)
-    s.frame_rate=5.5555
+    s = SciospecSetup(32)
+    s.frame_rate = 5.5555
     s.save()
-    s.frame_rate=3.11111
+    s.frame_rate = 3.11111
     s.load("E:/Software_dev/Python/eit_app/tests")
     print(s.frame_rate)

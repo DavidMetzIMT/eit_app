@@ -24,8 +24,11 @@ from typing import Any
 
 import cv2
 import numpy as np
-from eit_app.video.device_abs import (CaptureDevices, CaptureFrameError,
-                                      NoCaptureDeviceSelected)
+from eit_app.video.device_abs import (
+    CaptureDevices,
+    CaptureFrameError,
+    NoCaptureDeviceSelected,
+)
 from eit_app.video.capture import convert_frame_to_Qt_format
 from PyQt5.QtGui import QImage
 
@@ -56,7 +59,7 @@ class MicroUSBCamera(CaptureDevices):
         }
         self.settings = {k: None for k in self.props}
 
-    def connect_device(self, name: str=None) -> None:
+    def connect_device(self, name: str = None) -> None:
         self.initializated.clear()
         if self.name not in self.devices_available:
             logger.error(f'Device "{self.name}" not available')
@@ -65,23 +68,21 @@ class MicroUSBCamera(CaptureDevices):
 
         self.device = cv2.VideoCapture(self.devices_available[self.name], cv2.CAP_DSHOW)
         self._check_device()
-    
+
     def disconnect_device(self) -> None:
-        self.device= None
-        
+        self.device = None
 
     def get_devices_available(self) -> dict[str, Any]:
-        
-        self.devices_available={}
+
+        self.devices_available = {}
         for index, _ in enumerate(range(10)):
             cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
             if cap.read()[0]:
                 self.devices_available[f"MicroUSB {index}"] = index
                 cap.release()
         if self.devices_available:
-            self.name=list(self.devices_available.keys())[0]
+            self.name = list(self.devices_available.keys())[0]
         return self.devices_available
-
 
     def set_settings(self, **kwargs) -> None:
         if not self.initializated.is_set():  # raise error if no device selected
@@ -133,8 +134,7 @@ class MicroUSBCamera(CaptureDevices):
     def save_frame(self, frame: np.ndarray, file_path: str):
         cv2.imwrite(file_path, frame)
 
-
-    def is_connected(self)->bool:
+    def is_connected(self) -> bool:
         if self.device is None:
             return False
         success, _ = self.device.read()

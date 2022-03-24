@@ -74,14 +74,12 @@ SER_TIMEOUT = 0.1
 SERIAL_BAUD_RATE_DEFAULT = 115200
 HARDWARE_NOT_DETECTED = 0xFF
 
-SUCCESS={
-    True: 'SUCCESS',
-    False: 'FAIL'
-}
+SUCCESS = {True: "SUCCESS", False: "FAIL"}
 
-#===============================================================================
+# ===============================================================================
 #     Serial Interface Error (Obslete)
-#===============================================================================
+# ===============================================================================
+
 
 class SerialInterfaceError(Exception):
     """Custom Error for serial interface"""
@@ -90,42 +88,46 @@ class SerialInterfaceError(Exception):
         super().__init__(msg)
         self.port = port
 
-#===============================================================================
+
+# ===============================================================================
 #     Interface Abstract Class
-#===============================================================================
+# ===============================================================================
+
 
 class Interface(ABC):
     """"""
-    new_rx_frame:Signal # Signal used to transmit new rx frame
-    error:Signal # Signal used to transmit error occruring during opening, writing, or listening process
-    is_connected : CustomFlag
 
+    new_rx_frame: Signal  # Signal used to transmit new rx frame
+    error: Signal  # Signal used to transmit error occruring during opening, writing, or listening process
+    is_connected: CustomFlag
 
-    def __init__(self, name_listener_thread:str='listener' , sleeptime:float= 0.01) -> None:
+    def __init__(
+        self, name_listener_thread: str = "listener", sleeptime: float = 0.01
+    ) -> None:
         super().__init__()
 
-        self.new_rx_frame= Signal(self)
+        self.new_rx_frame = Signal(self)
         self.error = Signal(self)
         self.is_connected = CustomFlag()
         self.is_connected.clear()
-        
+
         self.listener = Poller(
-            name= name_listener_thread, sleeptime=sleeptime, pollfunc=self._poll
+            name=name_listener_thread, sleeptime=sleeptime, pollfunc=self._poll
         )
         self.listener.start()
-        
+
     def _poll(self):
         self.listen()
-    
-    def listening_activate(self, activate:bool=True):
-        
+
+    def listening_activate(self, activate: bool = True):
+
         if activate:
             self.listener.start_polling()
         else:
             self.listener.stop_polling()
 
     @abstractmethod
-    def open(self)->bool:
+    def open(self) -> bool:
         """Open the interface, if successful return `True`"""
 
     @abstractmethod
@@ -134,18 +136,20 @@ class Interface(ABC):
         don't forget to stop the listener with self.listener.stop_polling()"""
 
     @abstractmethod
-    def write(self, data)->bool:
+    def write(self, data) -> bool:
         """Write data to port, if successful return `True`"""
 
     @abstractmethod
     def listen(self):
         """Method called by the listener
-        
+
         here come the code to read the port or wahtever you want to listen"""
 
-#===============================================================================
+
+# ===============================================================================
 #     Sciospec Serial (USB) Interface Class
-#===============================================================================
+# ===============================================================================
+
 
 class SciospecSerialInterface(Interface):
     """Class to interface with the serial port of Sciospec Device.
@@ -155,43 +159,42 @@ class SciospecSerialInterface(Interface):
 
     def __init__(self) -> None:
         """Constructor responsible of attrs init and starting the HW Poller(thread)"""
-        super().__init__(name_listener_thread='serial listener' , sleeptime= 0.01)
+        super().__init__(name_listener_thread="serial listener", sleeptime=0.01)
         self.rx_frame = None  # last response retrieved by polling
         self.serial_port = Serial()
         self.is_connected.set(self.serial_port.is_open)
         self.ports_available = []
         logger.debug("__init__ SerialInterface - done")
-    
+
     # @abstractmethod
-    def open(self, port: str = None, baudrate:int=None, **kwargs)->bool:
+    def open(self, port: str = None, baudrate: int = None, **kwargs) -> bool:
         """Open the interface, if successful return `True`
-        
+
         Args:
             port (str): serial port e.g. "COM1"
             baudrate (int, optional): Defaults to SERIAL_BAUD_RATE_DEFAULT.
             kwargs see SerialBase
         """
         if baudrate is None:
-            baudrate= SERIAL_BAUD_RATE_DEFAULT
-        success = self._open(port= port, baudrate= str(baudrate),**kwargs)
+            baudrate = SERIAL_BAUD_RATE_DEFAULT
+        success = self._open(port=port, baudrate=str(baudrate), **kwargs)
         self.is_connected.set(self.serial_port.is_open)
         logger.debug(f"Opening serial port: {port} - {SUCCESS[success]}")
-        self.listener.start_polling() 
+        self.listener.start_polling()
         return success
-    
+
     # @abstractmethod
-    def close(self)->bool:
+    def close(self) -> bool:
         """Close serial interface"""
         self.listener.stop_polling()
-        port= self.get_port_name()
-        success= self._close()
+        port = self.get_port_name()
+        success = self._close()
         self.is_connected.set(self.serial_port.is_open)
         logger.debug(f"Closing serial port: {port} - {SUCCESS[success]}")
         return success
 
-    
     # @abstractmethod
-    def write(self, data: list[bytes])-> bool:
+    def write(self, data: list[bytes]) -> bool:
         """Write data to serial port, if successful return `True`"""
         return self._write(data)
 
@@ -201,39 +204,39 @@ class SciospecSerialInterface(Interface):
         self.rx_frame = self._get_rx_frame()
         if self.rx_frame is None:
             return
-        kwargs= {"rx_frame": self.rx_frame}
+        kwargs = {"rx_frame": self.rx_frame}
         self.new_rx_frame.emit(**kwargs)
-    
 
-    def _catch_error(return_result:bool= False, return_success:bool= False):
+    def _catch_error(return_result: bool = False, return_success: bool = False):
         """_summary_
 
         Args:
             return_result (bool, optional): if true return the result of the func. if an error occur it return None. Defaults to False.
             return_success (bool, optional): if True return if the fucn could be susselly or not run. Defaults to False.
         """
+
         def _fire_error(func):
-            def wrap(self, *args, **kwargs)-> Union[bool,Any, None]:
-                
-                success= False
-                result= None
+            def wrap(self, *args, **kwargs) -> Union[bool, Any, None]:
+
+                success = False
+                result = None
                 try:
                     result = func(self, *args, **kwargs)
-                    success=True
+                    success = True
                 except SerialException as error:
-                    if "Der E/A-Vorgang"in error.__str__():
+                    if "Der E/A-Vorgang" in error.__str__():
                         self.close()
                     if "PermissionError(13" in error.__str__():
                         self.close()
-                    kwargs= {"error": error}
+                    kwargs = {"error": error}
                     self.error.emit(**kwargs)
                     # logger.debug(traceback.format_exc())
                 except PortNotOpenError as error:
-                    kwargs= {"error": error}
+                    kwargs = {"error": error}
                     self.error.emit(**kwargs)
                     # logger.debug(traceback.format_exc())
                 except OSError as error:
-                    kwargs= {"error": error}
+                    kwargs = {"error": error}
                     self.error.emit(**kwargs)
                     # logger.debug(traceback.format_exc())
 
@@ -241,7 +244,9 @@ class SciospecSerialInterface(Interface):
                     return result
                 if return_success:
                     return success
+
             return wrap
+
         return _fire_error
 
     def reinit(self):
@@ -302,9 +307,9 @@ class SciospecSerialInterface(Interface):
         - Typically used after the opening a serial port and
         a stop-meas cmd, in case that the device was still sending meas. data"""
 
-         # wait a while
+        # wait a while
         while self.read_nb_of_availables_bytes():
-            sleep(0.5) 
+            sleep(0.5)
             logger.debug(f"clear: {self.serial_port.read_all()}")
 
     # def _stop_measurements(self):
@@ -312,7 +317,7 @@ class SciospecSerialInterface(Interface):
 
     @_catch_error(return_success=True)
     def _open(self, **kwargs):
-        self.serial_port=Serial(**kwargs)
+        self.serial_port = Serial(**kwargs)
         # read everything the device could send
         self.serial_port.reset_output_buffer()
         self.serial_port.reset_input_buffer()
@@ -332,36 +337,36 @@ class SciospecSerialInterface(Interface):
         """Return a complete data frame if available on the port
 
         Returns:
-            Union[list[bytes], None]: complete data frame or 
+            Union[list[bytes], None]: complete data frame or
             None if not availbale or an error occurs
         """
         # a frame is at least 4 bytes
-        n_bytes= self.read_nb_of_availables_bytes()
-        if n_bytes is None or n_bytes< FRAME_LENGTH_MIN:
+        n_bytes = self.read_nb_of_availables_bytes()
+        if n_bytes is None or n_bytes < FRAME_LENGTH_MIN:
             return None
         # read up to the length byte
         rx_frame = self.read_bytes(LENGTH_BYTE_INDX + 1)
         if rx_frame is None:
-            return None 
+            return None
         # read also the additional "ending CMD Byte"
-        length_data2read = ( rx_frame[LENGTH_BYTE_INDX] + 1) 
+        length_data2read = rx_frame[LENGTH_BYTE_INDX] + 1
         # dangerous ...timer use?
-        while 1:  
-            n_bytes= self.read_nb_of_availables_bytes()
+        while 1:
+            n_bytes = self.read_nb_of_availables_bytes()
             if n_bytes is None:
                 return None
             if not n_bytes < length_data2read:
                 break
-            
+
         tmp = self.read_bytes(length_data2read)
         if tmp is None:
-            return None 
+            return None
         rx_frame.extend(tmp)
         logger.debug(f"RX: {rx_frame[:10]}")
         return rx_frame
 
-    def read_nb_of_availables_bytes(self)-> Union[int, None]:
-        """Return the number of bytes available on the input buffer of the 
+    def read_nb_of_availables_bytes(self) -> Union[int, None]:
+        """Return the number of bytes available on the input buffer of the
         serial port
 
         Returns:
@@ -370,10 +375,10 @@ class SciospecSerialInterface(Interface):
         return self._read_nb_of_availables_bytes()
 
     @_catch_error(return_result=True)
-    def _read_nb_of_availables_bytes(self)->int:
+    def _read_nb_of_availables_bytes(self) -> int:
         # can raise a SerialException("ClearCommError failed ({!r})".format(ctypes.WinError()))
         return self.serial_port.in_waiting
-    
+
     def read_bytes(self, nb_bytes: int = 1) -> Union[list[bytes], None]:
         """Read on serial port a number of bytes
 
@@ -392,9 +397,9 @@ class SciospecSerialInterface(Interface):
         return list(self.serial_port.read(nb_bytes))
 
 
-
 if __name__ == "__main__":
     from glob_utils.log.log import main_log
+
     main_log()
     # s = SerialInterface()
 
@@ -438,15 +443,14 @@ if __name__ == "__main__":
     sleep(0.1)
     print(s.write([0xB4, 0x01, 0x01, 0xB4]))
     for _ in range(10):
-        print('111111')
+        print("111111")
         sleep(0.1)
 
     print(s.write([0xB4, 0x01, 0x00, 0xB4]))
     for _ in range(10):
-        print('111111')
-        a=2
+        print("111111")
+        a = 2
         sleep(0.2)
-
 
     # try:
     #     s.open_serial("COM3")

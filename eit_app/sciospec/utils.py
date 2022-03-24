@@ -162,7 +162,7 @@ if __name__ == "__main__":
         0x00,
         0,
         0,  # 8
-    ]  
+    ]
     meas = np.array(meas_data)
     meas = np.reshape(meas, (-1, 4))
     meas = meas.tolist()
@@ -188,7 +188,7 @@ if __name__ == "__main__":
         [0x40, 0xC0, 0, 0],  # 6
         [0x40, 0xE0, 0, 0],  # 7
         [0x41, 0x00, 0, 0],  # 8
-    ]  
+    ]
     # meas =[bytearray(m) for m in meas]
     print(meas)
     print(convert4Bytes2Float(meas[2]))

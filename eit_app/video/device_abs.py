@@ -39,47 +39,47 @@ __status__ = "Production"
 logger = getLogger(__name__)
 
 
-
-
 ################################################################################
 ## Class Capture Devices
 ################################################################################
 
+
 class NoCaptureDeviceSelected(Exception):
     """"""
+
+
 class CaptureFrameError(Exception):
     """"""
+
 
 def handle_capture_device_error(func):
     """Decorator which handle the errors from CaptureDevices in
     Video Capture Modules
     """
+
     def wrapper(self, *args, **kwargs) -> Any:
         try:
             return func(self, *args, **kwargs)
         except NoCaptureDeviceSelected as e:
             logger.warning(f"No Capture Device Selected; ({e})")
-            errorMsgBox(
-                title="No Capture Device Selected",
-                message=f"{e}"
-            )
+            errorMsgBox(title="No Capture Device Selected", message=f"{e}")
         except CaptureFrameError as e:
             logger.error(f"Capture frame failed; ({e})")
-            errorMsgBox(
-                title="Capture frame failed",
-                message=f"{e}"
-            )
+            errorMsgBox(title="Capture frame failed", message=f"{e}")
+
     return wrapper
-    
+
+
 ################################################################################
 ## Class Capture Devices
 ################################################################################
+
 
 class CaptureDevices(ABC):
 
     devices_available: dict[str, Any]
     device: Any
-    name:str
+    name: str
     initializated: CustomFlag
     settings: dict
 
@@ -92,16 +92,17 @@ class CaptureDevices(ABC):
         self._post_init_()
 
     def _error_if_no_device(func):
-        '''Decorator '''
-    
+        """Decorator"""
+
         def wrap(self, *args, **kwargs):
             if not self.initializated.is_set():  # raise error if no device selected
                 raise NoCaptureDeviceSelected()
             func(self, *args, **kwargs)
+
         return wrap
-    
-    def set_name(self, name:str)->None:
-        self.name=name
+
+    def set_name(self, name: str) -> None:
+        self.name = name
 
     @abstractmethod
     def _post_init_(self) -> None:
@@ -118,10 +119,11 @@ class CaptureDevices(ABC):
             name (str): name of the device (one of the key returned by
             self.get_devices_available)
         """
+
     @abstractmethod
     def disconnect_device(self) -> None:
-        """Disconnect the device
-        """
+        """Disconnect the device"""
+
     @abstractmethod
     def is_connected(self):
         """"""
@@ -196,7 +198,6 @@ class CaptureDevices(ABC):
         Returns:
             np.ndarray: loaded frame
         """
-        
 
     @abstractmethod
     def save_frame(self, frame: np.ndarray, file_path: str) -> None:

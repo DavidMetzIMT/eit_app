@@ -1,9 +1,11 @@
 from __future__ import absolute_import, division, print_function
+
 import logging
 import os
 import threading
 from logging import getLogger
 from typing import Any
+
 import eit_ai.raw_data.load_eidors as matlab
 import eit_model.model
 import eit_model.solver_pyeit
@@ -13,32 +15,46 @@ import matplotlib.backends.backend_qt5agg
 import matplotlib.pyplot
 import numpy as np
 from default.set_default_dir import APP_DIRS, AppDirs, set_ai_default_dir
-from eit_model.imaging_type import (DATA_TRANSFORMATIONS, IMAGING_TYPE,
-                                    ChannelVoltageImaging)
-from glob_utils.files.files import (FileExt, OpenDialogFileCancelledException,
-                                    dialog_get_file_with_ext, save_as_csv,
-                                    search_for_file_with_ext)
+from eit_model.imaging_type import (
+    DATA_TRANSFORMATIONS,
+    IMAGING_TYPE,
+    ChannelVoltageImaging,
+)
+from glob_utils.files.files import (
+    FileExt,
+    OpenDialogFileCancelledException,
+    dialog_get_file_with_ext,
+    save_as_csv,
+    search_for_file_with_ext,
+)
 from glob_utils.flags.flag import CustomFlag, CustomFlagwSignals
-from glob_utils.msgbox import  warningMsgBox
+from glob_utils.msgbox import warningMsgBox
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 import eit_app.eit.plots
+from eit_app.com_channels import AddUpdateAgent
 from eit_app.eit.computation import ComputingAgent
-from eit_app.eit.plots import (CanvasLayout, LayoutEITChannelVoltage,
-                               LayoutEITData, LayoutEITImage2D, LayoutChannelVoltageMonitoring)
+from eit_app.eit.plots import (
+    CanvasLayout,
+    LayoutChannelVoltageMonitoring,
+    LayoutEITChannelVoltage,
+    LayoutEITData,
+    LayoutEITImage2D,
+)
 from eit_app.gui import Ui_MainWindow as app_gui
-from eit_app.gui_utils import (set_comboBox_items)
+from eit_app.gui_utils import set_comboBox_items
 from eit_app.sciospec.com_constants import OP_LINEAR, OP_LOG
 from eit_app.sciospec.device import SciospecEITDevice
 from eit_app.sciospec.measurement import ExtractIndexes, MeasurementDataset
 from eit_app.sciospec.replay import ReplayMeasurementsAgent
+from eit_app.update_gui import (
+    EvtDataAutosaveOptionsChanged,
+    EvtDataEITDataPlotOptionsChanged,
+    EvtDataImagingInputsChanged,
+    EvtDataSciospecDevSetup,
+)
+from eit_app.video.capture import EXT_IMG, IMG_SIZES, VideoCaptureAgent
 from eit_app.video.microcam import MicroUSBCamera
-from eit_app.video.capture import EXT_IMG, IMG_SIZES,VideoCaptureAgent
-from eit_app.com_channels import AddUpdateAgent
-
-from eit_app.update_gui import (EvtDataAutosaveOptionsChanged,
-                                EvtDataEITDataPlotOptionsChanged,
-                                EvtDataImagingInputsChanged,
-                                EvtDataSciospecDevSetup)
 
 # Ensure using PyQt5 backend
 matplotlib.use("QT5Agg")
@@ -69,26 +85,30 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self._connect_main_objects()
         self._init_values()
         self._initilizated.set()
-    
-    def set_title(self)->None:
-        t= f"EIT aquisition for Sciospec device {__version__}"
-        self.setWindowTitle(QtCore.QCoreApplication.translate("MainWindow", t ))
+
+    def set_title(self) -> None:
+        t = f"EIT aquisition for Sciospec device {__version__}"
+        self.setWindowTitle(QtCore.QCoreApplication.translate("MainWindow", t))
 
     def _create_main_objects(self) -> None:
 
         # set canvas
-        self.plot_agent=eit_app.eit.plots.PlottingAgent()
-        self.canvas_rec=CanvasLayout(self, self.layout_rec, LayoutEITImage2D)
+        self.plot_agent = eit_app.eit.plots.PlottingAgent()
+        self.canvas_rec = CanvasLayout(self, self.layout_rec, LayoutEITImage2D)
         self.plot_agent.add_layouts(self.canvas_rec)
-        self.canvas_graphs=CanvasLayout(self, self.layout_graphs, LayoutEITData)
+        self.canvas_graphs = CanvasLayout(self, self.layout_graphs, LayoutEITData)
         self.plot_agent.add_layouts(self.canvas_graphs)
-        self.canvas_ch_graph=CanvasLayout(self, self.layout_ch_graph, LayoutEITChannelVoltage)
+        self.canvas_ch_graph = CanvasLayout(
+            self, self.layout_ch_graph, LayoutEITChannelVoltage
+        )
         self.plot_agent.add_layouts(self.canvas_ch_graph)
-        self.canvas_monitoring=CanvasLayout(self, self.layout_monitoring, LayoutChannelVoltageMonitoring)
+        self.canvas_monitoring = CanvasLayout(
+            self, self.layout_monitoring, LayoutChannelVoltageMonitoring
+        )
         self.plot_agent.add_layouts(self.canvas_monitoring)
 
         self.eit_model = eit_model.model.EITModel()
-    
+
         self.computing = ComputingAgent()
         self.dataset = MeasurementDataset()
 
@@ -97,16 +117,15 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         # self.replay_status = CustomFlagwSignals()
         # self.replay_timerqt= QtCore.QTimer()
 
-        self.replay_agent= ReplayMeasurementsAgent()
+        self.replay_agent = ReplayMeasurementsAgent()
 
         self.live_capture = CustomFlag()
         # setting of the camera
         self.capture_agent = VideoCaptureAgent(
-            capture_type= MicroUSBCamera(), 
-            snapshot_dir=APP_DIRS.get(AppDirs.snapshot)
+            capture_type=MicroUSBCamera(), snapshot_dir=APP_DIRS.get(AppDirs.snapshot)
         )
-    
-    def _connect_main_objects(self)->None:
+
+    def _connect_main_objects(self) -> None:
 
         self.computing.to_plot.connect(self.plot_agent.to_reciever)
 
@@ -129,16 +148,14 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         # set pattern
         self.eit_model.load_defaultmatfile()
-        exc_mat= self.eit_model.excitation_mat()+1
+        exc_mat = self.eit_model.excitation_mat() + 1
         self.device.setup.set_exc_pattern(exc_mat.tolist())
-    
 
     def _init_values(self) -> None:
 
         # link callbacks
         self._link_callbacks()
         self.comboBox_init()
-
 
         self._update_log()
         self._get_dev_setup()
@@ -156,7 +173,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         # self.update_gui(ReplayStatus(self.replay_status))
         # self._init_update_worker()
-        logger.info(f"thread main {threading.get_ident()}") 
+        logger.info(f"thread main {threading.get_ident()}")
 
     def comboBox_init(self) -> None:
         """ """
@@ -219,14 +236,14 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.pB_replay_back.clicked.connect(self.replay_agent.back)
         self.pB_replay_stop.clicked.connect(self.replay_agent.stop)
         self.sB_replay_time.valueChanged[float].connect(self.replay_agent.set_timeout)
-        self.cB_current_idx_frame.activated[int].connect(self.replay_agent.set_actual_frame)
+        self.cB_current_idx_frame.activated[int].connect(
+            self.replay_agent.set_actual_frame
+        )
         self.slider_replay.valueChanged[int].connect(self.replay_agent.set_actual_frame)
         self.pB_export_meas_csv.clicked.connect(self._export_meas_csv)
         self.pB_load_ref_dataset.clicked.connect(self._loadRef4TD)
 
-        self.pB_load_eidors_fwd_solution.clicked.connect(
-            self._load_eidors_fwd_solution
-        )
+        self.pB_load_eidors_fwd_solution.clicked.connect(self._load_eidors_fwd_solution)
         self.sB_eidors_factor.valueChanged.connect(self._eidors_reload)
         self.pB_export_data_meas_vs_eidors.clicked.connect(
             self._export_data_meas_vs_eidors
@@ -244,9 +261,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         # eit imaging
         self.pB_compute.clicked.connect(self.replay_agent.compute_actual_frame)
         self.cB_eit_imaging_type.activated.connect(self._imaging_params_changed)
-        self.cB_ref_frame_idx.currentIndexChanged.connect(
-            self._imaging_params_changed
-        )
+        self.cB_ref_frame_idx.currentIndexChanged.connect(self._imaging_params_changed)
         self.cB_freq_meas_0.activated.connect(self._imaging_params_changed)
         self.cB_freq_meas_1.activated.connect(self._imaging_params_changed)
         self.cB_transform_volt.activated.connect(self._imaging_params_changed)
@@ -258,28 +273,33 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._update_eit_ctlg)
 
         # Video capture
-        self.pB_capture_refresh.clicked.connect(self.capture_agent.get_devices_available)
-        self.pB_capture_start_stop.clicked.connect(self.capture_agent.start_stop_capture)
+        self.pB_capture_refresh.clicked.connect(
+            self.capture_agent.get_devices_available
+        )
+        self.pB_capture_start_stop.clicked.connect(
+            self.capture_agent.start_stop_capture
+        )
         self.pB_capture_snapshot.clicked.connect(self.capture_agent.snapshot)
         self.cB_video_devices.activated[str].connect(self.capture_agent.set_device_name)
         self.pB_capture_connect.clicked.connect(self.capture_agent.connect_device)
         self.cB_img_size.activated.connect(self._set_capture_device)
         self.cB_img_file_ext.activated.connect(self._set_capture_device)
-        
+
     def _abort_if_measuring(func):
-        '''Decorator '''
-    
-        def wrap(self, *args, **kwargs)-> Any:
+        """Decorator"""
+
+        def wrap(self, *args, **kwargs) -> Any:
             if self.device.is_measuring:
-                warningMsgBox("Measurement is running","First stop measurement")
+                warningMsgBox("Measurement is running", "First stop measurement")
                 return
             return func(self, *args, **kwargs)
+
         return wrap
 
     ############################################################################
     #### Logging
     ############################################################################
-    
+
     def _update_log(self) -> None:
         """Modify the actual logging level"""
         glob_utils.log.log.change_level_logging(
@@ -299,39 +319,39 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             freq_min=self.sBd_freq_min.value(),
             freq_max=self.sBd_freq_max.value(),
             freq_steps=self.sB_freq_steps.value(),
-            freq_scale=self.cB_scale.currentText()
+            freq_scale=self.cB_scale.currentText(),
         )
-        self.update_gui(EvtDataSciospecDevSetup(self.device.setup, freq_max_enable, error))
+        self.update_gui(
+            EvtDataSciospecDevSetup(self.device.setup, freq_max_enable, error)
+        )
 
     ############################################################################
     #### Reconstruction
     ############################################################################
     def _init_rec(self) -> None:
         """[summary]"""
-        rec_type= self.tabW_reconstruction.currentIndex()
-        solver= self._get_solver(rec_type)
-        params= self._get_solvers_params(rec_type)
+        rec_type = self.tabW_reconstruction.currentIndex()
+        solver = self._get_solver(rec_type)
+        params = self._get_solvers_params(rec_type)
         self.computing.set_eit_model(self.eit_model)
         self.computing.set_solver(solver)
         self.computing.set_rec_params(params)
         self.computing.init_solver()
 
-    def _get_solver(self,rec_type:int=0) -> None:
+    def _get_solver(self, rec_type: int = 0) -> None:
         """[summary]"""
-        rec = {
-            0: eit_model.solver_pyeit.SolverPyEIT
-        }
+        rec = {0: eit_model.solver_pyeit.SolverPyEIT}
         return rec[rec_type]
 
-    def _get_solvers_params(self,rec_type:int=0) -> None:
+    def _get_solvers_params(self, rec_type: int = 0) -> None:
         """[summary]"""
         params = {
-            0:  eit_model.solver_pyeit.PyEitRecParams(
-                    solver_type=self.cB_solver.currentText(),
-                    p=self.eit_p.value(),
-                    lamb=self.eit_lamda.value(),
-                    n=self.eit_n.value()
-                )
+            0: eit_model.solver_pyeit.PyEitRecParams(
+                solver_type=self.cB_solver.currentText(),
+                p=self.eit_p.value(),
+                lamb=self.eit_lamda.value(),
+                n=self.eit_n.value(),
+            )
         }
         return params[rec_type]
         # self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
@@ -389,9 +409,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             self.cB_freq_meas_0.currentIndex(),
         )
         data = {
-            "measurement": np.real(
-                self.dataset.get_meas_voltage(frame, freq)[:, 0:16]
-            ),
+            "measurement": np.real(self.dataset.get_meas_voltage(frame, freq)[:, 0:16]),
             "eidors": self.eidors_sol,
         }
         file_path = os.path.join(
@@ -423,8 +441,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         self.dataset.set_name(self.lE_meas_dataset_dir.text())
 
-        autosave= self.chB_dataset_autosave.isChecked()
-        save_img= self.chB_dataset_save_img.isChecked()
+        autosave = self.chB_dataset_autosave.isChecked()
+        save_img = self.chB_dataset_save_img.isChecked()
         self.dataset._autosave.set(autosave)
         self.dataset._save_img.set(save_img and autosave)
 
@@ -432,7 +450,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             f"Autosave: {self.dataset._autosave.is_set()}, save_img:{self.dataset._save_img.is_set()}"
         )
         self.update_gui(EvtDataAutosaveOptionsChanged())
-
 
     def _export_meas_csv(self) -> None:
         """Export the actual measurments frames in csv"""
@@ -444,19 +461,16 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         }
         freq = self.dataset.meas_frame[0].get_freq_val(idx_freq)
 
-        file_path = os.path.join(
-            self.dataset.output_dir, f"Meas#1-{n}_freq{freq}Hz"
-        )
+        file_path = os.path.join(self.dataset.output_dir, f"Meas#1-{n}_freq{freq}Hz")
         save_as_csv(file_path, data)
         logger.debug(f"Measurements exported as CSV in : {file_path}")
 
     ############################################################################
     #### Interaction with Microcam
     ############################################################################
-    
 
     @_abort_if_measuring
-    def _set_capture_device(self,*args, **kwargs) -> None:
+    def _set_capture_device(self, *args, **kwargs) -> None:
 
         # self.capture_agent.connect_device(self.cB_video_devices.currentText())
         self.capture_agent.set_image_size(self.cB_img_size.currentText())
@@ -479,29 +493,29 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         imaging_type = self._actual_imaging_mode()
         transform = self.cB_transform_volt.currentText()
-        show_abs= self.showAbsValue.isChecked()
+        show_abs = self.showAbsValue.isChecked()
 
         eit_imaging = IMAGING_TYPE[imaging_type](transform, show_abs)
         self.computing.set_imaging_mode(eit_imaging)
         self.update_gui(EvtDataImagingInputsChanged(eit_imaging))
         self._set_actual_indexesforcomputation(imaging_type)
 
-    def _set_actual_indexesforcomputation(self, imaging_type:str):
+    def _set_actual_indexesforcomputation(self, imaging_type: str):
 
-        index= ExtractIndexes(
+        index = ExtractIndexes(
             ref_idx=self.cB_ref_frame_idx.currentIndex(),
             meas_idx=self.cB_current_idx_frame.currentIndex(),
             ref_freq=self.cB_freq_meas_0.currentIndex(),
             meas_freq=self.cB_freq_meas_1.currentIndex(),
-            imaging=imaging_type
+            imaging=imaging_type,
         )
         self.dataset.set_index_of_data_for_computation(index)
         self.computing.set_eit_model(self.eit_model)
 
     def _ch_imaging_params(self) -> None:
         transform = self.cB_transform_ch_volt.currentText()
-        show_abs =  self.chB_abs_ch_vol.isChecked()
-        self.ch_imaging= ChannelVoltageImaging(transform, show_abs)
+        show_abs = self.chB_abs_ch_vol.isChecked()
+        self.ch_imaging = ChannelVoltageImaging(transform, show_abs)
         self.computing.set_ch_imaging_mode(self.ch_imaging)
 
     def _plots_to_show(self) -> None:
@@ -509,7 +523,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.computing.enable_rec(self.chB_plot_image_rec.isChecked())
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
 
-    
     # def kill_workers(self) -> None:
     #     """Kill alls the running threads workers"""
     #     [item.quit() for _, item in self.workers.items()]

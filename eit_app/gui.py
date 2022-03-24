@@ -15,13 +15,17 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setWindowModality(QtCore.Qt.NonModal)
         MainWindow.resize(1927, 1080)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icons/icons/EIT.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/icons/icons/EIT.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off
+        )
         MainWindow.setWindowIcon(icon)
         MainWindow.setIconSize(QtCore.QSize(20, 20))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -80,76 +84,110 @@ class Ui_MainWindow(object):
         self.LayoutParameters.setObjectName("LayoutParameters")
         self.label_Current_Amplitude = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_Current_Amplitude.setObjectName("label_Current_Amplitude")
-        self.LayoutParameters.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_Current_Amplitude)
+        self.LayoutParameters.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.label_Current_Amplitude
+        )
         self.sBd_exc_amp = QtWidgets.QDoubleSpinBox(self.formLayoutWidget_2)
         self.sBd_exc_amp.setDecimals(4)
         self.sBd_exc_amp.setMinimum(0.0001)
         self.sBd_exc_amp.setMaximum(10.0)
         self.sBd_exc_amp.setSingleStep(0.1)
         self.sBd_exc_amp.setObjectName("sBd_exc_amp")
-        self.LayoutParameters.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.sBd_exc_amp)
+        self.LayoutParameters.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.sBd_exc_amp
+        )
         self.label_Burst = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_Burst.setObjectName("label_Burst")
-        self.LayoutParameters.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_Burst)
+        self.LayoutParameters.setWidget(
+            1, QtWidgets.QFormLayout.LabelRole, self.label_Burst
+        )
         self.sB_burst = QtWidgets.QSpinBox(self.formLayoutWidget_2)
         self.sB_burst.setMaximum(255)
         self.sB_burst.setObjectName("sB_burst")
-        self.LayoutParameters.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sB_burst)
+        self.LayoutParameters.setWidget(
+            1, QtWidgets.QFormLayout.FieldRole, self.sB_burst
+        )
         self.label_minF = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_minF.setObjectName("label_minF")
-        self.LayoutParameters.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_minF)
+        self.LayoutParameters.setWidget(
+            2, QtWidgets.QFormLayout.LabelRole, self.label_minF
+        )
         self.sBd_freq_min = QtWidgets.QDoubleSpinBox(self.formLayoutWidget_2)
         self.sBd_freq_min.setMinimum(100.0)
         self.sBd_freq_min.setMaximum(1000000.0)
         self.sBd_freq_min.setObjectName("sBd_freq_min")
-        self.LayoutParameters.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_min)
+        self.LayoutParameters.setWidget(
+            2, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_min
+        )
         self.label_maxF = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_maxF.setObjectName("label_maxF")
-        self.LayoutParameters.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.label_maxF)
+        self.LayoutParameters.setWidget(
+            3, QtWidgets.QFormLayout.LabelRole, self.label_maxF
+        )
         self.sBd_freq_max = QtWidgets.QDoubleSpinBox(self.formLayoutWidget_2)
         self.sBd_freq_max.setAutoFillBackground(False)
         self.sBd_freq_max.setMinimum(100.0)
         self.sBd_freq_max.setMaximum(1000000.0)
         self.sBd_freq_max.setObjectName("sBd_freq_max")
-        self.LayoutParameters.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_max)
+        self.LayoutParameters.setWidget(
+            3, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_max
+        )
         self.label_Steps = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_Steps.setObjectName("label_Steps")
-        self.LayoutParameters.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_Steps)
+        self.LayoutParameters.setWidget(
+            4, QtWidgets.QFormLayout.LabelRole, self.label_Steps
+        )
         self.sB_freq_steps = QtWidgets.QSpinBox(self.formLayoutWidget_2)
         self.sB_freq_steps.setMinimum(1)
         self.sB_freq_steps.setMaximum(255)
         self.sB_freq_steps.setObjectName("sB_freq_steps")
-        self.LayoutParameters.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.sB_freq_steps)
+        self.LayoutParameters.setWidget(
+            4, QtWidgets.QFormLayout.FieldRole, self.sB_freq_steps
+        )
         self.label_Burst_5 = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_Burst_5.setObjectName("label_Burst_5")
-        self.LayoutParameters.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.label_Burst_5)
+        self.LayoutParameters.setWidget(
+            5, QtWidgets.QFormLayout.LabelRole, self.label_Burst_5
+        )
         self.cB_scale = QtWidgets.QComboBox(self.formLayoutWidget_2)
         self.cB_scale.setEditable(False)
         self.cB_scale.setMaxVisibleItems(2)
         self.cB_scale.setObjectName("cB_scale")
-        self.LayoutParameters.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.cB_scale)
+        self.LayoutParameters.setWidget(
+            5, QtWidgets.QFormLayout.FieldRole, self.cB_scale
+        )
         self.label_FrameRate = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_FrameRate.setObjectName("label_FrameRate")
-        self.LayoutParameters.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.label_FrameRate)
+        self.LayoutParameters.setWidget(
+            6, QtWidgets.QFormLayout.LabelRole, self.label_FrameRate
+        )
         self.sBd_frame_rate = QtWidgets.QDoubleSpinBox(self.formLayoutWidget_2)
         self.sBd_frame_rate.setDecimals(3)
         self.sBd_frame_rate.setMaximum(100.0)
         self.sBd_frame_rate.setSingleStep(0.001)
         self.sBd_frame_rate.setObjectName("sBd_frame_rate")
-        self.LayoutParameters.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.sBd_frame_rate)
+        self.LayoutParameters.setWidget(
+            6, QtWidgets.QFormLayout.FieldRole, self.sBd_frame_rate
+        )
         self.label_maxFrameRate = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_maxFrameRate.setObjectName("label_maxFrameRate")
-        self.LayoutParameters.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.label_maxFrameRate)
+        self.LayoutParameters.setWidget(
+            7, QtWidgets.QFormLayout.LabelRole, self.label_maxFrameRate
+        )
         self.sBd_max_frame_rate = QtWidgets.QDoubleSpinBox(self.formLayoutWidget_2)
         self.sBd_max_frame_rate.setEnabled(False)
         self.sBd_max_frame_rate.setDecimals(3)
         self.sBd_max_frame_rate.setMaximum(100.0)
         self.sBd_max_frame_rate.setSingleStep(0.001)
         self.sBd_max_frame_rate.setObjectName("sBd_max_frame_rate")
-        self.LayoutParameters.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.sBd_max_frame_rate)
+        self.LayoutParameters.setWidget(
+            7, QtWidgets.QFormLayout.FieldRole, self.sBd_max_frame_rate
+        )
         self.label_SN = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_SN.setObjectName("label_SN")
-        self.LayoutParameters.setWidget(8, QtWidgets.QFormLayout.LabelRole, self.label_SN)
+        self.LayoutParameters.setWidget(
+            8, QtWidgets.QFormLayout.LabelRole, self.label_SN
+        )
         self.lE_sn = QtWidgets.QLineEdit(self.formLayoutWidget_2)
         self.lE_sn.setEnabled(False)
         self.lE_sn.setToolTip("")
@@ -160,7 +198,9 @@ class Ui_MainWindow(object):
         self.LayoutParameters.setWidget(8, QtWidgets.QFormLayout.FieldRole, self.lE_sn)
         self.label_IP = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_IP.setObjectName("label_IP")
-        self.LayoutParameters.setWidget(9, QtWidgets.QFormLayout.LabelRole, self.label_IP)
+        self.LayoutParameters.setWidget(
+            9, QtWidgets.QFormLayout.LabelRole, self.label_IP
+        )
         self.lE_ip = QtWidgets.QLineEdit(self.formLayoutWidget_2)
         self.lE_ip.setToolTip("")
         self.lE_ip.setWhatsThis("")
@@ -170,34 +210,48 @@ class Ui_MainWindow(object):
         self.LayoutParameters.setWidget(9, QtWidgets.QFormLayout.FieldRole, self.lE_ip)
         self.label_3 = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_3.setObjectName("label_3")
-        self.LayoutParameters.setWidget(10, QtWidgets.QFormLayout.LabelRole, self.label_3)
+        self.LayoutParameters.setWidget(
+            10, QtWidgets.QFormLayout.LabelRole, self.label_3
+        )
         self.lE_mac = QtWidgets.QLineEdit(self.formLayoutWidget_2)
         self.lE_mac.setEnabled(False)
         self.lE_mac.setObjectName("lE_mac")
-        self.LayoutParameters.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.lE_mac)
+        self.LayoutParameters.setWidget(
+            10, QtWidgets.QFormLayout.FieldRole, self.lE_mac
+        )
         self.chB_dhcp = QtWidgets.QCheckBox(self.formLayoutWidget_2)
         self.chB_dhcp.setEnabled(False)
         self.chB_dhcp.setChecked(False)
         self.chB_dhcp.setObjectName("chB_dhcp")
-        self.LayoutParameters.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.chB_dhcp)
+        self.LayoutParameters.setWidget(
+            11, QtWidgets.QFormLayout.FieldRole, self.chB_dhcp
+        )
         self.chB_exc_stamp = QtWidgets.QCheckBox(self.formLayoutWidget_2)
         self.chB_exc_stamp.setEnabled(False)
         self.chB_exc_stamp.setChecked(True)
         self.chB_exc_stamp.setObjectName("chB_exc_stamp")
-        self.LayoutParameters.setWidget(12, QtWidgets.QFormLayout.FieldRole, self.chB_exc_stamp)
+        self.LayoutParameters.setWidget(
+            12, QtWidgets.QFormLayout.FieldRole, self.chB_exc_stamp
+        )
         self.chB_current_stamp = QtWidgets.QCheckBox(self.formLayoutWidget_2)
         self.chB_current_stamp.setEnabled(False)
         self.chB_current_stamp.setChecked(True)
         self.chB_current_stamp.setObjectName("chB_current_stamp")
-        self.LayoutParameters.setWidget(13, QtWidgets.QFormLayout.FieldRole, self.chB_current_stamp)
+        self.LayoutParameters.setWidget(
+            13, QtWidgets.QFormLayout.FieldRole, self.chB_current_stamp
+        )
         self.chB_time_stamp = QtWidgets.QCheckBox(self.formLayoutWidget_2)
         self.chB_time_stamp.setEnabled(False)
         self.chB_time_stamp.setChecked(True)
         self.chB_time_stamp.setObjectName("chB_time_stamp")
-        self.LayoutParameters.setWidget(14, QtWidgets.QFormLayout.FieldRole, self.chB_time_stamp)
+        self.LayoutParameters.setWidget(
+            14, QtWidgets.QFormLayout.FieldRole, self.chB_time_stamp
+        )
         self.label_OutputConfig = QtWidgets.QLabel(self.formLayoutWidget_2)
         self.label_OutputConfig.setObjectName("label_OutputConfig")
-        self.LayoutParameters.setWidget(12, QtWidgets.QFormLayout.LabelRole, self.label_OutputConfig)
+        self.LayoutParameters.setWidget(
+            12, QtWidgets.QFormLayout.LabelRole, self.label_OutputConfig
+        )
         self.pB_load_setup = QtWidgets.QPushButton(self.groupBox_4)
         self.pB_load_setup.setGeometry(QtCore.QRect(10, 440, 121, 23))
         self.pB_load_setup.setAutoFillBackground(False)
@@ -244,7 +298,9 @@ class Ui_MainWindow(object):
         self.pB_load_eidors_fwd_solution.setObjectName("pB_load_eidors_fwd_solution")
         self.sB_eidors_factor = QtWidgets.QDoubleSpinBox(self.tab_measurements)
         self.sB_eidors_factor.setGeometry(QtCore.QRect(290, 600, 91, 23))
-        self.sB_eidors_factor.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.sB_eidors_factor.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
+        )
         self.sB_eidors_factor.setSuffix("")
         self.sB_eidors_factor.setDecimals(3)
         self.sB_eidors_factor.setMinimum(-1000000.0)
@@ -252,10 +308,14 @@ class Ui_MainWindow(object):
         self.sB_eidors_factor.setSingleStep(0.1)
         self.sB_eidors_factor.setProperty("value", 1.0)
         self.sB_eidors_factor.setObjectName("sB_eidors_factor")
-        self.pB_export_data_meas_vs_eidors = QtWidgets.QPushButton(self.tab_measurements)
+        self.pB_export_data_meas_vs_eidors = QtWidgets.QPushButton(
+            self.tab_measurements
+        )
         self.pB_export_data_meas_vs_eidors.setGeometry(QtCore.QRect(10, 630, 231, 23))
         self.pB_export_data_meas_vs_eidors.setAutoFillBackground(False)
-        self.pB_export_data_meas_vs_eidors.setObjectName("pB_export_data_meas_vs_eidors")
+        self.pB_export_data_meas_vs_eidors.setObjectName(
+            "pB_export_data_meas_vs_eidors"
+        )
         self.groupBox_5 = QtWidgets.QGroupBox(self.tab_measurements)
         self.groupBox_5.setGeometry(QtCore.QRect(10, 660, 411, 171))
         self.groupBox_5.setObjectName("groupBox_5")
@@ -271,28 +331,40 @@ class Ui_MainWindow(object):
         self.cB_eit_imaging_type.setObjectName("cB_eit_imaging_type")
         self.gridLayout.addWidget(self.cB_eit_imaging_type, 0, 0, 1, 5)
         self.cB_freq_meas_1 = QtWidgets.QComboBox(self.gridLayoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.cB_freq_meas_1.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.cB_freq_meas_1.sizePolicy().hasHeightForWidth()
+        )
         self.cB_freq_meas_1.setSizePolicy(sizePolicy)
         self.cB_freq_meas_1.setMinimumSize(QtCore.QSize(78, 0))
         self.cB_freq_meas_1.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.cB_freq_meas_1.setObjectName("cB_freq_meas_1")
         self.gridLayout.addWidget(self.cB_freq_meas_1, 2, 2, 1, 2)
         self.lab_ref_frame_idx = QtWidgets.QLabel(self.gridLayoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lab_ref_frame_idx.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.lab_ref_frame_idx.sizePolicy().hasHeightForWidth()
+        )
         self.lab_ref_frame_idx.setSizePolicy(sizePolicy)
         self.lab_ref_frame_idx.setObjectName("lab_ref_frame_idx")
         self.gridLayout.addWidget(self.lab_ref_frame_idx, 1, 4, 1, 1)
         self.cB_ref_frame_idx = QtWidgets.QComboBox(self.gridLayoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.cB_ref_frame_idx.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.cB_ref_frame_idx.sizePolicy().hasHeightForWidth()
+        )
         self.cB_ref_frame_idx.setSizePolicy(sizePolicy)
         self.cB_ref_frame_idx.setMinimumSize(QtCore.QSize(78, 0))
         self.cB_ref_frame_idx.setMaximumSize(QtCore.QSize(16777215, 16777215))
@@ -302,18 +374,26 @@ class Ui_MainWindow(object):
         self.lab_freq_meas_0.setObjectName("lab_freq_meas_0")
         self.gridLayout.addWidget(self.lab_freq_meas_0, 1, 0, 1, 2)
         self.lab_freq_meas_1 = QtWidgets.QLabel(self.gridLayoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lab_freq_meas_1.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.lab_freq_meas_1.sizePolicy().hasHeightForWidth()
+        )
         self.lab_freq_meas_1.setSizePolicy(sizePolicy)
         self.lab_freq_meas_1.setObjectName("lab_freq_meas_1")
         self.gridLayout.addWidget(self.lab_freq_meas_1, 1, 2, 1, 2)
         self.cB_freq_meas_0 = QtWidgets.QComboBox(self.gridLayoutWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.cB_freq_meas_0.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.cB_freq_meas_0.sizePolicy().hasHeightForWidth()
+        )
         self.cB_freq_meas_0.setSizePolicy(sizePolicy)
         self.cB_freq_meas_0.setCurrentText("")
         self.cB_freq_meas_0.setObjectName("cB_freq_meas_0")
@@ -352,7 +432,9 @@ class Ui_MainWindow(object):
         self.sB_actual_frame_cnt.setEnabled(True)
         self.sB_actual_frame_cnt.setGeometry(QtCore.QRect(170, 100, 51, 23))
         self.sB_actual_frame_cnt.setFrame(True)
-        self.sB_actual_frame_cnt.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.sB_actual_frame_cnt.setAlignment(
+            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
+        )
         self.sB_actual_frame_cnt.setMaximum(999)
         self.sB_actual_frame_cnt.setObjectName("sB_actual_frame_cnt")
         self.pB_start_meas = QtWidgets.QPushButton(self.Acquisition)
@@ -417,7 +499,11 @@ class Ui_MainWindow(object):
         self.pB_replay_begin.setAutoFillBackground(False)
         self.pB_replay_begin.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/icons/icons/icon_begin.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(
+            QtGui.QPixmap(":/icons/icons/icon_begin.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pB_replay_begin.setIcon(icon1)
         self.pB_replay_begin.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_begin.setCheckable(False)
@@ -429,7 +515,11 @@ class Ui_MainWindow(object):
         self.pB_replay_back.setAutoFillBackground(False)
         self.pB_replay_back.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/icons/icons/icon_back.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(
+            QtGui.QPixmap(":/icons/icons/icon_back.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pB_replay_back.setIcon(icon2)
         self.pB_replay_back.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_back.setCheckable(False)
@@ -440,7 +530,11 @@ class Ui_MainWindow(object):
         self.pB_replay_play.setAutoFillBackground(False)
         self.pB_replay_play.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/icon_play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(
+            QtGui.QPixmap(":/icons/icons/icon_play.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pB_replay_play.setIcon(icon3)
         self.pB_replay_play.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_play.setCheckable(False)
@@ -451,7 +545,11 @@ class Ui_MainWindow(object):
         self.pB_replay_next.setAutoFillBackground(False)
         self.pB_replay_next.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/icons/icons/icon_next.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(
+            QtGui.QPixmap(":/icons/icons/icon_next.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pB_replay_next.setIcon(icon4)
         self.pB_replay_next.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_next.setCheckable(False)
@@ -462,7 +560,11 @@ class Ui_MainWindow(object):
         self.pB_replay_end.setAutoFillBackground(False)
         self.pB_replay_end.setText("")
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap(":/icons/icons/icon_end.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon5.addPixmap(
+            QtGui.QPixmap(":/icons/icons/icon_end.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pB_replay_end.setIcon(icon5)
         self.pB_replay_end.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_end.setAutoDefault(False)
@@ -472,7 +574,11 @@ class Ui_MainWindow(object):
         self.pB_replay_stop.setAutoFillBackground(False)
         self.pB_replay_stop.setText("")
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(":/icons/icons/icon_stop.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon6.addPixmap(
+            QtGui.QPixmap(":/icons/icons/icon_stop.png"),
+            QtGui.QIcon.Normal,
+            QtGui.QIcon.Off,
+        )
         self.pB_replay_stop.setIcon(icon6)
         self.pB_replay_stop.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_stop.setAutoDefault(False)
@@ -549,13 +655,19 @@ class Ui_MainWindow(object):
         self.eit_FEMRefinement.setSingleStep(0.001)
         self.eit_FEMRefinement.setProperty("value", 0.1)
         self.eit_FEMRefinement.setObjectName("eit_FEMRefinement")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.eit_FEMRefinement)
+        self.formLayout.setWidget(
+            4, QtWidgets.QFormLayout.FieldRole, self.eit_FEMRefinement
+        )
         self.label_FEMRefinement = QtWidgets.QLabel(self.formLayoutWidget_3)
         self.label_FEMRefinement.setObjectName("label_FEMRefinement")
-        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement)
+        self.formLayout.setWidget(
+            4, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement
+        )
         self.label_FEMRefinement_2 = QtWidgets.QLabel(self.formLayoutWidget_3)
         self.label_FEMRefinement_2.setObjectName("label_FEMRefinement_2")
-        self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement_2)
+        self.formLayout.setWidget(
+            5, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement_2
+        )
         self.dSB_pyeit_bckgrnd = QtWidgets.QDoubleSpinBox(self.formLayoutWidget_3)
         self.dSB_pyeit_bckgrnd.setDecimals(4)
         self.dSB_pyeit_bckgrnd.setMinimum(0.0)
@@ -563,7 +675,9 @@ class Ui_MainWindow(object):
         self.dSB_pyeit_bckgrnd.setSingleStep(0.001)
         self.dSB_pyeit_bckgrnd.setProperty("value", 0.1)
         self.dSB_pyeit_bckgrnd.setObjectName("dSB_pyeit_bckgrnd")
-        self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.dSB_pyeit_bckgrnd)
+        self.formLayout.setWidget(
+            5, QtWidgets.QFormLayout.FieldRole, self.dSB_pyeit_bckgrnd
+        )
         self.cB_solver = QtWidgets.QComboBox(self.formLayoutWidget_3)
         self.cB_solver.setObjectName("cB_solver")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.cB_solver)
@@ -676,10 +790,14 @@ class Ui_MainWindow(object):
         self.groupBox_21.setObjectName("groupBox_21")
         self.chB_plot_image_rec = QtWidgets.QCheckBox(self.groupBox_21)
         self.chB_plot_image_rec.setGeometry(QtCore.QRect(10, 20, 50, 17))
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.chB_plot_image_rec.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.chB_plot_image_rec.sizePolicy().hasHeightForWidth()
+        )
         self.chB_plot_image_rec.setSizePolicy(sizePolicy)
         self.chB_plot_image_rec.setObjectName("chB_plot_image_rec")
         self.verticalLayoutWidget_3 = QtWidgets.QWidget(self.groupBox_21)
@@ -834,30 +952,51 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.groupBox_3.setTitle(_translate("MainWindow", "EIT device"))
         self.lab_device_status.setText(_translate("MainWindow", "Not Connected"))
-        self.cB_ports.setStatusTip(_translate("MainWindow", "Available serial port list"))
-        self.pB_refresh.setStatusTip(_translate("MainWindow", "Refresh the available serial port list (Ctrl + R)"))
+        self.cB_ports.setStatusTip(
+            _translate("MainWindow", "Available serial port list")
+        )
+        self.pB_refresh.setStatusTip(
+            _translate(
+                "MainWindow", "Refresh the available serial port list (Ctrl + R)"
+            )
+        )
         self.pB_refresh.setText(_translate("MainWindow", "Refresh"))
         self.pB_refresh.setShortcut(_translate("MainWindow", "Ctrl+R"))
-        self.pB_disconnect.setStatusTip(_translate("MainWindow", "Disconnect the serial port (Shift + D)"))
+        self.pB_disconnect.setStatusTip(
+            _translate("MainWindow", "Disconnect the serial port (Shift + D)")
+        )
         self.pB_disconnect.setText(_translate("MainWindow", "Disconnect"))
         self.pB_disconnect.setShortcut(_translate("MainWindow", "Shift+D"))
-        self.pB_connect.setStatusTip(_translate("MainWindow", "Connect to the selected serial port (Shift +C)"))
+        self.pB_connect.setStatusTip(
+            _translate("MainWindow", "Connect to the selected serial port (Shift +C)")
+        )
         self.pB_connect.setText(_translate("MainWindow", "Connect"))
         self.pB_connect.setShortcut(_translate("MainWindow", "Shift+C"))
         self.groupBox_4.setTitle(_translate("MainWindow", "Setup of device"))
-        self.pB_save_setup.setStatusTip(_translate("MainWindow", "Save parameters to files (*.xlsx)"))
+        self.pB_save_setup.setStatusTip(
+            _translate("MainWindow", "Save parameters to files (*.xlsx)")
+        )
         self.pB_save_setup.setText(_translate("MainWindow", "Save_Setup"))
-        self.pB_set_setup.setStatusTip(_translate("MainWindow", "Send measurements parameters to connected device (Shift +S)"))
+        self.pB_set_setup.setStatusTip(
+            _translate(
+                "MainWindow",
+                "Send measurements parameters to connected device (Shift +S)",
+            )
+        )
         self.pB_set_setup.setText(_translate("MainWindow", "Set setup"))
         self.pB_set_setup.setShortcut(_translate("MainWindow", "Shift+S"))
-        self.label_Current_Amplitude.setText(_translate("MainWindow", "Current Amplitude [mA]"))
+        self.label_Current_Amplitude.setText(
+            _translate("MainWindow", "Current Amplitude [mA]")
+        )
         self.label_Burst.setText(_translate("MainWindow", "Burst number"))
         self.label_minF.setText(_translate("MainWindow", "Min Frequency [Hz]"))
         self.label_maxF.setText(_translate("MainWindow", "Max Frequency [Hz]"))
         self.label_Steps.setText(_translate("MainWindow", "Steps number"))
         self.label_Burst_5.setText(_translate("MainWindow", "Scale"))
         self.label_FrameRate.setText(_translate("MainWindow", "Frame rate [fps]"))
-        self.label_maxFrameRate.setText(_translate("MainWindow", "Max Frame rate [fps]"))
+        self.label_maxFrameRate.setText(
+            _translate("MainWindow", "Max Frame rate [fps]")
+        )
         self.label_SN.setText(_translate("MainWindow", "S/N"))
         self.label_IP.setText(_translate("MainWindow", "IP Adress"))
         self.label_3.setText(_translate("MainWindow", "MAC Adress"))
@@ -866,75 +1005,137 @@ class Ui_MainWindow(object):
         self.chB_current_stamp.setText(_translate("MainWindow", "Current_Stamp"))
         self.chB_time_stamp.setText(_translate("MainWindow", "Time_Stamp"))
         self.label_OutputConfig.setText(_translate("MainWindow", "Output config"))
-        self.pB_load_setup.setStatusTip(_translate("MainWindow", "Load parameters from file (*.xlsx)"))
+        self.pB_load_setup.setStatusTip(
+            _translate("MainWindow", "Load parameters from file (*.xlsx)")
+        )
         self.pB_load_setup.setText(_translate("MainWindow", "Load_Setup"))
-        self.label_ExcitationPattern.setText(_translate("MainWindow", "Excitation pattern"))
+        self.label_ExcitationPattern.setText(
+            _translate("MainWindow", "Excitation pattern")
+        )
         item = self.tw_exc_pattern.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Inj+ "))
         item = self.tw_exc_pattern.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Inj-"))
-        self.pB_get_setup.setStatusTip(_translate("MainWindow", "Ask measurements parameters from connected device (Shift +G)"))
+        self.pB_get_setup.setStatusTip(
+            _translate(
+                "MainWindow",
+                "Ask measurements parameters from connected device (Shift +G)",
+            )
+        )
         self.pB_get_setup.setText(_translate("MainWindow", "Get setup"))
         self.pB_get_setup.setShortcut(_translate("MainWindow", "Shift+G"))
-        self.pB_reset.setStatusTip(_translate("MainWindow", "Software reset of the device (reconnection needed after 10-15 sec) (Ctrl + Shift +C)"))
+        self.pB_reset.setStatusTip(
+            _translate(
+                "MainWindow",
+                "Software reset of the device (reconnection needed after 10-15 sec) (Ctrl + Shift +C)",
+            )
+        )
         self.pB_reset.setText(_translate("MainWindow", "Reset"))
         self.pB_reset.setShortcut(_translate("MainWindow", "Ctrl+Shift+R"))
-        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_device), _translate("MainWindow", "Device"))
+        self.tabW_settings.setTabText(
+            self.tabW_settings.indexOf(self.tab_device),
+            _translate("MainWindow", "Device"),
+        )
         self.groupBox_2.setTitle(_translate("MainWindow", "Frame infos"))
-        self.pB_load_eidors_fwd_solution.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
-        self.pB_load_eidors_fwd_solution.setText(_translate("MainWindow", "Load EIDORS fwd solution"))
-        self.pB_export_data_meas_vs_eidors.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
-        self.pB_export_data_meas_vs_eidors.setText(_translate("MainWindow", "Export measurements vs EIDORS to CSV"))
+        self.pB_load_eidors_fwd_solution.setStatusTip(
+            _translate("MainWindow", "Load measurements from a selected directory")
+        )
+        self.pB_load_eidors_fwd_solution.setText(
+            _translate("MainWindow", "Load EIDORS fwd solution")
+        )
+        self.pB_export_data_meas_vs_eidors.setStatusTip(
+            _translate("MainWindow", "Load measurements from a selected directory")
+        )
+        self.pB_export_data_meas_vs_eidors.setText(
+            _translate("MainWindow", "Export measurements vs EIDORS to CSV")
+        )
         self.groupBox_5.setTitle(_translate("MainWindow", "Imaging type"))
         self.lab_ref_frame_idx.setText(_translate("MainWindow", "Reference frame#"))
         self.lab_freq_meas_0.setText(_translate("MainWindow", "Frequence"))
         self.lab_freq_meas_1.setText(_translate("MainWindow", "Frequence "))
         self.showAbsValue.setText(_translate("MainWindow", "Show absolute values"))
-        self.lab_actual_frame_cnt.setText(_translate("MainWindow", "Acquisition progress of frame"))
+        self.lab_actual_frame_cnt.setText(
+            _translate("MainWindow", "Acquisition progress of frame")
+        )
         self.chB_dataset_autosave.setText(_translate("MainWindow", "autosave"))
         self.chB_dataset_save_img.setText(_translate("MainWindow", "save img"))
         self.sB_actual_frame_cnt.setPrefix(_translate("MainWindow", "#"))
-        self.pB_start_meas.setStatusTip(_translate("MainWindow", "Start measurement (Ctrl + Shift +Space)"))
+        self.pB_start_meas.setStatusTip(
+            _translate("MainWindow", "Start measurement (Ctrl + Shift +Space)")
+        )
         self.pB_start_meas.setText(_translate("MainWindow", "Start"))
         self.pB_start_meas.setShortcut(_translate("MainWindow", "Ctrl+Shift+Space"))
         self.lab_live_meas_status.setText(_translate("MainWindow", "Meas status"))
-        self.lE_meas_dataset_dir.setText(_translate("MainWindow", "default_autosave_dir"))
-        self.pB_stop_meas.setStatusTip(_translate("MainWindow", "Stop measurement (Esc)"))
+        self.lE_meas_dataset_dir.setText(
+            _translate("MainWindow", "default_autosave_dir")
+        )
+        self.pB_stop_meas.setStatusTip(
+            _translate("MainWindow", "Stop measurement (Esc)")
+        )
         self.pB_stop_meas.setText(_translate("MainWindow", "Stop"))
         self.pB_stop_meas.setShortcut(_translate("MainWindow", "Esc"))
         self.chB_load_after_meas.setText(_translate("MainWindow", "load after meas"))
-        self.toolBox.setItemText(self.toolBox.indexOf(self.Acquisition), _translate("MainWindow", "Acquisition"))
-        self.pB_export_meas_csv.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
-        self.pB_export_meas_csv.setText(_translate("MainWindow", "Export measurements to CSV"))
+        self.toolBox.setItemText(
+            self.toolBox.indexOf(self.Acquisition),
+            _translate("MainWindow", "Acquisition"),
+        )
+        self.pB_export_meas_csv.setStatusTip(
+            _translate("MainWindow", "Load measurements from a selected directory")
+        )
+        self.pB_export_meas_csv.setText(
+            _translate("MainWindow", "Export measurements to CSV")
+        )
         self.sB_replay_time.setSuffix(_translate("MainWindow", " s"))
-        self.pB_load_ref_dataset.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
-        self.pB_load_ref_dataset.setText(_translate("MainWindow", "Load reference dataset"))
-        self.pB_replay_begin.setStatusTip(_translate("MainWindow", "First frame (Pos1)"))
+        self.pB_load_ref_dataset.setStatusTip(
+            _translate("MainWindow", "Load measurements from a selected directory")
+        )
+        self.pB_load_ref_dataset.setText(
+            _translate("MainWindow", "Load reference dataset")
+        )
+        self.pB_replay_begin.setStatusTip(
+            _translate("MainWindow", "First frame (Pos1)")
+        )
         self.pB_replay_begin.setShortcut(_translate("MainWindow", "Home"))
         self.pB_replay_back.setStatusTip(_translate("MainWindow", "Previous frame"))
         self.pB_replay_back.setShortcut(_translate("MainWindow", "Ctrl+Space"))
-        self.pB_replay_play.setStatusTip(_translate("MainWindow", "Start Replay of measurements (Ctrl +Space)"))
+        self.pB_replay_play.setStatusTip(
+            _translate("MainWindow", "Start Replay of measurements (Ctrl +Space)")
+        )
         self.pB_replay_play.setShortcut(_translate("MainWindow", "Ctrl+Space"))
         self.pB_replay_next.setStatusTip(_translate("MainWindow", "Next frame"))
         self.pB_replay_next.setShortcut(_translate("MainWindow", "Ctrl+Space"))
         self.pB_replay_end.setStatusTip(_translate("MainWindow", "Last frame (End)"))
         self.pB_replay_end.setShortcut(_translate("MainWindow", "End"))
-        self.pB_replay_stop.setStatusTip(_translate("MainWindow", "Display last meas. frame (End)"))
+        self.pB_replay_stop.setStatusTip(
+            _translate("MainWindow", "Display last meas. frame (End)")
+        )
         self.pB_replay_stop.setShortcut(_translate("MainWindow", "End"))
         self.lab_replay_time.setText(_translate("MainWindow", "Refresh time"))
-        self.tE_load_dataset_dir.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">default_</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">loading_</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">dirpath</p></body></html>"))
+        self.tE_load_dataset_dir.setHtml(
+            _translate(
+                "MainWindow",
+                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
+                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
+                "p, li { white-space: pre-wrap; }\n"
+                "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">default_</p>\n'
+                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">loading_</p>\n'
+                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">dirpath</p></body></html>',
+            )
+        )
         self.lab_replay_status.setText(_translate("MainWindow", "Replay status"))
         self.lab_current_frame_indx.setText(_translate("MainWindow", "Current frame #"))
-        self.pB_load_meas_dataset.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
+        self.pB_load_meas_dataset.setStatusTip(
+            _translate("MainWindow", "Load measurements from a selected directory")
+        )
         self.pB_load_meas_dataset.setText(_translate("MainWindow", "Load measurements"))
-        self.toolBox.setItemText(self.toolBox.indexOf(self.Replay), _translate("MainWindow", "Replay"))
-        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_measurements), _translate("MainWindow", "Measurements"))
+        self.toolBox.setItemText(
+            self.toolBox.indexOf(self.Replay), _translate("MainWindow", "Replay")
+        )
+        self.tabW_settings.setTabText(
+            self.tabW_settings.indexOf(self.tab_measurements),
+            _translate("MainWindow", "Measurements"),
+        )
         self.label_vmax_7.setText(_translate("MainWindow", "p"))
         self.label_vmax_8.setText(_translate("MainWindow", "lamda"))
         self.label_vmax_9.setText(_translate("MainWindow", "n"))
@@ -942,32 +1143,63 @@ class Ui_MainWindow(object):
         self.label_FEMRefinement_2.setText(_translate("MainWindow", "BackGround"))
         self.lab_solver.setText(_translate("MainWindow", "Solver"))
         self.normalize.setText(_translate("MainWindow", "Normalize"))
-        self.tabW_reconstruction.setTabText(self.tabW_reconstruction.indexOf(self.tab_pyeit), _translate("MainWindow", "PyEIT"))
-        self.lE_load_model_dir.setText(_translate("MainWindow", "default_loading_dirpath"))
-        self.tabW_reconstruction.setTabText(self.tabW_reconstruction.indexOf(self.tab_nn), _translate("MainWindow", "NN"))
-        self.pB_set_reconstruction.setStatusTip(_translate("MainWindow", "Set the reconstruction"))
-        self.pB_set_reconstruction.setText(_translate("MainWindow", "Set reconstruction"))
+        self.tabW_reconstruction.setTabText(
+            self.tabW_reconstruction.indexOf(self.tab_pyeit),
+            _translate("MainWindow", "PyEIT"),
+        )
+        self.lE_load_model_dir.setText(
+            _translate("MainWindow", "default_loading_dirpath")
+        )
+        self.tabW_reconstruction.setTabText(
+            self.tabW_reconstruction.indexOf(self.tab_nn),
+            _translate("MainWindow", "NN"),
+        )
+        self.pB_set_reconstruction.setStatusTip(
+            _translate("MainWindow", "Set the reconstruction")
+        )
+        self.pB_set_reconstruction.setText(
+            _translate("MainWindow", "Set reconstruction")
+        )
         self.lab_log_level.setText(_translate("MainWindow", "log level"))
-        self.cB_log_level.setStatusTip(_translate("MainWindow", "Available serial port list"))
+        self.cB_log_level.setStatusTip(
+            _translate("MainWindow", "Available serial port list")
+        )
         self.lab_eit_mdl_ctlg.setText(_translate("MainWindow", "ei_model catalog"))
-        self.pB_refresh_eit_mdl_ctlg.setStatusTip(_translate("MainWindow", "reload the catalog "))
-        self.pB_refresh_eit_mdl_ctlg.setText(_translate("MainWindow", "Refresh catalogue"))
-        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_eit_model), _translate("MainWindow", "EIT:_model"))
+        self.pB_refresh_eit_mdl_ctlg.setStatusTip(
+            _translate("MainWindow", "reload the catalog ")
+        )
+        self.pB_refresh_eit_mdl_ctlg.setText(
+            _translate("MainWindow", "Refresh catalogue")
+        )
+        self.tabW_settings.setTabText(
+            self.tabW_settings.indexOf(self.tab_eit_model),
+            _translate("MainWindow", "EIT:_model"),
+        )
         self.groupBox_7.setTitle(_translate("MainWindow", "Video"))
         self.video_frame.setText(_translate("MainWindow", "Live Video"))
-        self.cB_video_devices.setStatusTip(_translate("MainWindow", "Available serial port list"))
+        self.cB_video_devices.setStatusTip(
+            _translate("MainWindow", "Available serial port list")
+        )
         self.pB_capture_connect.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_connect.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
+        self.pB_capture_connect.setStatusTip(
+            _translate("MainWindow", "Refresh the available serial port list")
+        )
         self.pB_capture_connect.setText(_translate("MainWindow", "Connect"))
         self.pB_capture_refresh.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_refresh.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
+        self.pB_capture_refresh.setStatusTip(
+            _translate("MainWindow", "Refresh the available serial port list")
+        )
         self.pB_capture_refresh.setText(_translate("MainWindow", "Refresh"))
         self.lab_capture_mode.setText(_translate("MainWindow", "Meas status"))
         self.pB_capture_start_stop.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_start_stop.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
+        self.pB_capture_start_stop.setStatusTip(
+            _translate("MainWindow", "Refresh the available serial port list")
+        )
         self.pB_capture_start_stop.setText(_translate("MainWindow", "Start capture"))
         self.pB_capture_snapshot.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_snapshot.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
+        self.pB_capture_snapshot.setStatusTip(
+            _translate("MainWindow", "Refresh the available serial port list")
+        )
         self.pB_capture_snapshot.setText(_translate("MainWindow", "Snapshot"))
         self.video_frame_miniature.setText(_translate("MainWindow", "Live Video"))
         self.pB_somahey.setText(_translate("MainWindow", "PushButton"))
@@ -979,36 +1211,61 @@ class Ui_MainWindow(object):
         self.chB_diff.setText(_translate("MainWindow", "Difference"))
         self.chB_Uplot.setText(_translate("MainWindow", "Uplot"))
         self.chB_y_log.setText(_translate("MainWindow", "y log"))
-        self.tabW_rec.setTabText(self.tabW_rec.indexOf(self.tab_meas_voltages), _translate("MainWindow", "Reconstruction data"))
+        self.tabW_rec.setTabText(
+            self.tabW_rec.indexOf(self.tab_meas_voltages),
+            _translate("MainWindow", "Reconstruction data"),
+        )
         self.chB_abs_ch_vol.setText(_translate("MainWindow", "Show absolute values"))
-        self.tabW_rec.setTabText(self.tabW_rec.indexOf(self.tab), _translate("MainWindow", "Measured values graph"))
+        self.tabW_rec.setTabText(
+            self.tabW_rec.indexOf(self.tab),
+            _translate("MainWindow", "Measured values graph"),
+        )
         item = self.tableWidgetvoltages_Z.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Ch1"))
         item = self.tableWidgetvoltages_Z.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Ch2"))
-        self.tabW_values.setTabText(self.tabW_values.indexOf(self.tab_Z), _translate("MainWindow", "Z"))
+        self.tabW_values.setTabText(
+            self.tabW_values.indexOf(self.tab_Z), _translate("MainWindow", "Z")
+        )
         item = self.tableWidgetvoltages_Z_real.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Ch1"))
         item = self.tableWidgetvoltages_Z_real.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Ch2"))
-        self.tabW_values.setTabText(self.tabW_values.indexOf(self.tab_real), _translate("MainWindow", "Real"))
+        self.tabW_values.setTabText(
+            self.tabW_values.indexOf(self.tab_real), _translate("MainWindow", "Real")
+        )
         item = self.tableWidgetvoltages_Z_imag.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Ch1"))
         item = self.tableWidgetvoltages_Z_imag.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Ch2"))
-        self.tabW_values.setTabText(self.tabW_values.indexOf(self.tab_imag), _translate("MainWindow", "Imag"))
-        self.tabW_values.setTabText(self.tabW_values.indexOf(self.tab_phase), _translate("MainWindow", "Phase"))
-        self.tabW_values.setTabText(self.tabW_values.indexOf(self.tab_magnitude), _translate("MainWindow", "Magnitude"))
-        self.tabW_rec.setTabText(self.tabW_rec.indexOf(self.tab_values), _translate("MainWindow", "Measured values tabs"))
-        self.tabW_rec.setTabText(self.tabW_rec.indexOf(self.tab_2), _translate("MainWindow", "Monitoring"))
+        self.tabW_values.setTabText(
+            self.tabW_values.indexOf(self.tab_imag), _translate("MainWindow", "Imag")
+        )
+        self.tabW_values.setTabText(
+            self.tabW_values.indexOf(self.tab_phase), _translate("MainWindow", "Phase")
+        )
+        self.tabW_values.setTabText(
+            self.tabW_values.indexOf(self.tab_magnitude),
+            _translate("MainWindow", "Magnitude"),
+        )
+        self.tabW_rec.setTabText(
+            self.tabW_rec.indexOf(self.tab_values),
+            _translate("MainWindow", "Measured values tabs"),
+        )
+        self.tabW_rec.setTabText(
+            self.tabW_rec.indexOf(self.tab_2), _translate("MainWindow", "Monitoring")
+        )
         self.pB_compute.setStatusTip(_translate("MainWindow", "Stop measurement (Esc)"))
         self.pB_compute.setText(_translate("MainWindow", "Compute"))
         self.pB_compute.setShortcut(_translate("MainWindow", "Esc"))
+
+
 import resource_rc
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

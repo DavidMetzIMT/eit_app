@@ -13,24 +13,25 @@ from eit_app.com_channels import Data2Plot, SignalReciever
 
 logger = getLogger(__name__)
 
+
 class CustomLayout(ABC):
     """descripe a sort of plot"""
 
-    allowed_data_type:tuple=()
-    plotter:eit_model.plot.EITCustomPlots=None
+    allowed_data_type: tuple = ()
+    plotter: eit_model.plot.EITCustomPlots = None
 
     def __init__(self) -> None:
         super().__init__()
-        self.allowed_data_type=()
-        self._post_init_()  
+        self.allowed_data_type = ()
+        self._post_init_()
 
     @abstractmethod
     def _post_init_(self):
         """Custom initialization"""
-        # self.allowed_data_type=()    
+        # self.allowed_data_type=()
         # self.plotter=eit_model.plot.EITImage2DPlot()
 
-    def build(self, fig:Figure, data:Data2Plot):
+    def build(self, fig: Figure, data: Data2Plot):
         """Plot"""
         if not isinstance(fig, Figure):
             return
@@ -38,13 +39,14 @@ class CustomLayout(ABC):
         if not isinstance(data.data, self.allowed_data_type):
             return
 
-        fig.clear() # clear figure 
+        fig.clear()  # clear figure
 
         self._build(fig, data.data, data.labels)
-        
+
     @abstractmethod
-    def _build(self, fig:Figure, data:Any, labels:dict):
+    def _build(self, fig: Figure, data: Any, labels: dict):
         """Plot"""
+
 
 class LayoutEITImage2D(CustomLayout):
     """_summary_
@@ -52,17 +54,19 @@ class LayoutEITImage2D(CustomLayout):
     Args:
         CustomPlots (_type_): _description_
     """
+
     def _post_init_(self):
         """Custom initialization"""
-        self.allowed_data_type=(eit_model.data.EITImage)
-        self.plotter=eit_model.plot.EITImage2DPlot()
+        self.allowed_data_type = eit_model.data.EITImage
+        self.plotter = eit_model.plot.EITImage2DPlot()
 
     # @abstractmethod
-    def _build(self, fig:Figure, data:Any, labels:dict):
+    def _build(self, fig: Figure, data: Any, labels: dict):
 
         ax = fig.add_subplot(1, 1, 1)
         lab = labels.get(self.plotter.type)
         fig, ax = self.plotter.plot(fig, ax, data, lab)
+
 
 class LayoutEITData(CustomLayout):
     """_summary_
@@ -73,14 +77,11 @@ class LayoutEITData(CustomLayout):
 
     def _post_init_(self):
         """Custom initialization"""
-        self.allowed_data_type=(eit_model.data.EITData)
-        self.plotter=[
-            eit_model.plot.EITUPlot(),
-            eit_model.plot.EITUPlotDiff()
-        ]
+        self.allowed_data_type = eit_model.data.EITData
+        self.plotter = [eit_model.plot.EITUPlot(), eit_model.plot.EITUPlotDiff()]
 
     # @abstractmethod
-    def _build(self, fig:Figure, data:Any, labels:dict):
+    def _build(self, fig: Figure, data: Any, labels: dict):
 
         ax = [fig.add_subplot(2, 1, 1), fig.add_subplot(2, 1, 2)]
 
@@ -103,18 +104,17 @@ class LayoutEITChannelVoltage(CustomLayout):
 
     def _post_init_(self):
         """Custom initialization"""
-        self.allowed_data_type=(eit_model.data.EITData)
-        self.plotter=[
-            eit_model.plot.EITUPlot()
-        ]
+        self.allowed_data_type = eit_model.data.EITData
+        self.plotter = [eit_model.plot.EITUPlot()]
 
     # @abstractmethod
-    def _build(self, fig:Figure, data:Any, labels:dict):
+    def _build(self, fig: Figure, data: Any, labels: dict):
 
         ax = fig.add_subplot(1, 1, 1)
         lab = labels.get(self.plotter[0].type)
         fig, ax = self.plotter[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
+
 
 class LayoutChannelVoltageMonitoring(CustomLayout):
     """_summary_
@@ -125,48 +125,50 @@ class LayoutChannelVoltageMonitoring(CustomLayout):
 
     def _post_init_(self):
         """Custom initialization"""
-        self.allowed_data_type=(eit_model.data.EITMeasMonitoring)
-        self.plotter=[
-            eit_model.plot.MeasErrorPlot()
-        ]
+        self.allowed_data_type = eit_model.data.EITMeasMonitoring
+        self.plotter = [eit_model.plot.MeasErrorPlot()]
 
     # @abstractmethod
-    def _build(self, fig:Figure, data:Any, labels:dict):
+    def _build(self, fig: Figure, data: Any, labels: dict):
 
         ax = fig.add_subplot(1, 1, 1)
         lab = labels.get(self.plotter[0].type)
         fig, ax = self.plotter[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
-    
+
 
 class CanvasLayout(object):
 
-    figure=None
-    canvas=None
-    toolbar=None
+    figure = None
+    canvas = None
+    toolbar = None
 
-    layout_type:CustomLayout=None
+    layout_type: CustomLayout = None
 
-    visible:bool=True
+    visible: bool = True
 
-    def __init__(self, app, layout:PyQt5.QtWidgets.QVBoxLayout,layout_type:CustomLayout) -> None:
+    def __init__(
+        self, app, layout: PyQt5.QtWidgets.QVBoxLayout, layout_type: CustomLayout
+    ) -> None:
 
         if not isinstance(layout, PyQt5.QtWidgets.QVBoxLayout):
             raise TypeError("wrong layout type")
 
         if not issubclass(layout_type, CustomLayout):
             raise TypeError(f"wrong plot type {layout_type}")
-        
+
         self.figure = matplotlib.pyplot.figure()
         self.canvas = matplotlib.backends.backend_qt5agg.FigureCanvasQTAgg(self.figure)
-        self.toolbar = matplotlib.backends.backend_qt5agg.NavigationToolbar2QT(self.canvas, app)
+        self.toolbar = matplotlib.backends.backend_qt5agg.NavigationToolbar2QT(
+            self.canvas, app
+        )
         layout.addWidget(self.toolbar)
         layout.addWidget(self.canvas)
 
-        self.layout_type= layout_type()
+        self.layout_type = layout_type()
 
-    def set_visible(self,visible:bool=True):
-        self.visible=visible
+    def set_visible(self, visible: bool = True):
+        self.visible = visible
         if not self.visible:
             self.clear_canvas()
 
@@ -174,36 +176,35 @@ class CanvasLayout(object):
         self.figure.clear()
         self.canvas.draw()
 
-    def plot(self, data:Data2Plot):
+    def plot(self, data: Data2Plot):
 
         if not self.visible:
             self.clear_canvas()
             return
 
-        self.layout_type.build(self.figure,data)
+        self.layout_type.build(self.figure, data)
         self.canvas.draw()
+
 
 class PlottingAgent(SignalReciever):
 
-    canvaslayout:list[CanvasLayout]
+    canvaslayout: list[CanvasLayout]
 
     def __init__(self):
         """Constructor"""
         super().__init__()
-        self.init_reciever(
-            data_callbacks={Data2Plot:self.add_data2plot}
-        )
+        self.init_reciever(data_callbacks={Data2Plot: self.add_data2plot})
         self.input_buf = Queue()
         self.worker = Poller(
             name="plot", pollfunc=self.poll_input_buffer, sleeptime=0.01
         )
         self.worker.start()
         self.worker.start_polling()
-        self.canvaslayout=[]
+        self.canvaslayout = []
 
-    def add_layouts(self, canvaslayout:CanvasLayout):
+    def add_layouts(self, canvaslayout: CanvasLayout):
         self.canvaslayout.append(canvaslayout)
-    
+
     def add_data2plot(self, data, **kwargs):
         self.input_buf.put(data)
 
@@ -218,7 +219,7 @@ class PlottingAgent(SignalReciever):
         data = self.input_buf.get(block=True)
 
         self.process(data)
-    
+
     def process(self, data):
         """"""
         if not isinstance(data, Data2Plot):

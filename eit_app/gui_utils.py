@@ -15,7 +15,6 @@ def set_comboBox_items(
     block: bool = True,
 ) -> None:
 
-
     comboBox.blockSignals(block)
 
     if reset_box:
@@ -28,18 +27,17 @@ def set_comboBox_items(
             comboBox.addItem(str(items[0]))
         else:
             comboBox.addItems([str(item) for item in items])
-        
+
     set_comboBox_index(comboBox, init_index)
 
     comboBox.blockSignals(False)
-    
+
 
 def set_comboBox_index(
     comboBox: QComboBox,
     index: int = 0,
     block: bool = True,
 ) -> None:
-
 
     comboBox.blockSignals(block)
 
@@ -49,7 +47,6 @@ def set_comboBox_index(
         comboBox.setCurrentIndex(comboBox.count() - 1)  # last item
 
     comboBox.blockSignals(False)
-
 
 
 def set_QTableWidget(
@@ -81,31 +78,32 @@ def set_QTableWidget(
         tableWidget.clearContents()
 
 
-
-
-def set_QSlider_scale(slider:QSlider, nb_pos:int=10)->None:
+def set_QSlider_scale(slider: QSlider, nb_pos: int = 10) -> None:
     """Set scale of Qslider
 
     Args:
         slider (QSlider): slider object to set
         nb_pos (int, optional): number of position on the scale. Defaults to 10.
     """
-    if nb_pos is not None and nb_pos > 0:  # change axis of slider only when the max change!
-        slider.setMaximum(nb_pos-1)
+    if (
+        nb_pos is not None and nb_pos > 0
+    ):  # change axis of slider only when the max change!
+        slider.setMaximum(nb_pos - 1)
         slider.setMinimum(0)
         slider.setSingleStep(1)
         slider.setPageStep(1)
 
-def set_QSlider_position(slider: QSlider, pos:int=0):
+
+def set_QSlider_position(slider: QSlider, pos: int = 0):
     """Place the cursor as the passed position
 
     Args:
         slider (QSlider): slider object to set
-        pos (int, optional): position to set. Defaults to `0`. 
+        pos (int, optional): position to set. Defaults to `0`.
         If pos is `-1` the slider will be set to the end
         Pos has to be btw -1 >= pos >= slidermax, otherwise nothing will be done!
     """
-    max_slider=slider.maximum()
+    max_slider = slider.maximum()
     if pos.__lt__(-1) or pos.__gt__(max_slider):
         logger.error(f"Slider positionshould be between -1 and {max_slider}")
         return
@@ -114,20 +112,21 @@ def set_QSlider_position(slider: QSlider, pos:int=0):
     else:
         slider.setSliderPosition(pos)
 
-def inc_QSlider_position(slider: QSlider, forward:bool=True, loop:bool=True):
+
+def inc_QSlider_position(slider: QSlider, forward: bool = True, loop: bool = True):
     """Increment the position of the cursor
 
     Args:
         slider (QSlider): slider object to set
-        set_pos (int, optional): position. Defaults to `0`. 
+        set_pos (int, optional): position. Defaults to `0`.
         If set to `-1` the slider will be set to the end
     """
-    inc= {True:1, False:-1}
-    pos= slider.sliderPosition()
-    max_slider=slider.maximum()
-    nb_pos= max_slider+1
+    inc = {True: 1, False: -1}
+    pos = slider.sliderPosition()
+    max_slider = slider.maximum()
+    nb_pos = max_slider + 1
 
-    pos= pos + inc[forward]
+    pos = pos + inc[forward]
     pos = pos % nb_pos if loop else pos
 
     if pos.__lt__(-1):
