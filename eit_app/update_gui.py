@@ -19,7 +19,7 @@ from PyQt5 import QtGui
 
 from eit_app.gui import Ui_MainWindow
 from eit_app.gui_utils import (
-    change_value_withblockSignal,
+    block_signals,
     set_QSlider_position,
     set_comboBox_index,
     set_comboBox_items,
@@ -234,18 +234,18 @@ def update_device_setup(
     app.chB_time_stamp.setChecked(bool(setup.output_config.get_time_stamp()))
 
     # Update Measurement Setups
-    change_value_withblockSignal(app.sBd_frame_rate.setValue, setup.get_frame_rate())
-    change_value_withblockSignal(
+    block_signals(app.sBd_frame_rate.setValue, setup.get_frame_rate())
+    block_signals(
         app.sBd_max_frame_rate.setValue, setup.get_max_frame_rate()
     )
-    change_value_withblockSignal(app.sB_burst.setValue, setup.get_burst())
-    change_value_withblockSignal(
+    block_signals(app.sB_burst.setValue, setup.get_burst())
+    block_signals(
         app.sBd_exc_amp.setValue, setup.get_exc_amp() * 1000
     )  # from A -> mA
-    change_value_withblockSignal(app.sBd_freq_min.setValue, setup.get_freq_min())
-    change_value_withblockSignal(app.sBd_freq_max.setValue, setup.get_freq_max())
-    change_value_withblockSignal(app.sB_freq_steps.setValue, setup.get_freq_steps())
-    change_value_withblockSignal(app.cB_scale.setCurrentText, setup.get_freq_scale())
+    block_signals(app.sBd_freq_min.setValue, setup.get_freq_min())
+    block_signals(app.sBd_freq_max.setValue, setup.get_freq_max())
+    block_signals(app.sB_freq_steps.setValue, setup.get_freq_steps())
+    block_signals(app.cB_scale.setCurrentText, setup.get_freq_scale())
 
     app.sBd_freq_max.setEnabled(set_freq_max_enable)
     color = "background-color: red" if error else "background-color: white"

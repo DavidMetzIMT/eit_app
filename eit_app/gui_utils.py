@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass
 from typing import Any, Callable, List
 from PyQt5.QtWidgets import QComboBox, QTableWidgetItem, QTableWidget, QSlider
@@ -14,6 +15,18 @@ def set_comboBox_items(
     init_index: int = 0,
     block: bool = True,
 ) -> None:
+    """Set items of a comboBox
+
+    Args:
+        comboBox (QComboBox):comboBox to set
+        items (list[Any], optional): new items list to set if reste_box is 
+        `True`, otherwsie the list will be append to the existing one.
+        Defaults to None.
+        reset_box (bool, optional): clear the list of items before adding new items. Defaults to True.
+        init_index (int, optional): set default item index . Defaults to 0.
+        block (bool, optional): block signal emitted (e.g. activated, ...)
+        from the comboBox during new setting. Defaults to `True`.
+    """
 
     comboBox.blockSignals(block)
 
@@ -33,11 +46,15 @@ def set_comboBox_items(
     comboBox.blockSignals(False)
 
 
-def set_comboBox_index(
-    comboBox: QComboBox,
-    index: int = 0,
-    block: bool = True,
-) -> None:
+def set_comboBox_index(comboBox: QComboBox, index: int = 0, block: bool = True) -> None:
+    """Set the actual item index of a comboBox/DropdownMenu
+
+    Args:
+        comboBox (QComboBox): comboBox to set
+        index (int, optional): item index val to set. Defaults to 0.
+        block (bool, optional): block signal emitted (e.g. activated, ...)
+        from the comboBox during new setting. Defaults to `True`.
+    """
 
     comboBox.blockSignals(block)
 
@@ -49,33 +66,31 @@ def set_comboBox_index(
     comboBox.blockSignals(False)
 
 
-def set_QTableWidget(
-    tableWidget: QTableWidget, list2display: List[List[float]], decimal=4
-):
-    """_summary_
+def set_QTableWidget(table: QTableWidget, val: list[list[float]], decimal=4) -> None:
+    """Set a table with float values
 
     Args:
-        tableWidget (QTableWidget): _description_
-        list2display (List[List[float]]): _description_
-        decimal (int, optional): _description_. Defaults to 4.
+        tableWidget (QTableWidget): table to set
+        val (list[list[float]]): values / matrix
+        decimal (int, optional): number of decimal digit to display.
+        Defaults to 4.
     """
 
-    list2display = np.array(list2display)
-    if np.prod(list2display.shape) > 1:
-        numrows = len(list2display)  # 6 rows in your example
-        numcols = len(list2display[0])  # 3 columns in your example
-        tableWidget.setColumnCount(numcols)  # Set colums and rows in QTableWidget
-        tableWidget.setRowCount(numrows)
-        for row in range(numrows):  # Loops to add values into QTableWidget
-            for column in range(numcols):
-                val = f"{list2display[row][column]:.{decimal}f}"
-                tableWidget.setItem(
-                    row,
-                    column,
-                    QTableWidgetItem(val),
-                )
+    val = np.array(val)
+    if np.prod(val.shape) > 1:
+        numrows = len(val)  # 6 rows in your example
+        numcols = len(val[0])  # 3 columns in your example
+        table.setColumnCount(numcols)  # Set colums and rows in QTableWidget
+        table.setRowCount(numrows)
+        for row, column in itertools.product(range(numrows), range(numcols)):
+            val = f"{val[row][column]:.{decimal}f}"
+            table.setItem(
+                row,
+                column,
+                QTableWidgetItem(val),
+            )
     else:
-        tableWidget.clearContents()
+        table.clearContents()
 
 
 def set_QSlider_scale(slider: QSlider, nb_pos: int = 10) -> None:
@@ -113,39 +128,41 @@ def set_QSlider_position(slider: QSlider, pos: int = 0):
         slider.setSliderPosition(pos)
 
 
-def inc_QSlider_position(slider: QSlider, forward: bool = True, loop: bool = True):
-    """Increment the position of the cursor
+# def inc_QSlider_position(slider: QSlider, forward: bool = True, loop: bool = True):
+#     """Increment the position of the cursor
+
+#     Args:
+#         slider (QSlider): slider object to set
+#         set_pos (int, optional): position. Defaults to `0`.
+#         If set to `-1` the slider will be set to the end
+#     """
+#     inc = {True: 1, False: -1}
+#     pos = slider.sliderPosition()
+#     max_slider = slider.maximum()
+#     nb_pos = max_slider + 1
+
+#     pos = pos + inc[forward]
+#     pos = pos % nb_pos if loop else pos
+
+#     if pos.__lt__(-1):
+#         pos = 0
+#     if pos.__gt__(max_slider):
+#         pos = max_slider
+
+#     set_QSlider_position(slider, pos)
+
+
+def block_signals(method: Callable, *args, **kwargs):
+    """Allow block signals emitted by an QtObject during execution of one 
+    of its method
 
     Args:
-        slider (QSlider): slider object to set
-        set_pos (int, optional): position. Defaults to `0`.
-        If set to `-1` the slider will be set to the end
+        method (Callable): Method to run
     """
-    inc = {True: 1, False: -1}
-    pos = slider.sliderPosition()
-    max_slider = slider.maximum()
-    nb_pos = max_slider + 1
-
-    pos = pos + inc[forward]
-    pos = pos % nb_pos if loop else pos
-
-    if pos.__lt__(-1):
-        pos = 0
-    if pos.__gt__(max_slider):
-        pos = max_slider
-
-    set_QSlider_position(slider, pos)
-
-
-def change_value_withblockSignal(method: Callable, val):
     obj = method.__self__
     obj.blockSignals(True)
-    method(val)
+    method(*args, **kwargs)
     obj.blockSignals(False)
-
-
-def set_multi_cB_same(cB_list, items: List[Any]):
-    [set_comboBox_items(cB, items) for cB in cB_list]
 
 
 if __name__ == "__main__":
