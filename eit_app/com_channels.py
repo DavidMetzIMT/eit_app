@@ -1,4 +1,49 @@
-from abc import ABC
+
+""" For the communication between Objects(gui inclusive) Signal and 
+SignalDataClasses are defined to pass data for specific tasks 
+(update, action to do,...)
+
+Each Object to which a signal is send, need to treat it. The class 
+"SignalReciever" is intende to be use as Parent class fro thos Objects.
+It allows objects to automatically threat the data recieved. 
+
+example of Use is
+
+if main.py
+
+    obj1= Obj1Class()
+    obj2= Obj2Class()
+
+    obj1.to_obj2.connect(obj2.to_reciever)
+
+in object1.py
+
+class Obj1Class(AddSignalToObj2)
+    ...
+    def foo(self):
+        ...
+        self.to_obj2.emit(Data2Obj2(val1, val2))
+
+in object2.py
+
+class Obj2Class(SignalReciever)
+    ...
+    def __init__(self):
+        ...
+        self.init_reciever(
+            data_callback= {
+                Data2Obj2: self.do_something
+            }
+        )
+
+    def do_something(self, data:Data2Obj2)
+        ....
+
+
+"""
+
+
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from queue import Queue
 from typing import Any, Callable, Union
@@ -18,41 +63,38 @@ class SignalDataClass(ABC):
 ################################################################################
 # To plot Signal
 ################################################################################
+
 @dataclass
 class Data2Plot:
     data: Any = None
     labels: dict = field(default_factory=lambda: {})
     destination: Any = None
 
-
 class AddToPlotSignal(object):
-    to_plot: Signal  # use to transmit new rx_meas_stream or cmd to dataset.
+    to_plot: Signal
 
     def __init__(self):
         super().__init__()
         self.to_plot = Signal(self)
 
-
 ################################################################################
 # To plot Signal
 ################################################################################
+
 @dataclass
 class DataReplayStart:
     nb_frame: int
 
-
 class AddToReplaySignal(object):
-    to_replay: Signal  # use to transmit new rx_meas_stream or cmd to dataset.
+    to_replay: Signal 
 
     def __init__(self):
         super().__init__()
         self.to_replay = Signal(self)
 
-
 ################################################################################
 # To Computation Signal
 ################################################################################
-
 
 @dataclass
 class Data2Compute:
@@ -62,90 +104,95 @@ class Data2Compute:
 
 
 class AddToComputationSignal(object):
-    to_computation: Signal  # use to transmit new rx_meas_stream or cmd to dataset.
+    to_computation: Signal 
 
     def __init__(self):
         super().__init__()
         self.to_computation = Signal(self)
 
-
 ################################################################################
 # To Dataset Channel
 ################################################################################
+
 @dataclass
 class DataInit4Start:
     dev_setup: SciospecSetup
-
 
 @dataclass
 class DataReInit4Pause:
     """"""
 
-
 @dataclass
 class DataAddRxMeasStream:
     rx_meas_stream: list[bytes]
-
 
 @dataclass
 class DataEmitFrame4Computation:
     idx: int
 
-
 class AddToDatasetSignal(object):
-    to_dataset: Signal  # use to transmit new rx_meas_stream or cmd to dataset.
+    to_dataset: Signal 
 
     def __init__(self):
         super().__init__()
         self.to_dataset = Signal(self)
 
-
 ################################################################################
 # To Capture Channel
 ################################################################################
+
 @dataclass
 class DataSaveLoadImage:
     frame_path: str
-
 
 @dataclass
 class DataSetStatusWMeas:
     meas_status_dev: bool
 
-
 @dataclass
 class DataSetStatusWReplay:
     replay_status: bool
 
-
 class AddToCaptureSignal(object):
-    to_capture: Signal  # use to transmit new rx_meas_stream or cmd to dataset.
+    to_capture: Signal  
 
     def __init__(self):
         super().__init__()
         self.to_capture = Signal(self)
 
-
 ################################################################################
 # To Device Channel
 ################################################################################
+
 @dataclass
 class DataLoadSetup:
     dir: str
-
 
 @dataclass
 class DataCheckBurst:
     nb_frame_measured: str
 
-
 class AddToDeviceSignal(object):
-    to_device: Signal  # use to transmit new rx_meas_stream or cmd to dataset.
+    to_device: Signal
 
     def __init__(self):
         super().__init__()
         self.to_device = Signal(self)
 
+################################################################################
+# To gui channel
+################################################################################
+
+class AddToGuiSignal(object):
+    to_gui : Signal
+
+    def __init__(self):
+        super().__init__()
+        self.to_gui = Signal(self)
+
+################################################################################
+# To gui channel
+################################################################################
 
 class SignalRecieverNotInitializated(BaseException):
     """"""
@@ -156,33 +203,79 @@ class SignalReciever(object):
     _data_callbacks = list
 
     def __init__(self) -> None:
+        """Add a Signal reciever functionality which automatically 
+        threat the data recieved. via the definition of callbakc for each data type 
+        """
         super().__init__()
         self._data_callbacks = None
 
     def init_reciever(self, data_callbacks: dict[type, Callable]) -> None:
+        """Define for each recieved data type an assiociated callback func 
+    
+        e.g.:        
+        class Obj2Class(SignalReciever)
+            ...
+            def __init__(self):
+                ...
+                self.init_reciever(
+                    data_callback= {
+                        Data2Obj2: self.do_something
+                    }
+                )
+
+            def do_something(self, data:Data2Obj2)
+                ....
+
+        Args:
+            data_callbacks (dict[type, Callable]): _description_
+        """
         self._data_callbacks = data_callbacks
 
     def to_reciever(self, data: Any = None, **kwargs) -> None:
-        """Consider only data as 1st arg or as kwargs"""
-        self._check_is_init()
-        if (data := self._check_data(data)) is not None:
-            self._reciever_process_data(data)
+        """Connect this method to the corresponding signal.
+        it will only treat data passed as 1. arg or as kwargs (data=Data2Passs)
 
-    def _reciever_process_data(self, data: Any) -> None:
-        """"""
+        e.g.: obj1.to_obj2.connect(obj2.to_reciever)
+
+        Args:
+            data (Any, optional): Data recieved from signal, and to be treated.
+            Defaults to None.
+        """
+        self._check_is_init()
+        self._treat_data(data)
+
+    def _treat_data(self, data: Any) -> None:
+        """Call for the passed data type the assosiated callback, if defined,
+        which will proccess this data
+
+        Args:
+            data (Any): Data recieved 
+        """
+        
+        if not self._callback_exist(data):
+            return
         for cls, func in self._data_callbacks.items():
             if isinstance(data, cls):
                 func(data)
 
-    def _check_data(self, data: Any) -> Union[Any, None]:
+    def _callback_exist(self, data: Any) -> bool:
+        """Asset if for the recieved data type a callback has been 
+        defined in _data_callbacks dict.
 
-        if not any(isinstance(data, cls) for cls in self._data_callbacks):
-            print()
-            return None
+        Args:
+            data (Any): recieved data
 
-        return data
+        Returns:
+            bool: return if a callbakc is available
+        """
+        return any(isinstance(data, cls) for cls in self._data_callbacks)
 
     def _check_is_init(self):
+        """Check if the reciever has been initializated
+
+        Raises:
+            SignalRecieverNotInitializated: raised if not initializated.
+        """
         if self._data_callbacks is None:
             raise SignalRecieverNotInitializated(
                 "Please init the Status of the object before using it"
@@ -190,59 +283,55 @@ class SignalReciever(object):
 
 
 ################################################################################
-# Update gui channel
+# To gui channel
 ################################################################################
 
 
-class AddToGuiSignal(object):
-    """Object contained in a sbcalss of GuiWithUpdateAgent should be sub class
-    of ObjWithSignalToGui by emiting
-
-    note that in the gui the signal should be connected to ""
-    gui.obj.to_gui.connect(gui.update_gui)"""
-
-    def __init__(self):
-        super().__init__()
-        self.to_gui = Signal(self)
-
-
 class AddUpdateAgent(SignalReciever):
-    """Base Class for Gui"""
 
     def __init__(self) -> None:
-        """Start all threads used for the GUI"""
+        """Special SignalReciever for QT-based GUI update purpose.
+        
+        It accepts only data of type "EventDataClass" used for the 
+        update of a the gui. 
+        
+        The data are first safe in a buffer. An internal QThread retrieve the 
+        data out of the buffer and post them in un update agent responsible of
+        updating the gui"""
         super().__init__()
-        self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
-        self._data_for_update = Queue(maxsize=256)  # TODO maybe
+        self.init_reciever(
+            data_callbacks={
+                EventDataClass: self.update_gui
+            }
+        )
+        self._data_buffer = Queue(maxsize=256)  # TODO maybe
         self._update_agent = UpdateAgent(self, UPDATE_EVENTS)
-        # self.processor = Poller(
-        #     name="update_gui",
-        #     pollfunc=self._process_data_for_update,
-        #     sleeptime=0.5,
-        # )
-        # self.processor.start()
-        # self.processor.start_polling()
-
         self._worker = CustomWorker(name="update_gui", sleeptime=0.05)
         self._worker.progress.connect(self._process_data_for_update)
         self._worker.start()
         self._worker.start_polling()
 
     def update_gui(self, data: EventDataClass = None, **kwargs):
-        """Add data to the queue data_for_update in order to update the gui
+        """Add data in input buffer
 
         Args:
-            data (EventDataClass, optional): should be a an EvtDataclass . Defaults to None.
+            data (EventDataClass, optional): data to update gui . Defaults to None.
         """
         if data is not None:
-            # logger.debug('add update_gui_data')
-            self._data_for_update.put(data)
+            self._data_buffer.put(data)
 
     def _process_data_for_update(self) -> None:
-        """Post update event if the queue data_for_update contain some data."""
+        """Retrieve EventDataClass out of the input buffer and post them via 
+        UpdateAgent.
+        """
         # self.handle_meas_status_change() # here for the momenet but optimal
-        if self._data_for_update.empty():
+        if self._data_buffer.empty():
             return
-        data = self._data_for_update.get(block=True)
+        data = self._data_buffer.get(block=True)
         # logger.debug(f'_process_data_for_update Update {data}')
         self._update_agent.post_event_data(data)
+
+
+    
+
+
