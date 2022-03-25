@@ -51,21 +51,9 @@ from serial import (
     PortNotOpenError,
 )  # get from http://pyserial.sourceforge.net/
 from eit_app.sciospec.com_constants import *
-
-# from eit_app.sciospec.hw_interfaces import HWInterface
 from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.thread_process.signal import Signal
 from glob_utils.flags.flag import CustomFlag
-
-
-__author__ = "David Metz"
-__copyright__ = "Copyright (c) 2021"
-__credits__ = ["David Metz", "Jonathan Foote", "Chris Liechti"]
-__license__ = "GPLv3"
-__version__ = "2.0.0"
-__maintainer__ = "David Metz"
-__email__ = "d.metz@tu-bs.de"
-__status__ = "Production"
 
 logger = getLogger(__name__)
 
@@ -119,7 +107,7 @@ class Interface(ABC):
         self.listen()
 
     def listening_activate(self, activate: bool = True):
-
+        """Activate/Deactivate the polling"""
         if activate:
             self.listener.start_polling()
         else:

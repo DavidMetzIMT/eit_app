@@ -86,7 +86,7 @@ class StatusCommunicator(Enum):
     WAIT_FOR_DEVICE = "WAIT_FOR_DEVICE"
 
 
-class SciospecCommunicator:
+class SciospecCommunicator:#TODO >> AddStatus 
     """IOInterface Class provides
     - a sending method of cmd_frame and
     - a processing of the rx_frame
@@ -94,10 +94,6 @@ class SciospecCommunicator:
 
     def __init__(self) -> None:
         """Constructor"""
-        # self.queue_out_video_module = Queue()
-
-        # self.queue_out = data2computation # Queue()
-        # self.send_data4computation_func= send_data4computation_func
         self.rx_frame = Queue(maxsize=256)
         self.processor = Poller(
             name="process_rx_frame",
@@ -106,7 +102,8 @@ class SciospecCommunicator:
         )
         self.processor.start()
         self.processor.start_polling()
-        self.timer_busy = CustomTimer(5.0, 1)  # max 5s timeout!
+        self.timer_busy = CustomTimer(5.0, 1)  # max 5s timeout! #TODO >> Timer?? 
+
         self.cmd_op_hist = BufferList()
         self.resp_hist = BufferList()
 
@@ -118,12 +115,7 @@ class SciospecCommunicator:
         self.process_meas_enabled.clear()
 
     def reinit(self) -> None:
-        self.status = StatusCommunicator.IDLE
-        self.cmd_op_hist.clear()
-        self.resp_hist.clear()
-
-    def _reinit(self) -> None:
-        """init the"""
+        """Reinit the communicator"""
         self.status = StatusCommunicator.IDLE
         self.cmd_op_hist.clear()
         self.resp_hist.clear()
@@ -131,26 +123,19 @@ class SciospecCommunicator:
     def wait_not_busy(self) -> None:
         """Wait until the Communicator get all ack fro all commands send"""
         self.timer_busy.reset()
-        while self._is_waiting():
+        while self.is_waiting():
             logger.debug(
                 f"waiting for device {self.timer_busy.cnt}/{self.timer_busy.max_cnt}"
             )
             if self.timer_busy.increment():
                 logger.error("Waiting device - Timeout")
-                self._reinit()
+                self.reinit()
             sleep(1)
-
-    # def processing_activate(self, activate:bool=True):
-    #     if activate:
-    #         self.processor.start_polling()
-    #     else:
-    #         self.processor.stop_polling()
 
     def processing_meas_enable(self, cmd: SciospecCmd, op: SciospecOption):
         """Activate or deactivate the processing of measuremnet frame"""
         if is_start_meas(cmd, op):
             self.process_meas_enabled.set()
-            # self._hold_listening
         elif is_stop_meas(cmd, op):
             self.process_meas_enabled.clear()
 
@@ -192,10 +177,6 @@ class SciospecCommunicator:
         """Add a recieved frame in the queue to be treated"""
         logger.debug(f"RX_Frame added to process: {rx_frame[:10]}")
         self.rx_frame.put_nowait(rx_frame)
-
-    def empty_buf(self) -> None:
-        while not self.rx_frame.empty():
-            self.rx_frame.get_nowait()
 
     # @catch_error
     def _process_last_rx_frame(self) -> None:
@@ -321,10 +302,12 @@ class SciospecCommunicator:
             self.new_rx_setup_stream.emit(**kwargs)
 
     def _update_status(self):
+        """Change the status to the commands history and c"""
         if self.cmd_op_hist.is_empty():
             self.status = StatusCommunicator.IDLE
 
-    def _is_waiting(self):
+    def is_waiting(self):
+        """Asset if the comunicator is waiting for the device"""
         return self.status == StatusCommunicator.WAIT_FOR_DEVICE
 
 

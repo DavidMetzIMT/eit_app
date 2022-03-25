@@ -142,17 +142,14 @@ class SciospecEITDevice(
 
     @property
     def is_measuring(self) -> bool:
-        """"""
         return self.is_status(MeasuringStatus.MEASURING)
 
     @property
     def is_paused(self) -> bool:
-        """"""
         return self.is_status(MeasuringStatus.PAUSED)
 
     @property
     def is_idle(self) -> bool:
-        """"""
         return self.is_status(MeasuringStatus.NOT_MEASURING)
 
     ## =========================================================================
@@ -160,6 +157,7 @@ class SciospecEITDevice(
     ## =========================================================================
 
     def to_gui_emit_connect_status(self) -> None:
+
         self.to_gui.emit(
             EvtDataSciospecDevConnected(self.is_connected, self.connect_prompt)
         )
@@ -168,13 +166,14 @@ class SciospecEITDevice(
     ##  Methods for dataset
     ## =========================================================================
     def emit_new_rx_meas_stream(self, **kwargs):
+        """send the new rx measuremenst stream to be added in the dataset"""
         self.to_dataset.emit(DataAddRxMeasStream(kwargs["rx_meas_stream"]))
 
     ## =========================================================================
     ##  methods for interface
     ## =========================================================================
     def _handle_interface_error(self, error, **kwargs):
-        """"""
+        """Manage the error from the interface"""
         if isinstance(error, PortNotOpenError):
             warningMsgBox("None devices available", f"{error.__str__()}")
 
@@ -185,18 +184,20 @@ class SciospecEITDevice(
 
     @property
     def is_connected(self) -> bool:
+        """Return if device is connected"""
         return self.serial_interface.is_connected.is_set()
 
     @property
     def connect_prompt(self) -> bool:
-        return f"{self.device_name} - CONNECTED"
+        """buils the connection prompt of the device"""
+        return f"{self.device_name} - CONNECTED"  if self.is_connected else self.device_name
 
     ## =========================================================================
     ##  Methods on Comunicator
     ## =========================================================================
 
-    def send_communicator(self, cmd: SciospecCmd, op: SciospecOption) -> bool:
-        """"""
+    def send_cmd(self, cmd: SciospecCmd, op: SciospecOption) -> bool:
+        """Send a command option to interface via the communicator"""
         data = self.setup.get_data(cmd, op)
         return self.communicator.send_cmd_frame(self.serial_interface, cmd, op, data)
 
@@ -234,12 +235,12 @@ class SciospecEITDevice(
         def _check_not_measuring(func):
             def wrap(self, *args, **kwargs) -> Union[Any, None]:
 
-                if args:
-                    logger.debug(f"check_not_measuring :{args=}")
-                elif kwargs:
-                    logger.debug(f"check_not_measuring :{kwargs=}")
-                else:
-                    logger.debug("check_not_measuring not args kwargs")
+                # if args:
+                #     logger.debug(f"check_not_measuring :{args=}")
+                # elif kwargs:
+                #     logger.debug(f"check_not_measuring :{kwargs=}")
+                # else:
+                #     logger.debug("check_not_measuring not args kwargs")
 
                 msg = None
                 run_func = False
@@ -251,14 +252,10 @@ class SciospecEITDevice(
                     run_func = True
                 else:
                     msg = "Please stop measurements first"
-
                 if msg:  # show msg only if msg is not empty/None
                     infoMsgBox("Measurements still running!", msg)
-
                 return func(self, *args, **kwargs) if run_func else None
-
             return wrap
-
         return _check_not_measuring
 
     ## =========================================================================
@@ -267,6 +264,7 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def set_device_name(self, name: str = None, *args, **kwargs):
+        """Connect a actual device"""
         if (port := self._get_sciospec_port(name)) is None:
             logger.info(f"Sciospec device: {name} - NOT DETECTED")
         self.device_name = name if port else NONE_DEVICE
@@ -288,14 +286,10 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def connect_device(self, *args, **kwargs) -> bool:
-        """Connect a sciopec device"""
-
-        # (port:= self._get_sciospec_port(device_name))
+        """Connect a actual device"""
         if (port := self._get_sciospec_port(self.device_name)) is None:
             return False
-
         if success := self._connect_interface(port):
-            # self.stop_meas()# in case that the device is still measuring!
             self.get_device_infos()
 
         self.device_name = self.device_name if success else NONE_DEVICE
@@ -305,11 +299,7 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def disconnect_device(self, *args, **kwargs) -> None:
-        """Disconnect device"""
-        # if not self.is_connected:
-        #     logger.debug('already not connected')
-        #     return
-
+        """Disconnect actual device"""
         if success := self._disconnect_interface():
             # Some reinitializsation of internal objects after disconnection
             self.setup.reinit()
@@ -330,7 +320,7 @@ class SciospecEITDevice(
         return self.serial_interface.open(port, baudrate)
 
     def _disconnect_interface(self) -> bool:
-        """ " Disconnect actual interface"""
+        """Disconnect actual interface"""
         return self.serial_interface.close()
 
     def _check_is_sciospec_dev(self, port) -> Union[str, None]:
@@ -347,7 +337,7 @@ class SciospecEITDevice(
         return device_name
 
     def _get_sciospec_port(self, device_name: str) -> Union[str, None]:
-
+        """Asset if a port is defined for device name, and returen it if yes"""
         if not self.sciospec_devices:
             logger.warning("No Sciospec devices - DETECTED")
             warningMsgBox(
@@ -369,14 +359,15 @@ class SciospecEITDevice(
     ## =========================================================================
 
     def start_paused_resume_meas(self, *args, **kwargs) -> bool:
-        """"""
+        """Switcht Measuring mode to assure
+        start, pause and resume functionality"""
         if self.is_status(MeasuringStatus.NOT_MEASURING):
             self.to_dataset.emit(DataInit4Start(self.setup))
-            self.start_meas()
+            self._begin_meas()
         elif self.is_status(MeasuringStatus.MEASURING):
-            self.pause_meas()
+            self._pause_meas()
         elif self.is_status(MeasuringStatus.PAUSED):
-            self.resume_meas()
+            self._resume_meas()
 
     def stop_meas(self, *args, **kwargs) -> None:
         """Stop measurements"""
@@ -390,8 +381,9 @@ class SciospecEITDevice(
     ## -------------------------------------------------------------------------
 
     @check_not_measuring()
-    def start_meas(self) -> bool:  # sourcery skip: class-extract-method
-        """Start measurements"""
+    def _begin_meas(self) -> bool:  # sourcery skip: class-extract-method
+        """Begin measurements 
+        """
         if success := self._start_meas():
             self.set_status(MeasuringStatus.MEASURING)
             self.to_gui.emit(EvtDataNewFrameInfo(""))
@@ -399,15 +391,17 @@ class SciospecEITDevice(
         return success
 
     @check_not_measuring()
-    def resume_meas(self) -> bool:
-        """resume measurements"""
+    def _resume_meas(self) -> bool:
+        """Resume measurements
+        """
         if success := self._start_meas():
             self.set_status(MeasuringStatus.MEASURING)
         logger.info(f"Resume Measurements - {SUCCESS[success]}")
         return success
 
-    def pause_meas(self) -> None:
-        """Pause measurements"""
+    def _pause_meas(self) -> None:
+        """Pause measurements
+        """
         if success := self._stop_meas():
             self.set_status(MeasuringStatus.PAUSED)
             self.to_dataset.emit(DataReInit4Pause())
@@ -415,14 +409,20 @@ class SciospecEITDevice(
         logger.info(f"Pause Measurements - {SUCCESS[success]}")
 
     def _start_meas(self) -> bool:  # sourcery skip: class-extract-method
-        """Start measurements"""
-        success = self.send_communicator(CMD_START_STOP_MEAS, OP_START_MEAS)
+        """Start measuring
+
+        Send cmd to device
+        """
+        success = self.send_cmd(CMD_START_STOP_MEAS, OP_START_MEAS)
         self.communicator.wait_not_busy()
         return success
 
     def _stop_meas(self) -> bool:
-        """Stop measurements"""
-        success = self.send_communicator(CMD_START_STOP_MEAS, OP_STOP_MEAS)
+        """Stop measurements
+
+        Send cmd to device
+        """
+        success = self.send_cmd(CMD_START_STOP_MEAS, OP_STOP_MEAS)
         self.communicator.wait_not_busy()
         return success
 
@@ -432,47 +432,50 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def get_device_infos(self, *args, **kwargs) -> None:
-        """Ask for the serial nummer of the Device"""
-        self.send_communicator(CMD_GET_DEVICE_INFOS, OP_NULL)
+        """Ask for the serial nummer of the Device
+        """
+        self.send_cmd(CMD_GET_DEVICE_INFOS, OP_NULL)
         self.communicator.wait_not_busy()
         self.to_gui.emit(EvtDataSciospecDevSetup(self.setup))
         logger.debug(f"Get Info Device: {self.setup.device_infos.get_sn()}")
 
     @check_not_measuring()
     def set_setup(self, *args, **kwargs) -> None:
-        """Send the setup to the device"""
+        """Send the setup to the device
+        """
         logger.info("Setting device setup - start...")
-        self.send_communicator(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
-        self.send_communicator(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
-        self.send_communicator(CMD_SET_OUTPUT_CONFIG, OP_TIME_STAMP)
-        self.send_communicator(CMD_SET_ETHERNET_CONFIG, OP_DHCP)
-        self.send_communicator(CMD_SET_MEAS_SETUP, OP_RESET_SETUP)
-        self.send_communicator(CMD_SET_MEAS_SETUP, OP_EXC_AMPLITUDE)
-        self.send_communicator(CMD_SET_MEAS_SETUP, OP_BURST_COUNT)
-        self.send_communicator(CMD_SET_MEAS_SETUP, OP_FRAME_RATE)
-        self.send_communicator(CMD_SET_MEAS_SETUP, OP_EXC_FREQUENCIES)
+        self.send_cmd(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
+        self.send_cmd(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
+        self.send_cmd(CMD_SET_OUTPUT_CONFIG, OP_TIME_STAMP)
+        self.send_cmd(CMD_SET_ETHERNET_CONFIG, OP_DHCP)
+        self.send_cmd(CMD_SET_MEAS_SETUP, OP_RESET_SETUP)
+        self.send_cmd(CMD_SET_MEAS_SETUP, OP_EXC_AMPLITUDE)
+        self.send_cmd(CMD_SET_MEAS_SETUP, OP_BURST_COUNT)
+        self.send_cmd(CMD_SET_MEAS_SETUP, OP_FRAME_RATE)
+        self.send_cmd(CMD_SET_MEAS_SETUP, OP_EXC_FREQUENCIES)
         for idx in range(len(self.setup.get_exc_pattern())):
             self.setup.set_exc_pattern_idx(idx)
-            self.send_communicator(CMD_SET_MEAS_SETUP, OP_EXC_PATTERN)
+            self.send_cmd(CMD_SET_MEAS_SETUP, OP_EXC_PATTERN)
         self.communicator.wait_not_busy()
         self.get_setup()
         logger.info("Setting device setup - done")
 
     @check_not_measuring()
     def get_setup(self, *args, **kwargs) -> None:
-        """Get the setup of the device"""
+        """Get the setup of the device
+        """
         logger.info("Getting device setup - start...")
-        self.send_communicator(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
-        self.send_communicator(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)
-        self.send_communicator(CMD_GET_MEAS_SETUP, OP_FRAME_RATE)
-        self.send_communicator(CMD_GET_MEAS_SETUP, OP_EXC_FREQUENCIES)
-        self.send_communicator(CMD_GET_MEAS_SETUP, OP_EXC_PATTERN)
-        self.send_communicator(CMD_GET_OUTPUT_CONFIG, OP_EXC_STAMP)
-        self.send_communicator(CMD_GET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
-        self.send_communicator(CMD_GET_OUTPUT_CONFIG, OP_TIME_STAMP)
-        self.send_communicator(CMD_GET_ETHERNET_CONFIG, OP_IP_ADRESS)
-        self.send_communicator(CMD_GET_ETHERNET_CONFIG, OP_MAC_ADRESS)
-        self.send_communicator(CMD_GET_ETHERNET_CONFIG, OP_DHCP)
+        self.send_cmd(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
+        self.send_cmd(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)
+        self.send_cmd(CMD_GET_MEAS_SETUP, OP_FRAME_RATE)
+        self.send_cmd(CMD_GET_MEAS_SETUP, OP_EXC_FREQUENCIES)
+        self.send_cmd(CMD_GET_MEAS_SETUP, OP_EXC_PATTERN)
+        self.send_cmd(CMD_GET_OUTPUT_CONFIG, OP_EXC_STAMP)
+        self.send_cmd(CMD_GET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
+        self.send_cmd(CMD_GET_OUTPUT_CONFIG, OP_TIME_STAMP)
+        self.send_cmd(CMD_GET_ETHERNET_CONFIG, OP_IP_ADRESS)
+        self.send_cmd(CMD_GET_ETHERNET_CONFIG, OP_MAC_ADRESS)
+        self.send_cmd(CMD_GET_ETHERNET_CONFIG, OP_DHCP)
         self.communicator.wait_not_busy()
         self.to_gui.emit(EvtDataSciospecDevSetup(self.setup))
         logger.info("Getting device setup - done")
@@ -480,9 +483,10 @@ class SciospecEITDevice(
     @check_not_measuring()
     def software_reset(self, *args, **kwargs) -> None:
         """Sofware reset the device
-        Notes: a restart is needed after this method"""
+        Notes: a restart is needed after this method
+        """
         logger.info("Softreset of device - start...")
-        self.send_communicator(CMD_SOFT_RESET, OP_NULL)
+        self.send_cmd(CMD_SOFT_RESET, OP_NULL)
         self.communicator.wait_not_busy()
         sleep(10)
         logger.info("Softreset of device - done")
@@ -490,7 +494,9 @@ class SciospecEITDevice(
 
     def save_setup(self, *args, **kwargs) -> None:
         """Save Setup
-        to set dir use kwargs dir="the/path/to/save"
+
+        to save a setup which in a directory:
+        use kwargs dir="the/dir/path/to/save"
         """
         self.setup.save(**kwargs)
 
@@ -499,7 +505,9 @@ class SciospecEITDevice(
 
     def load_setup(self, *args, **kwargs) -> None:
         """Load Setup
-        to set dir use kwargs dir="the/path/to/load"
+
+        to load a setup which is in a directory:
+        use kwargs dir="the/dir/path/to/load"
         """
         self.setup.load(**kwargs)
         self.to_gui.emit(EvtDataSciospecDevSetup(self.setup))
@@ -530,13 +538,13 @@ if __name__ == "__main__":
     print("*+++++++++++++++++++++++++++++++++++++")
     dev.set_setup()
     print("*+++++++++++++++++++++++++++++++++++++")
-    dev.start_meas()
+    dev._begin_meas()
     print("*+++++++++++++++++++++++++++++++++++++")
     sleep(1)
-    dev.pause_meas()
+    dev._pause_meas()
     print("*+++++++++++++++++++++++++++++++++++++")
     sleep(1)
-    dev.resume_meas()
+    dev._resume_meas()
     print("*+++++++++++++++++++++++++++++++++++++")
     sleep(1)
     dev.stop_meas()
