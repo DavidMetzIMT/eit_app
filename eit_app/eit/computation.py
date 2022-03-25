@@ -5,10 +5,10 @@ from typing import Any, Tuple
 from eit_model.imaging_type import Imaging
 import numpy as np
 from eit_app.eit.plots import (
-    LayoutChannelVoltageMonitoring,
-    LayoutEITChannelVoltage,
-    LayoutEITImage2D,
-    LayoutEITData,
+    PlotterChannelVoltageMonitoring,
+    PlotterEITChannelVoltage,
+    PlotterEITImage2D,
+    PlotterEITData,
 )
 from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.decorator.decorator import catch_error
@@ -116,7 +116,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         eit_data, labels = self.eit_imaging.process_data(
             **data.__dict__, eit_model=self.eit_model
         )
-        self.to_plot.emit(Data2Plot(eit_data, labels, LayoutEITData))
+        self.to_plot.emit(Data2Plot(eit_data, labels, PlotterEITData))
 
         logger.info(f"{frame_name} - Voltages preproccessed")
         return eit_data, labels, frame_name
@@ -129,14 +129,14 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         ch_data, ch_labels = self.ch_imaging.process_data(
             **data.__dict__, eit_model=self.eit_model
         )
-        self.to_plot.emit(Data2Plot(ch_data, ch_labels, LayoutEITChannelVoltage))
+        self.to_plot.emit(Data2Plot(ch_data, ch_labels, PlotterEITChannelVoltage))
 
         # volt, frame_idx= 1,1
         # self.eitmonitoringdata.add(volt, frame_idx)
 
         v = np.random.randn(256, 9)
         d = EITMeasMonitoring(volt_frame=v)
-        self.to_plot.emit(Data2Plot(d, ch_labels, LayoutChannelVoltageMonitoring))
+        self.to_plot.emit(Data2Plot(d, ch_labels, PlotterChannelVoltageMonitoring))
 
     def _rec_image(self, eit_data:EITData, labels:dict[EITPlotsType, CustomLabels], frame_name: str ):
         """Reconstruct EIT image 
@@ -152,7 +152,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
             logger.warning("Solver not set")
             return
         img_rec = self.solver.rec(eit_data)
-        self.to_plot.emit(Data2Plot(img_rec, labels, LayoutEITImage2D))
+        self.to_plot.emit(Data2Plot(img_rec, labels, PlotterEITImage2D))
         logger.info(f"Frame #{frame_name} - Image rec")
 
     def set_imaging_mode(self, eit_imaging: Imaging):
@@ -198,8 +198,8 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         self.set_rec_params(params)
 
         img_rec, data_sim = self.solver.prepare_rec(self.params)
-        self.to_plot.emit(Data2Plot(img_rec, {}, LayoutEITImage2D))
-        self.to_plot.emit(Data2Plot(data_sim, {}, LayoutEITData))
+        self.to_plot.emit(Data2Plot(img_rec, {}, PlotterEITImage2D))
+        self.to_plot.emit(Data2Plot(data_sim, {}, PlotterEITData))
 
     def set_ch_imaging_mode(self, ch_imaging: Imaging):
         """Set voltage channel imaging mode for data visualisation

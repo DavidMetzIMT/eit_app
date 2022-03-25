@@ -34,10 +34,10 @@ from eit_app.com_channels import AddUpdateAgent
 from eit_app.eit.computation import ComputingAgent
 from eit_app.eit.plots import (
     CanvasLayout,
-    LayoutChannelVoltageMonitoring,
-    LayoutEITChannelVoltage,
-    LayoutEITData,
-    LayoutEITImage2D,
+    PlotterChannelVoltageMonitoring,
+    PlotterEITChannelVoltage,
+    PlotterEITData,
+    PlotterEITImage2D,
 )
 from eit_app.gui import Ui_MainWindow as app_gui
 from eit_app.gui_utils import set_comboBox_items
@@ -92,18 +92,18 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         # set canvas
         self.plot_agent = eit_app.eit.plots.PlottingAgent()
-        self.canvas_rec = CanvasLayout(self, self.layout_rec, LayoutEITImage2D)
-        self.plot_agent.add_layouts(self.canvas_rec)
-        self.canvas_graphs = CanvasLayout(self, self.layout_graphs, LayoutEITData)
-        self.plot_agent.add_layouts(self.canvas_graphs)
+        self.canvas_rec = CanvasLayout(self, self.layout_rec, PlotterEITImage2D)
+        self.plot_agent.add_canvas(self.canvas_rec)
+        self.canvas_graphs = CanvasLayout(self, self.layout_graphs, PlotterEITData)
+        self.plot_agent.add_canvas(self.canvas_graphs)
         self.canvas_ch_graph = CanvasLayout(
-            self, self.layout_ch_graph, LayoutEITChannelVoltage
+            self, self.layout_ch_graph, PlotterEITChannelVoltage
         )
-        self.plot_agent.add_layouts(self.canvas_ch_graph)
+        self.plot_agent.add_canvas(self.canvas_ch_graph)
         self.canvas_monitoring = CanvasLayout(
-            self, self.layout_monitoring, LayoutChannelVoltageMonitoring
+            self, self.layout_monitoring, PlotterChannelVoltageMonitoring
         )
-        self.plot_agent.add_layouts(self.canvas_monitoring)
+        self.plot_agent.add_canvas(self.canvas_monitoring)
         self.eit_model = eit_model.model.EITModel()
         self.computing = ComputingAgent()
         self.dataset = MeasurementDataset()
