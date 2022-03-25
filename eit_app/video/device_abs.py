@@ -20,11 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
 from abc import ABC, abstractmethod
 from logging import getLogger
-from typing import Any
+from typing import Any, Tuple
 import numpy as np
 from glob_utils.flags.flag import CustomFlag
 from PyQt5.QtGui import QImage
-from glob_utils.msgbox import infoMsgBox, errorMsgBox
+from glob_utils.msgbox import infoMsgBox, errorMsgBox, warningMsgBox
 
 
 __author__ = "David Metz"
@@ -77,47 +77,58 @@ def handle_capture_device_error(func):
 
 class CaptureDevices(ABC):
 
-    devices_available: dict[str, Any]
-    device: Any
-    name: str
-    initializated: CustomFlag
-    settings: dict
+    _devices_available: dict[str, Any]
+    _device: Any
+    _name: str
+    _initializated: CustomFlag
+    _settings: dict
 
     def __init__(self) -> None:
         super().__init__()
-        self.devices_available = {}
-        self.device = None
-        self.initializated = CustomFlag()
-        self.settings = {}
+        self._devices_available = {}
+        self._device = None
+        self._initializated = CustomFlag()
+        self._settings = {}
         self._post_init_()
 
     def _error_if_no_device(func):
-        """Decorator"""
+        """Decorator which test if the device has been initializated
+
+        Raises:
+            NoCaptureDeviceSelected: raised if not initializated
+        """
 
         def wrap(self, *args, **kwargs):
-            if not self.initializated.is_set():  # raise error if no device selected
+            ""
+            if not self._initializated.is_set():  # raise error if no device selected
                 raise NoCaptureDeviceSelected()
             func(self, *args, **kwargs)
 
         return wrap
 
     def set_name(self, name: str) -> None:
-        self.name = name
+        """Set the name of the device. """
+        if self._name == name:
+            return
+
+        if self.is_connected():
+            warningMsgBox(
+                title="Capture Device already connected",
+                message="please disconnect first capture device"
+            )
+            return
+        self._name = name
 
     @abstractmethod
     def _post_init_(self) -> None:
         """Post init for specific object initialisation process"""
 
     @abstractmethod
-    def connect_device(self, name: str) -> None:
-        """Connect the device corresponding to the name given as arg
+    def connect_device(self) -> None:
+        """Connect the device corresponding to the self._name
 
         Raises:
             NoCaptureDeviceSelected: if no devices has been selected
-
-        Args:
-            name (str): name of the device (one of the key returned by
-            self.get_devices_available)
         """
 
     @abstractmethod
@@ -166,7 +177,7 @@ class CaptureDevices(ABC):
         """
 
     @abstractmethod
-    def capture_frame(self) -> np.ndarray:
+    def capture_frame(self) -> Tuple[np.ndarray, None]:
         """Capture a frame on connected device and return it as an ndarray
 
         Raises:
@@ -174,7 +185,7 @@ class CaptureDevices(ABC):
             CaptureFrameError: if an error occur during capture
 
         Returns:
-            np.ndarray: captured array
+            Tuple[np.ndarray, None]: captured array or None if unsuccesfull
         """
 
     @abstractmethod

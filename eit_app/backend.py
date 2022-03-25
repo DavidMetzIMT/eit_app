@@ -111,7 +111,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.replay_agent = ReplayMeasurementsAgent()
         self.live_capture = CustomFlag()
         self.capture_agent = VideoCaptureAgent(
-            capture_type=MicroUSBCamera(), snapshot_dir=APP_DIRS.get(AppDirs.snapshot)
+            capture_dev=MicroUSBCamera(), snapshot_dir=APP_DIRS.get(AppDirs.snapshot)
         )
 
     def _connect_main_objects(self) -> None:
@@ -259,7 +259,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.pB_capture_start_stop.clicked.connect(
             self.capture_agent.start_stop_capture
         )
-        self.pB_capture_snapshot.clicked.connect(self.capture_agent.snapshot)
+        self.pB_capture_snapshot.clicked.connect(self.capture_agent.take_snapshot)
         self.cB_video_devices.activated[str].connect(self.capture_agent.set_device_name)
         self.pB_capture_connect.clicked.connect(self.capture_agent.connect_device)
         self.cB_img_size.activated.connect(self._set_capture_device)
