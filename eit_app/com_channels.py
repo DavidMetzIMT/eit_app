@@ -329,7 +329,7 @@ class AddUpdateAgent(SignalReciever):
             return
         data = self._data_buffer.get(block=True)
         # logger.debug(f'_process_data_for_update Update {data}')
-        self._update_agent.post_event_data(data)
+        self._update_agent.post(data)
 
 
     

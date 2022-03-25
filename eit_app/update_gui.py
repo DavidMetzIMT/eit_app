@@ -1,6 +1,17 @@
+"""To update the gui an UpdateAgent is here defined. By posting data through 
+the agent, a specified part of the gui will be updated
+
+Those data has to be EventdataClass and should contain a updating function 
+to run as string and corresponding specific data. 
+
+Each updating function has to to be registered in a the Catalog UPDATE_EVENTS
+trouh the call
+>> register_func_in_catalog(updating_func)
+
+"""
+
 from abc import ABC
 from dataclasses import dataclass, is_dataclass
-from enum import Enum
 from logging import getLogger
 import threading
 from typing import Any, Callable, List
@@ -40,6 +51,7 @@ def is_dataclass_instance(obj):
 
 class EventDataClass(ABC):
     """Abstract class of the dataclass defined for each update events"""
+    func:str
 
 
 ################################################################################
@@ -48,23 +60,39 @@ class EventDataClass(ABC):
 
 
 class UpdateAgent:
-    """This agent apply update on the GUI (app) depending on the data posted"""
+    def __init__(self, app, events_ctlg) -> None:
+        """This agent runs updating funntion of the Gui (app) 
+        depending on the data posted
 
-    def __init__(self, app, events) -> None:
-        self.subscribers = {}
-        self.app = app
-        self.events = events
+        Args:
+            app (_type_): GUI, Ui_MainWindow
+            events (_type_): event catalog, a registed of all updating 
+            function callbacks
+        """
+        self._subscribers = {}
+        self._app = app
+        self._events_ctlg = events_ctlg
 
-    def _mk_dict(self, data: EventDataClass):
-        """Transform the event data in dictionarie and add the "app" key"""
+    def _mk_dict(self, data: EventDataClass)->dict:
+        """Transform the event data in dict and add the "app" key
+
+        Args:
+            data (EventDataClass): event data
+
+        Returns:
+            dict: data as dict with added "app" key
+        """
         d = data.__dict__
-        d["app"] = self.app
+        d["app"] = self._app
         return d
 
     @catch_error
-    def post_event_data(self, data: EventDataClass):
-        """Run the update event correspoding to the event data"""
+    def post(self, data: EventDataClass):
+        """Run the update event correspoding to the event data
 
+        Args:
+            data (EventDataClass): event data
+        """
         if not is_dataclass_instance(data) or not isinstance(data, EventDataClass):
             logger.error("data are not compatible for update")
             return
@@ -73,26 +101,42 @@ class UpdateAgent:
         data = self._mk_dict(data)
         func = data.pop("func")
         logger.debug(f"updating {func=} with {data=}")
-        self.events[func](**data)
+        self._events_ctlg[func](**data)
 
 
 ################################################################################
 # Update events Catalog
 ################################################################################
 
-# cataolog of update functions event
+# catalog of update functions event
 UPDATE_EVENTS: dict[str, Callable] = {}
 
 
-def add_func_to_catalog(func: Callable):
-    """Add the function to the catalog"""
+def register_func_in_catalog(func: Callable):
+    """Add the function to the UPDATE_EVENTS catalog"""
     name = func.__name__
     UPDATE_EVENTS[func.__name__] = func
 
+################################################################################
+# Update fucntions and assiociated EventDataClass
+################################################################################
 
-################################################################################
-# Update Definition and assiociated dataclasses
-################################################################################
+
+# ## TEMPLATE TO ADD AN UPDATING FUCNTION
+# # -------------------------------------------------------------------------------
+# ## Update somthing
+# # ------------------------------------------------------------------------------
+
+# def update_something(app: Ui_MainWindow, data: Any):
+#     """code for updating somteh from app"""
+
+# register_func_in_catalog(update_something)
+
+# @dataclass
+# class EvtDataFoo(EventDataClass):
+#     """Event data to update the list of detected sciospec device"""
+#     data: Any
+#     func: str = update_something.__name__
 
 
 # -------------------------------------------------------------------------------
@@ -106,11 +150,12 @@ def update_available_devices(app: Ui_MainWindow, device: dict):
     set_comboBox_items(app.cB_ports, items)
 
 
-add_func_to_catalog(update_available_devices)
+register_func_in_catalog(update_available_devices)
 
 
 @dataclass
 class EvtDataSciospecDevices(EventDataClass):
+    """Event data to update the list of detected sciospec device"""
     device: dict
     func: str = update_available_devices.__name__
 
@@ -126,7 +171,7 @@ def update_available_capture_devices(app: Ui_MainWindow, device: dict):
     set_comboBox_items(app.cB_video_devices, items)
 
 
-add_func_to_catalog(update_available_capture_devices)
+register_func_in_catalog(update_available_capture_devices)
 
 
 @dataclass
@@ -154,7 +199,7 @@ def update_device_status(app: Ui_MainWindow, connected: bool, connect_prompt: st
     app.lab_device_status.setStyleSheet(color)
 
 
-add_func_to_catalog(update_device_status)
+register_func_in_catalog(update_device_status)
 
 
 @dataclass
@@ -212,7 +257,7 @@ def update_device_setup(
     update_freqs_list(app, setup.get_freqs_list())
 
 
-add_func_to_catalog(update_device_setup)
+register_func_in_catalog(update_device_setup)
 
 
 @dataclass
@@ -277,7 +322,7 @@ def update_meas_status(app: Ui_MainWindow, meas_status: MeasuringStatus):
     app.pB_start_meas.setStatusTip(v.pB_status_tip)
 
 
-add_func_to_catalog(update_meas_status)
+register_func_in_catalog(update_meas_status)
 
 
 @dataclass
@@ -351,7 +396,7 @@ def update_capture_mode(app: Ui_MainWindow, capture_mode: CaptureStatus):
     app.pB_capture_connect.setText(v.pB_con_txt)
 
 
-add_func_to_catalog(update_capture_mode)
+register_func_in_catalog(update_capture_mode)
 
 
 @dataclass
@@ -398,7 +443,7 @@ def update_replay_status(app: Ui_MainWindow, status: ReplayStatus):
     app.pB_replay_play.setIcon(icon)
 
 
-add_func_to_catalog(update_replay_status)
+register_func_in_catalog(update_replay_status)
 
 
 @dataclass
@@ -439,7 +484,7 @@ def update_imaging_inputs_fields(app: Ui_MainWindow, imaging: Imaging):
     app.lab_freq_meas_1.setText(meas_1["lab_text"])
 
 
-add_func_to_catalog(update_imaging_inputs_fields)
+register_func_in_catalog(update_imaging_inputs_fields)
 
 
 @dataclass
@@ -460,7 +505,7 @@ def update_EITData_plots_options(app: Ui_MainWindow):
     app.chB_y_log.setEnabled(app.chB_plot_graph.isChecked())
 
 
-add_func_to_catalog(update_EITData_plots_options)
+register_func_in_catalog(update_EITData_plots_options)
 
 
 @dataclass
@@ -484,7 +529,7 @@ def update_progress_acquired_frame(
     logger.debug("update_progress_acquired_frame-ou")
 
 
-add_func_to_catalog(update_progress_acquired_frame)
+register_func_in_catalog(update_progress_acquired_frame)
 
 
 @dataclass
@@ -506,7 +551,7 @@ def update_frame_info(app: Ui_MainWindow, info: str = ""):
         app.tE_frame_info.setText("\r\n".join(info))
 
 
-add_func_to_catalog(update_frame_info)
+register_func_in_catalog(update_frame_info)
 
 
 @dataclass
@@ -534,7 +579,7 @@ def update_autosave_options(app: Ui_MainWindow):
     )
 
 
-add_func_to_catalog(update_autosave_options)
+register_func_in_catalog(update_autosave_options)
 
 
 @dataclass
@@ -556,7 +601,7 @@ def update_dataset_loaded(app: Ui_MainWindow, dataset_dir: str, nb_loaded_frame:
     set_QSlider_scale(app.slider_replay, nb_pos=nb_loaded_frame)
 
 
-add_func_to_catalog(update_dataset_loaded)
+register_func_in_catalog(update_dataset_loaded)
 
 
 @dataclass
@@ -578,7 +623,7 @@ def update_replay_frame_changed(app: Ui_MainWindow, idx: int):
     set_QSlider_position(app.slider_replay, pos=idx)
 
 
-add_func_to_catalog(update_replay_frame_changed)
+register_func_in_catalog(update_replay_frame_changed)
 
 
 @dataclass
@@ -601,7 +646,7 @@ def update_captured_image(app: Ui_MainWindow, image: QtGui.QImage):
     app.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
 
 
-add_func_to_catalog(update_captured_image)
+register_func_in_catalog(update_captured_image)
 
 
 @dataclass
