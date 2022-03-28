@@ -54,7 +54,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
 
         self.eit_imaging = None
         self.ch_imaging = None
-        self.eit_model = None
+        self.eit_model:EITModel = None
         self.U, self.labels = None, None
         self.extract_voltages = False
         self.solver: Solver = None
@@ -130,13 +130,10 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
             **data.__dict__, eit_model=self.eit_model
         )
         self.to_plot.emit(Data2Plot(ch_data, ch_labels, PlotterEITChannelVoltage))
+        volt = data.v_meas[:, : self.eit_model.n_elec]
+        self.eitmonitoringdata.add(volt, data.labels[1][0])
 
-        # volt, frame_idx= 1,1
-        # self.eitmonitoringdata.add(volt, frame_idx)
-
-        v = np.random.randn(256, 9)
-        d = EITMeasMonitoring(volt_frame=v)
-        self.to_plot.emit(Data2Plot(d, ch_labels, PlotterChannelVoltageMonitoring))
+        self.to_plot.emit(Data2Plot(self.eitmonitoringdata, ch_labels, PlotterChannelVoltageMonitoring))
 
     def _rec_image(self, eit_data:EITData, labels:dict[EITPlotsType, CustomLabels], frame_name: str ):
         """Reconstruct EIT image 
