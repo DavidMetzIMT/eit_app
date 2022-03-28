@@ -66,7 +66,7 @@ def set_comboBox_index(comboBox: QComboBox, index: int = 0, block: bool = True) 
     comboBox.blockSignals(False)
 
 
-def set_QTableWidget(table: QTableWidget, val: list[list[float]], decimal=4) -> None:
+def set_QTableWidget(table: QTableWidget, mat: list[list[float]], decimal:int=4) -> None:
     """Set a table with float values
 
     Args:
@@ -76,14 +76,14 @@ def set_QTableWidget(table: QTableWidget, val: list[list[float]], decimal=4) -> 
         Defaults to 4.
     """
 
-    val = np.array(val)
-    if np.prod(val.shape) > 1:
-        numrows = len(val)  # 6 rows in your example
-        numcols = len(val[0])  # 3 columns in your example
+    mat = np.array(mat)
+    if np.prod(mat.shape) > 1:
+        numrows = len(mat)  # 6 rows in your example
+        numcols = len(mat[0])  # 3 columns in your example
         table.setColumnCount(numcols)  # Set colums and rows in QTableWidget
         table.setRowCount(numrows)
         for row, column in itertools.product(range(numrows), range(numcols)):
-            val = f"{val[row][column]:.{decimal}f}"
+            val = f"{mat[row][column]:.{decimal}f}"
             table.setItem(
                 row,
                 column,

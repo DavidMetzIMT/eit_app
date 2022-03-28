@@ -246,7 +246,7 @@ class MeasurementFrame(object):
     e.g. Meas[2] the measured voltages on each channel (VS a commmon GROUND) for the frequency_nb 2
             for the frequency = frequency_val
     """
-
+    
     idx: int
     dataset_name: str
     time_stamp: str
