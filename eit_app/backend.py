@@ -211,7 +211,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.pB_load_meas_dataset.clicked.connect(self.dataset.load)
         self.pB_replay_begin.clicked.connect(self.replay_agent.begin)
         self.pB_replay_end.clicked.connect(self.replay_agent.end)
-        self.pB_replay_play.clicked.connect(self.replay_agent.play)
+        self.pB_replay_play.clicked.connect(self.replay_agent.play_pause)
         self.pB_replay_next.clicked.connect(self.replay_agent.next)
         self.pB_replay_back.clicked.connect(self.replay_agent.back)
         self.pB_replay_stop.clicked.connect(self.replay_agent.stop)
