@@ -1,291 +1,233 @@
-
 from abc import ABC, abstractmethod
-from enum import Enum
-from typing import List
-import matplotlib.figure as mfig
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.figure import Figure
-from matplotlib.axes import Axes
-from numpy.lib.shape_base import tile
-from eit_app.eit.eit_model import EITModelClass
-import glob_utils.args.kwargs as kwargs_utils
-# from eit_app.eit.reconstruction import ReconstructionPyEIT
 from logging import getLogger
+from queue import Queue
+from typing import Any
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+import matplotlib.pyplot
+from PyQt5.QtWidgets import QVBoxLayout
+from glob_utils.thread_process.threads_worker import Poller
+from matplotlib.figure import Figure
+from eit_model.data import EITData, EITImage, EITMeasMonitoring
+from eit_model.plot import EITCustomPlots,EITImage2DPlot, EITUPlot, EITUPlotDiff, MeasErrorPlot
+from eit_app.com_channels import Data2Plot, SignalReciever
 
 logger = getLogger(__name__)
-class PlotType(Enum):
-    Image_2D='Image_2D'
-    Image_3D='Image_3D'
-    U_plot='U_plot'
-    Ch_plot='Ch_plot'
-    Diff_plot='Diff_plot'
 
-class CustomPlots(ABC):
-    """ descripe a sort of plot"""
 
-    visible:bool=False
+class Plotter(ABC):
+
+    _allowed_data_type: tuple = ()
+    _plotting_func: EITCustomPlots = None
+
     def __init__(self) -> None:
+        """Create a plotter which plot defined type of data using predefined
+        plotting function
+        """
         super().__init__()
-    
-    def is_visible(self):
-        return self.visible
+        self._allowed_data_type = ()
+        self._post_init_()
 
     @abstractmethod
-    def plot():
-        """Plot"""
+    def _post_init_(self):
+        """Initialization of each custom Plotter
+        here should _allowed_data_type and _plotting_func be defined"""
 
-class CustomLabels(object):
-    """ Organize the labels utilized by a """
-
-    title:str
-    legend:list[str]
-    axis:list[str]
-
-    def __init__(self, title:str=None, legend: list[str] = None, axis: list[str] = None) -> None:
-        """_summary_
+    def build(self, fig: Figure, data: Data2Plot):
+        """Build the layout of the figure with the data
 
         Args:
-            title (str, optional): title of the plot. Defaults to None ('Default title').
-            legend (list[str], optional): legend labels of the plot. Defaults to None (['signal_1', 'signal_2']).
-            axis (list[str], optional): axis labels of the plot. Defaults to None (['x', 'y', 'z']).
+            fig (matplotlib.pyplot.Figure): figure were to plot
+            data (Data2Plot): data to plot
+        """
+        
+        if not isinstance(fig, Figure):
+            return
+
+        if not isinstance(data.data, self._allowed_data_type):
+            return
+
+        fig.clear()  # clear figure
+
+        self._build(fig, data.data, data.labels)
+
+    @abstractmethod
+    def _build(self, fig: Figure, data: Any, labels: dict):
+        """Custom layout build of each custom Plotter"""
+
+
+class PlotterEITImage2D(Plotter):
+    """Plot a 2D EIT image
+    """
+    def _post_init_(self):
+        self._allowed_data_type = EITImage
+        self._plotting_func = EITImage2DPlot()
+
+    def _build(self, fig: Figure, data: Any, labels: dict):
+        ax = fig.add_subplot(1, 1, 1)
+        lab = labels.get(self._plotting_func.type)
+        fig, ax = self._plotting_func.plot(fig, ax, data, lab)
+
+class PlotterEITData(Plotter):
+    """Plots the EIT reconstruction data.
+    - Uplot
+    - and Diffplot
+    """
+    def _post_init_(self):
+        self._allowed_data_type = EITData
+        self._plotting_func = [EITUPlot(), EITUPlotDiff()]
+
+    def _build(self, fig: Figure, data: Any, labels: dict):
+        ax = [fig.add_subplot(2, 1, 1), fig.add_subplot(2, 1, 2)]
+        lab = labels.get(self._plotting_func[0].type)
+        fig, ax[0] = self._plotting_func[0].plot(fig, ax[0], data, lab)
+        lab = labels.get(self._plotting_func[1].type)
+        fig, ax[1] = self._plotting_func[1].plot(fig, ax[1], data, lab)
+        ax[1].sharex(ax[1])
+        ax[0].set_xlabel("")
+        fig.set_tight_layout(True)
+
+class PlotterEITChannelVoltage(Plotter):
+    """Plot the voltages in a Uplot graph
+    """
+    def _post_init_(self):
+        self._allowed_data_type = EITData
+        self._plotting_func = [EITUPlot()]
+
+    def _build(self, fig: Figure, data: Any, labels: dict):
+        ax = fig.add_subplot(1, 1, 1)
+        lab = labels.get(self._plotting_func[0].type)
+        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
+        fig.set_tight_layout(True)
+
+
+class PlotterChannelVoltageMonitoring(Plotter):
+    """_summary_
+    """
+    def _post_init_(self):
+        self._allowed_data_type = EITMeasMonitoring
+        self._plotting_func = [MeasErrorPlot()]
+
+    def _build(self, fig: Figure, data: Any, labels: dict):
+        ax = fig.add_subplot(1, 1, 1)
+        lab = labels.get(self._plotting_func[0].type)
+        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
+        fig.set_tight_layout(True)
+
+
+class CanvasLayout(object):
+
+    _figure = None
+    _canvas = None
+    _toolbar = None
+    _plotter: Plotter = None
+    _visible: bool = True
+
+    def __init__(self, gui, layout: QVBoxLayout, plotter: Plotter) -> None:
+        """Create a CanvasLayout object with predefined plotter, 
+        which build a prefdined gaph layout
+
+        Args:
+            gui (_type_): obj in whcoh the layout is defined
+            layout (QVBoxLayout): layout where the plotter 
+            should plot
+            plotter(Plotter): predefined layout plotter
+
+        Raises:
+            TypeError: is raised if layout is not "QVBoxLayout",
+            or if layout_type is not "CustomLayout"
         """
 
-        self.set_title(title)
-        self.set_legend(legend)
-        self.set_axis(axis)
+        if not isinstance(layout, QVBoxLayout):
+            raise TypeError("wrong layout type")
 
-    def set_title(self, title:str)->None:
-        if title is None:
-            title = 'Default title'
-        self.title=title
+        if not issubclass(plotter, Plotter):
+            raise TypeError(f"wrong plot type {plotter}")
 
-    def set_legend(self, legend: list[str])->None:
-        if legend is None:
-            legend = ['signal_1', 'signal_2']
-        self.legend= legend
+        self._figure = matplotlib.pyplot.figure()
+        self._canvas = FigureCanvasQTAgg(self._figure)
+        self._toolbar = NavigationToolbar2QT(self._canvas, gui)
+        layout.addWidget(self._toolbar)
+        layout.addWidget(self._canvas)
+        self._plotter = plotter()
 
-    def set_axis(self, axis: list[str])->None:
-        if axis is None:
-            axis = ['x', 'y', 'z']
-        self.axis= axis
+    def set_visible(self, visible: bool = True):
+        """Make the Canvas visible or insisible"""
+        self._visible = visible
+        if not self._visible:
+            self.clear_canvas()
+
+    def clear_canvas(self):
+        """Make the Canvas visible or insisible"""
+        self._figure.clear()
+        self._canvas.draw()
+
+    def plot(self, data: Data2Plot):
+        """Plot the data in Make the Canvas visible or insisible"""
+        if not self._visible:
+            self.clear_canvas()
+            return
+        self._plotter.build(self._figure, data)
+        self._canvas.draw()
 
 
-class PlotImage2D(CustomPlots):
-    """_summary_
+class PlottingAgent(SignalReciever):
 
-    Args:
-        CustomPlots (_type_): _description_
-    """
+    _canvaslayout: list[CanvasLayout]
 
-    def __init__(self, is_visible:bool=False) -> None:
-        super().__init__()
-        self.name=PlotType.Image_2D
-        self.visible=is_visible
-    
-    def plot(self, fig:Figure, ax:Axes, model:EITModelClass, labels):
+    def __init__(self)->None:
+        """The PlottingAgent is responsible of actualizating plots in the gui
+
+        It can manage multiple canvas (CanvasLayout) present on the gui. 
+
+        The data are put in an input buffer, 
+        - as soon as some Data2Plot are send to it via a signal
+
+            >> obj.to_plot.connect(plotting_agent.to_reciever)
+
+            >> obj.to_plot.emit(Data2Plot(...))
+
+        - or directly
+
+            >> plotting_agent.add_data2plot(Data2Plot(...))
         
-        logger.debug('PlotImage2D')
-
-        label = labels[self.name]
-        pts, tri, data= model.fem.get_data_for_plots()
-        ax.clear()
-        im = ax.tripcolor(pts[:,0], pts[:,1], tri, np.real(data), shading="flat")
-        ax.axis("equal")
-        ax.set_title(label['title'])
-        ax.set_xlabel(label['xylabel'][0])
-        if len(label['xylabel'])==2:
-            ax.set_ylabel(label['xylabel'][1])
-        fig.colorbar(im, ax=ax)
-        # else:
-        #     ax.set_title('Reconstruction')
-        #     ax.text(0.5, 0.5, 'pyEIT not initialized \n please choose an reconstruction algorithm', horizontalalignment='center', verticalalignment='center', transform=ax.transAxes,bbox=dict(facecolor='red', alpha=0.5))
-        return fig, ax
-
-class PlotUPlot(CustomPlots):
-    """_summary_
-
-    Args:
-        CustomPlots (_type_): _description_
-    """
-
-    def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
-        super().__init__()
-        self.name=PlotType.U_plot
-        self.visible=is_visible
-        self.y_axis_log=y_axis_log
-
-    def plot(self, fig, ax, U:np.ndarray, labels):
-        """Plot"""
-        label = labels[self.name]
-        # print(U)
-        ax.plot(U[:,0], '-b', label=label['legend'][0])
-        ax.plot(U[:,1], '-r', label=label['legend'][1])
-
-        ax.set_title(label['title'])
-        ax.set_xlabel(label['xylabel'][0])
-        if len(label['xylabel'])==2:
-            ax.set_ylabel(label['xylabel'][1])
-        if self.y_axis_log:
-            ax.set_yscale('log')
-        # legend = ax[graph_indx].legend(loc='upper left', bbox_to_anchor=(1.05, 1))
-        if label['legend'][0] != '':
-            legend = ax.legend(loc='upper left')
-        return fig, ax
-
-class PlotCh(CustomPlots):
-    """_summary_
-
-    Args:
-        CustomPlots (_type_): _description_
-    """
-
-    def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
-        super().__init__()
-        self.name=PlotType.Ch_plot
-        self.visible=is_visible
-        self.y_axis_log=y_axis_log
-
-    def plot(self, fig, ax, U:np.ndarray, labels):
-        """Plot"""
-        label = labels[self.name]
-        # print(U)
-        ax.plot(U[:,0], '-b', label=label['legend'][0])
-        # ax.plot(U[:,1], '-r', label=label['legend'][1])
-
-        ax.set_title(label['title'])
-        ax.set_xlabel(label['xylabel'][0])
-        if len(label['xylabel'])==2:
-            ax.set_ylabel(label['xylabel'][1])
-        if self.y_axis_log:
-            ax.set_yscale('log')
-        # legend = ax[graph_indx].legend(loc='upper left', bbox_to_anchor=(1.05, 1))
-        if label['legend'][0] != '':
-            legend = ax.legend(loc='upper left')
-        return fig, ax
-
-class PlotDiffPlot(CustomPlots):
-    """_summary_
-
-    Args:
-        CustomPlots (_type_): _description_
-    """
-
-    def __init__(self, is_visible:bool=False, y_axis_log:bool=False) -> None:
-        super().__init__()
-        self.name=PlotType.Diff_plot
-        self.visible=is_visible
-        self.y_axis_log=y_axis_log
-
-    def plot(self, fig, ax, U:np.ndarray, labels):
-        """Plot"""
-        label = labels[self.name]
-        # print(U)
-        ax.plot(U[:,1]-U[:,0], '-g',  label=label['legend'][0])
-
-        ax.set_title(label['title'])
-        ax.set_xlabel(label['xylabel'][0])
-        if len(label['xylabel'])==2:
-            ax.set_ylabel(label['xylabel'][1])
-        if self.y_axis_log:
-            ax.set_yscale('log')
-        if label['legend'][0] != '':
-            legend = ax.legend(loc='upper left')
-
-        return fig, ax
-
-def plot_measurements(plot_to_show:List[CustomPlots], fig,  data):
-    """_summary_
-
-    Args:
-        plot_to_show (List[CustomPlots]): _description_
-        fig (_type_): _description_
-        data (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
-    if not plot_to_show[1].is_visible() and not plot_to_show[2].is_visible():
-        return fig
-    U=data['U']
-    labels=data['labels']
-    # eit_model=data['eit_model']
-    fig= fig
-    fig.clear()
-    ax=[fig.add_subplot(2,1,1),fig.add_subplot(2,1,2)]
-    fig, ax[0]= plot_to_show[1].plot(fig, ax[0], U, labels)
-    fig, ax[1]= plot_to_show[2].plot(fig, ax[1], U, labels)
-    ax[1].sharex(ax[1])
-    ax[0].set_xlabel('')
-    fig.set_tight_layout(True)
-    return fig
-
-def plot_rec(plot_to_show:List[CustomPlots], fig,  data):
-    """_summary_
-
-    Args:
-        plot_to_show (List[CustomPlots]): _description_
-        fig (_type_): _description_
-        data (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
-
-    fig= fig
-    if not plot_to_show[0].is_visible():
-        return fig
-    # U=data['U']
-    labels=data['labels']
-    eit_model=data['eit_model']
-    fig.clear()
-    ax=[fig.add_subplot(1,1,1)]
-    fig, ax[0]= plot_to_show[0].plot(fig, ax[0], eit_model, labels)
-    return fig
-
-
-# def plot_measurements(plot_to_show:List[CustomPlots], fig,  U, labels, model:EITModelClass):
-#     # figure.clear()???
-#     fig= fig
-#     fig.clear()
-#     ax=[]
-#     plot_visible = [p for p in plot_to_show if p.is_visible] # get rid of the plost we dont need
-
-#     nb_sub_plots = len(plot_visible)
-#     if nb_sub_plots==0:
-#         ax=fig.add_subplot(111)
-#         ax.set_title('Select the type of plot you want!')
-#         return fig
-    
-#     if isinstance(plot_visible[0], PlotImage2D) and nb_sub_plots>1:
-#         ax.append(fig.add_subplot(nb_sub_plots+1,1,(1,2)))
-#         for indx in range(nb_sub_plots-1):
-#             ax.append(fig.add_subplot(nb_sub_plots+1,1,indx+3))
-#     else:
-#         ax=[fig.add_subplot(nb_sub_plots,1,graph_indx+1) for graph_indx in range(nb_sub_plots)]
-
-#     for  idx_ax, single_plot in enumerate(plot_visible):
         
-#         if isinstance(single_plot, PlotImage2D):
-#             fig, ax[idx_ax]= single_plot.plot(fig, ax[idx_ax], model, labels)
-#         else:
-#             fig, ax[idx_ax]= single_plot.plot(fig, ax[idx_ax], U, labels)
-#             try:
-#                 if idx_ax>=1:
-#                     ax[idx_ax].sharex(ax[idx_ax])
-#                     ax[idx_ax-1].set_xlabel('')
-#             except:
-#                 print('sharex failed')
-#         fig.set_tight_layout(True)
-#         #figure.subplots_adjust(left=0.1, bottom=0, right=1, top=1, wspace=0.1, hspace=0.1)
-#     return fig
+        They are then retrieved one by one by a Thread and plot in their 
+        corrresponding Canvas layout destination
+        
+        """
+        super().__init__()
+        self.init_reciever(data_callbacks={Data2Plot: self.add_data2plot})
+        self._input_buf = Queue()
+        self._worker = Poller(
+            name="plot", pollfunc=self._poll_input_buffer, sleeptime=0.01
+        )
+        self._worker.start()
+        self._worker.start_polling()
+        self._canvaslayout = []
 
+    def add_canvas(self, canvaslayout: CanvasLayout)->None:
+        """Add a CanvasLayout fro uptatding via this plotting agent"""
+        self._canvaslayout.append(canvaslayout)
 
+    def add_data2plot(self, data:Data2Plot, **kwargs)->None:
+        """Add data to plot in input buffer"""
+        self._input_buf.put(data)
+
+    def _poll_input_buffer(self)->None:
+        """Retrieve the data to plot one by one"""
+        if self._input_buf.empty():
+            return
+        data = self._input_buf.get(block=True)
+        self._process(data)
+
+    def _process(self, data:Data2Plot)->None:
+        """Plot the data in their corrresponding Canvas layout destination"""
+        if not isinstance(data, Data2Plot):
+            return
+        for cl in self._canvaslayout:
+            if isinstance(cl._plotter, data.destination):
+                cl.plot(data)
 
 
 if __name__ == "__main__":
-    a= CustomLabels()
-    print(a.__dict__)
-
     """"""
-     
