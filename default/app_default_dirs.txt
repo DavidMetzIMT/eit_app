@@ -1,5 +1,5 @@
 Dictionary form:
-{"Measurement Sets": "E:/Software_dev/Python/eit_app/measurements", "Snapshot": "E:/Software_dev/Python/eit_app/snapshots", "Export": "E:/Software_dev/Python/eit_app/exports", "EIT Model": "E:/Software_dev/Python/eit_app/eit_model"}
+{"Measurement Sets": "E:/Software_dev/Python/eit_app/measurements", "Snapshot": "E:/Software_dev/Python/eit_app/snapshots", "Export": "E:/Software_dev/Python/eit_app/exports", "EIT Model": "E:/Software_dev/Python/eit_app/eit_model", "Chips": "E:/Software_dev/Python/eit_app/chip_design"}
 
 
 Single attributes:
@@ -7,3 +7,4 @@ Measurement Sets = E:/Software_dev/Python/eit_app/measurements,
 Snapshot = E:/Software_dev/Python/eit_app/snapshots,
 Export = E:/Software_dev/Python/eit_app/exports,
 EIT Model = E:/Software_dev/Python/eit_app/eit_model,
+Chips = E:/Software_dev/Python/eit_app/chip_design,

@@ -19,6 +19,7 @@ class AppDirs(Enum):
     snapshot='Snapshot'
     export='Export'
     eit_model='EIT Model'
+    chips='Chips'
     
 def set_ai_default_dir(reset:bool= False):
     local_dir= pathlib.Path(__file__).parent.resolve()
