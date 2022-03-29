@@ -249,11 +249,12 @@ def update_device_setup(
 
     app.sBd_freq_max.setEnabled(set_freq_max_enable)
     color = "background-color: red" if error else "background-color: white"
-    app.label_maxF.setStyleSheet(color)
-    app.label_minF.setStyleSheet(color)
-    app.label_Steps.setStyleSheet(color)
+    app.lab_maxF.setStyleSheet(color)
+    app.lab_minF.setStyleSheet(color)
+    app.lab_steps.setStyleSheet(color)
 
-    set_QTableWidget(app.tw_exc_pattern, setup.get_exc_pattern(), 0)
+    set_QTableWidget(app.tw_exc_mat_model, setup.get_exc_pattern_mdl(), 0)
+    set_QTableWidget(app.tw_exc_mat_chip, setup.get_exc_pattern(), 0)
     update_freqs_list(app, setup.get_freqs_list())
 
 

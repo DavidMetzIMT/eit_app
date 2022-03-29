@@ -83,6 +83,13 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self._connect_main_objects()
         self._init_values()
         self._initilizated.set()
+    
+    def eventFilter(self, source: QtCore.QObject, event: QtCore.QEvent) -> bool:
+        #disable MouseWheel event on slider_replay
+        if source== self.slider_replay and event.type() ==QtCore.QEvent.Wheel:
+            return True
+
+        return super().eventFilter(source, event)
 
     def set_title(self) -> None:
         t = f"EIT aquisition for Sciospec device {__version__}"
@@ -134,10 +141,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         self.capture_agent.to_gui.connect(self.to_reciever)
 
-        # set pattern
-        self.eit_model.load_defaultmatfile()
-        exc_mat = self.eit_model.excitation_mat() + 1
-        self.device.setup.set_exc_pattern(exc_mat.tolist())
+        
 
     def _init_values(self) -> None:
 
@@ -154,6 +158,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.device.get_devices()
         self.device.to_gui_emit_connect_status()
         self.device.emit_status_changed()
+        self._init_eit_model()
 
     def comboBox_init(self) -> None:
         """ """
@@ -170,7 +175,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         set_comboBox_items(self.cB_img_size, list(IMG_SIZES.keys()), init_index=-1)
         set_comboBox_items(self.cB_img_file_ext, list(EXT_IMG.keys()))
         set_comboBox_items(self.cB_ref_frame_idx, [0])
-        self._update_eit_ctlg()
+        self._update_eit_mdl_ctlg()
+        self._update_chip_ctlg()
 
     def _link_callbacks(self) -> None:
         """ """
@@ -190,6 +196,8 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         self.cB_ports.activated[str].connect(self.device.set_device_name)
 
+        self.sBd_exc_amp.valueChanged.connect(self._get_dev_setup)
+        self.sB_burst.valueChanged.connect(self._get_dev_setup)
         self.sBd_freq_min.valueChanged.connect(self._get_dev_setup)
         self.sBd_freq_max.valueChanged.connect(self._get_dev_setup)
         self.sB_freq_steps.valueChanged.connect(self._get_dev_setup)
@@ -220,6 +228,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             self.replay_agent.set_actual_frame
         )
         self.slider_replay.valueChanged[int].connect(self.replay_agent.set_actual_frame)
+        self.slider_replay.installEventFilter(self)
         self.pB_export_meas_csv.clicked.connect(self._export_meas_csv)
         self.pB_load_ref_dataset.clicked.connect(self._loadRef4TD)
 
@@ -249,8 +258,10 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.chB_abs_ch_vol.toggled.connect(self._ch_imaging_params)
         self.cB_transform_ch_volt.activated.connect(self._ch_imaging_params)
 
-        self.cB_eit_mdl_ctlg.currentTextChanged.connect(self._set_eit_ctlg)
-        self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._update_eit_ctlg)
+        self.cB_eit_mdl_ctlg.currentTextChanged.connect(self._set_eit_mdl_ctlg)
+        self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._update_eit_mdl_ctlg)
+        self.cB_chip_ctlg.currentTextChanged.connect(self._set_chip_ctlg)
+        self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._update_chip_ctlg)
 
         # Video capture
         self.pB_capture_refresh.clicked.connect(
@@ -315,9 +326,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         solver = self._get_solver(rec_type)
         params = self._get_solvers_params(rec_type)
         self.computing.set_eit_model(self.eit_model)
-        self.computing.set_solver(solver)
-        self.computing.set_rec_params(params)
-        self.computing.init_solver()
+        # self.computing.set_solver(solver)
+        # self.computing.set_rec_params(params)
+        self.computing.init_solver(solver, params)
 
     def _get_solver(self, rec_type: int = 0) -> None:
         """[summary]"""
@@ -334,8 +345,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
                 n=self.eit_n.value(),
             )
         }
+        self.eit_model.set_refinement(self.eit_FEMRefinement.value())
         return params[rec_type]
-        # self.eit_model.fem.refinement=self.eit_FEMRefinement.value()
+
 
     def _loadRef4TD(self) -> None:
         """[summary]"""
@@ -403,19 +415,48 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         # save_as_csv(file_path, data)
         # logger.debug(f"Measurements VS Eidors exported as CSV in : {file_path}")
 
-    def _update_eit_ctlg(self):
+    def _init_eit_model(self):
+        # set pattern
+        self.eit_model.load_defaultmatfile()
+        self.update_setup_from_eit_mdl()
+        
+    def _update_eit_mdl_ctlg(self):
         """Update catalog and if changed"""
         files = search_for_file_with_ext(
             APP_DIRS.get(AppDirs.eit_model.value), FileExt.mat
         )
         set_comboBox_items(self.cB_eit_mdl_ctlg, files)
 
-    def _set_eit_ctlg(self):
+    def _set_eit_mdl_ctlg(self):
         """Update catalog and if changed"""
         path = os.path.join(
             APP_DIRS.get(AppDirs.eit_model.value), self.cB_eit_mdl_ctlg.currentText()
         )
         self.eit_model.load_matfile(path)
+        self.update_setup_from_eit_mdl()
+
+    def _update_chip_ctlg(self):
+        """Update catalog and if changed"""
+        files = search_for_file_with_ext(
+            APP_DIRS.get(AppDirs.chips.value), FileExt.txt
+        )
+        set_comboBox_items(self.cB_chip_ctlg, files)
+
+    def _set_chip_ctlg(self):
+        """Update catalog and if changed"""
+        path = os.path.join(
+            APP_DIRS.get(AppDirs.chips.value), self.cB_chip_ctlg.currentText()
+        )
+        self.eit_model.load_chip_trans(path)
+        self.update_setup_from_eit_mdl()
+    
+    def update_setup_from_eit_mdl(self):
+        exc_mat = self.eit_model.excitation_mat().tolist()
+        self.device.setup.set_exc_pattern_mdl(exc_mat)
+        exc_mat = self.eit_model.excitation_mat_chip().tolist()
+        self.device.setup.set_exc_pattern(exc_mat)
+        self.update_gui(EvtDataSciospecDevSetup(self.device.setup))
+
 
     ############################################################################
     #### Replay of Measurements

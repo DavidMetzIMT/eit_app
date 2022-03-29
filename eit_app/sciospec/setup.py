@@ -421,6 +421,7 @@ class SciospecSetup(SetupBase):
 
     exc_amp: float
     exc_pattern: list[list[int]]
+    exc_pattern_mdl: list[list[int]]
     exc_pattern_idx: int
     frame_rate: float
     burst: int
@@ -442,6 +443,7 @@ class SciospecSetup(SetupBase):
         """
         self.exc_amp = 10.0
         self.exc_pattern = [[1, 2], [2, 3]]
+        self.exc_pattern_mdl = [[1, 2], [2, 3]]
         self.exc_pattern_idx = 0
         self.set_frame_rate(1.0)
         self.burst = 0
@@ -735,6 +737,11 @@ class SciospecSetup(SetupBase):
             else self.exc_pattern
         )
 
+    def get_exc_pattern_mdl(self):
+        """Return excitation pattern from model:
+        """
+        return  self.exc_pattern_mdl
+
     def get_sn(self, in_bytes: bool = False) -> Union[list[bytes], str]:
         """Return serial number
         - in str for simple get
@@ -813,6 +820,11 @@ class SciospecSetup(SetupBase):
             ]
         else:
             self.exc_pattern = value
+
+    def set_exc_pattern_mdl(self, value: list[list[int]], ):
+        """Set excitation pattern model:
+        """
+        self.exc_pattern_mdl = value
 
     def set_exc_pattern_idx(self, idx: int):
         """Set value of idx of actual pattern:

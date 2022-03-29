@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -61,182 +61,120 @@
       <property name="title">
        <string>EIT device</string>
       </property>
-      <widget class="QLabel" name="lab_device_status">
+      <widget class="QWidget" name="">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>80</y>
+         <y>20</y>
          <width>381</width>
-         <height>23</height>
+         <height>81</height>
         </rect>
        </property>
-       <property name="statusTip">
-        <string/>
-       </property>
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Not Connected</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-      <widget class="QComboBox" name="cB_ports">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>50</y>
-         <width>381</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="statusTip">
-        <string>Available serial port list</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_refresh">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>20</y>
-         <width>121</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="statusTip">
-        <string>Refresh the available serial port list (Ctrl + R)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Refresh</string>
-       </property>
-       <property name="shortcut">
-        <string>Ctrl+R</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_disconnect">
-       <property name="geometry">
-        <rect>
-         <x>270</x>
-         <y>20</y>
-         <width>121</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="statusTip">
-        <string>Disconnect the serial port (Shift + D)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Disconnect</string>
-       </property>
-       <property name="shortcut">
-        <string>Shift+D</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_connect">
-       <property name="geometry">
-        <rect>
-         <x>140</x>
-         <y>20</y>
-         <width>121</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Connect to the selected serial port (Shift +C)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Connect</string>
-       </property>
-       <property name="shortcut">
-        <string>Shift+C</string>
-       </property>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pB_refresh">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="toolTip">
+           <string/>
+          </property>
+          <property name="statusTip">
+           <string>Refresh the available serial port list (Ctrl + R)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Refresh</string>
+          </property>
+          <property name="shortcut">
+           <string>Ctrl+R</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pB_connect">
+          <property name="statusTip">
+           <string>Connect to the selected serial port (Shift +C)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Connect</string>
+          </property>
+          <property name="shortcut">
+           <string>Shift+C</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="pB_disconnect">
+          <property name="toolTip">
+           <string/>
+          </property>
+          <property name="statusTip">
+           <string>Disconnect the serial port (Shift + D)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Disconnect</string>
+          </property>
+          <property name="shortcut">
+           <string>Shift+D</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="3">
+         <widget class="QComboBox" name="cB_ports">
+          <property name="toolTip">
+           <string/>
+          </property>
+          <property name="statusTip">
+           <string>Available serial port list</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="3">
+         <widget class="QLabel" name="lab_device_status">
+          <property name="statusTip">
+           <string/>
+          </property>
+          <property name="autoFillBackground">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Not Connected</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
      <widget class="QGroupBox" name="groupBox_4">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>120</y>
+        <y>130</y>
         <width>401</width>
-        <height>471</height>
+        <height>531</height>
        </rect>
       </property>
       <property name="title">
        <string>Setup of device</string>
       </property>
-      <widget class="QPushButton" name="pB_save_setup">
-       <property name="geometry">
-        <rect>
-         <x>140</x>
-         <y>440</y>
-         <width>121</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Save parameters to files (*.xlsx)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Save_Setup</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pB_set_setup">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>20</y>
-         <width>121</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="statusTip">
-        <string>Send measurements parameters to connected device (Shift +S)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Set setup</string>
-       </property>
-       <property name="shortcut">
-        <string>Shift+S</string>
-       </property>
-      </widget>
       <widget class="QWidget" name="formLayoutWidget_2">
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>50</y>
-         <width>251</width>
+         <y>61</y>
+         <width>231</width>
          <height>381</height>
         </rect>
        </property>
@@ -245,7 +183,7 @@
          <number>6</number>
         </property>
         <item row="0" column="0">
-         <widget class="QLabel" name="label_Current_Amplitude">
+         <widget class="QLabel" name="lab_exc_amp">
           <property name="text">
            <string>Current Amplitude [mA]</string>
           </property>
@@ -268,7 +206,7 @@
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_Burst">
+         <widget class="QLabel" name="lab_burst">
           <property name="text">
            <string>Burst number</string>
           </property>
@@ -282,7 +220,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QLabel" name="label_minF">
+         <widget class="QLabel" name="lab_minF">
           <property name="text">
            <string>Min Frequency [Hz]</string>
           </property>
@@ -299,7 +237,7 @@
          </widget>
         </item>
         <item row="3" column="0">
-         <widget class="QLabel" name="label_maxF">
+         <widget class="QLabel" name="lab_maxF">
           <property name="text">
            <string>Max Frequency [Hz]</string>
           </property>
@@ -319,7 +257,7 @@
          </widget>
         </item>
         <item row="4" column="0">
-         <widget class="QLabel" name="label_Steps">
+         <widget class="QLabel" name="lab_steps">
           <property name="text">
            <string>Steps number</string>
           </property>
@@ -336,7 +274,7 @@
          </widget>
         </item>
         <item row="5" column="0">
-         <widget class="QLabel" name="label_Burst_5">
+         <widget class="QLabel" name="lab_scale">
           <property name="text">
            <string>Scale</string>
           </property>
@@ -353,7 +291,7 @@
          </widget>
         </item>
         <item row="6" column="0">
-         <widget class="QLabel" name="label_FrameRate">
+         <widget class="QLabel" name="lab_frame_rate">
           <property name="text">
            <string>Frame rate [fps]</string>
           </property>
@@ -373,7 +311,7 @@
          </widget>
         </item>
         <item row="7" column="0">
-         <widget class="QLabel" name="label_maxFrameRate">
+         <widget class="QLabel" name="lab_max_frame_rate">
           <property name="text">
            <string>Max Frame rate [fps]</string>
           </property>
@@ -396,7 +334,7 @@
          </widget>
         </item>
         <item row="8" column="0">
-         <widget class="QLabel" name="label_SN">
+         <widget class="QLabel" name="lab_sn">
           <property name="text">
            <string>S/N</string>
           </property>
@@ -422,7 +360,7 @@
          </widget>
         </item>
         <item row="9" column="0">
-         <widget class="QLabel" name="label_IP">
+         <widget class="QLabel" name="lab_ip">
           <property name="text">
            <string>IP Adress</string>
           </property>
@@ -445,7 +383,7 @@
          </widget>
         </item>
         <item row="10" column="0">
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="lab_mac">
           <property name="text">
            <string>MAC Adress</string>
           </property>
@@ -511,7 +449,7 @@
          </widget>
         </item>
         <item row="12" column="0">
-         <widget class="QLabel" name="label_OutputConfig">
+         <widget class="QLabel" name="lab_output_config">
           <property name="text">
            <string>Output config</string>
           </property>
@@ -519,44 +457,43 @@
         </item>
        </layout>
       </widget>
-      <widget class="QPushButton" name="pB_load_setup">
+      <widget class="QGroupBox" name="groupBox">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>440</y>
-         <width>121</width>
-         <height>23</height>
+         <x>250</x>
+         <y>61</y>
+         <width>141</width>
+         <height>381</height>
         </rect>
        </property>
-       <property name="statusTip">
-        <string>Load parameters from file (*.xlsx)</string>
+       <property name="title">
+        <string>Excitation Pattern</string>
        </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Load_Setup</string>
-       </property>
-      </widget>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>270</x>
-         <y>50</y>
-         <width>121</width>
-         <height>411</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="vLayoutExcitationPattern">
-        <item>
-         <widget class="QLabel" name="label_ExcitationPattern">
-          <property name="text">
-           <string>Excitation pattern</string>
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="geometry">
+         <rect>
+          <x>8</x>
+          <y>20</y>
+          <width>131</width>
+          <height>351</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tab_exc_chip">
+         <attribute name="title">
+          <string>Chip</string>
+         </attribute>
+         <widget class="QTableWidget" name="tw_exc_mat_chip">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>121</width>
+            <height>321</height>
+           </rect>
           </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTableWidget" name="tw_exc_pattern">
           <attribute name="horizontalHeaderDefaultSectionSize">
            <number>40</number>
           </attribute>
@@ -571,52 +508,179 @@
            </property>
           </column>
          </widget>
+        </widget>
+        <widget class="QWidget" name="tab_exc_model">
+         <attribute name="title">
+          <string>Model</string>
+         </attribute>
+         <widget class="QTableWidget" name="tw_exc_mat_model">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>121</width>
+            <height>321</height>
+           </rect>
+          </property>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>40</number>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>Inj+ </string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Inj-</string>
+           </property>
+          </column>
+         </widget>
+        </widget>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>490</y>
+         <width>381</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pB_load_setup">
+          <property name="statusTip">
+           <string>Load parameters from file (*.xlsx)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Load_Setup</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pB_save_setup">
+          <property name="statusTip">
+           <string>Save parameters to files (*.xlsx)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Save_Setup</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
-      <widget class="QPushButton" name="pB_get_setup">
+      <widget class="QWidget" name="">
        <property name="geometry">
         <rect>
-         <x>140</x>
+         <x>10</x>
          <y>20</y>
-         <width>121</width>
-         <height>23</height>
+         <width>381</width>
+         <height>25</height>
         </rect>
        </property>
-       <property name="statusTip">
-        <string>Ask measurements parameters from connected device (Shift +G)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Get setup</string>
-       </property>
-       <property name="shortcut">
-        <string>Shift+G</string>
-       </property>
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="QPushButton" name="pB_set_setup">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="statusTip">
+           <string>Send measurements parameters to connected device (Shift +S)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Set setup</string>
+          </property>
+          <property name="shortcut">
+           <string>Shift+S</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="pB_get_setup">
+          <property name="statusTip">
+           <string>Ask measurements parameters from connected device (Shift +G)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Get setup</string>
+          </property>
+          <property name="shortcut">
+           <string>Shift+G</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="pB_reset">
+          <property name="statusTip">
+           <string>Software reset of the device (reconnection needed after 10-15 sec) (Ctrl + Shift +C)</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>Reset</string>
+          </property>
+          <property name="shortcut">
+           <string>Ctrl+Shift+R</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
-      <widget class="QPushButton" name="pB_reset">
+      <widget class="QWidget" name="">
        <property name="geometry">
         <rect>
-         <x>270</x>
-         <y>20</y>
-         <width>121</width>
-         <height>23</height>
+         <x>10</x>
+         <y>450</y>
+         <width>381</width>
+         <height>25</height>
         </rect>
        </property>
-       <property name="statusTip">
-        <string>Software reset of the device (reconnection needed after 10-15 sec) (Ctrl + Shift +C)</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="text">
-        <string>Reset</string>
-       </property>
-       <property name="shortcut">
-        <string>Ctrl+Shift+R</string>
-       </property>
+       <layout class="QGridLayout" name="gridLayout_8" columnminimumwidth="0,300,0">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lab_chip">
+          <property name="text">
+           <string>Chip type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="cB_chip_ctlg">
+          <property name="editable">
+           <bool>false</bool>
+          </property>
+          <property name="maxVisibleItems">
+           <number>2</number>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QPushButton" name="pB_refresh_chip_ctlg">
+          <property name="statusTip">
+           <string>reload the catalog </string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>upddate</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </widget>
@@ -1482,7 +1546,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>290</y>
+        <y>60</y>
         <width>411</width>
         <height>271</height>
        </rect>
@@ -1611,9 +1675,6 @@ p, li { white-space: pre-wrap; }
            <property name="decimals">
             <number>4</number>
            </property>
-           <property name="minimum">
-            <double>0.000000000000000</double>
-           </property>
            <property name="maximum">
             <double>10.000000000000000</double>
            </property>
@@ -1677,7 +1738,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>290</x>
-        <y>280</y>
+        <y>50</y>
         <width>121</width>
         <height>23</height>
        </rect>
@@ -1692,79 +1753,73 @@ p, li { white-space: pre-wrap; }
        <string>Set reconstruction</string>
       </property>
      </widget>
-     <widget class="QLabel" name="lab_log_level">
+     <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>640</y>
-        <width>64</width>
-        <height>20</height>
+        <y>10</y>
+        <width>391</width>
+        <height>25</height>
        </rect>
       </property>
-      <property name="text">
-       <string>log level</string>
-      </property>
+      <layout class="QGridLayout" name="gridLayout_7" columnminimumwidth="0,300,0">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lab_eit_mdl_ctlg">
+         <property name="text">
+          <string>EIT model</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cB_eit_mdl_ctlg">
+         <property name="currentText">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="pB_refresh_eit_mdl_ctlg">
+         <property name="statusTip">
+          <string>reload the catalog </string>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>update</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
-     <widget class="QComboBox" name="cB_log_level">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>640</y>
-        <width>121</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="toolTip">
-       <string/>
-      </property>
-      <property name="statusTip">
-       <string>Available serial port list</string>
-      </property>
-     </widget>
-     <widget class="QComboBox" name="cB_eit_mdl_ctlg">
-      <property name="geometry">
-       <rect>
-        <x>90</x>
-        <y>230</y>
-        <width>321</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="currentText">
-       <string/>
-      </property>
-     </widget>
-     <widget class="QLabel" name="lab_eit_mdl_ctlg">
+     <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>230</y>
-        <width>64</width>
-        <height>20</height>
+        <y>360</y>
+        <width>231</width>
+        <height>22</height>
        </rect>
       </property>
-      <property name="text">
-       <string>ei_model catalog</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pB_refresh_eit_mdl_ctlg">
-      <property name="geometry">
-       <rect>
-        <x>270</x>
-        <y>200</y>
-        <width>121</width>
-        <height>23</height>
-       </rect>
-      </property>
-      <property name="statusTip">
-       <string>reload the catalog </string>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>Refresh catalogue</string>
-      </property>
+      <layout class="QGridLayout" name="gridLayout_9">
+       <item row="0" column="0">
+        <widget class="QLabel" name="lab_log_level">
+         <property name="text">
+          <string>log level</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cB_log_level">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="statusTip">
+          <string>Available serial port list</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </widget>
    </widget>
@@ -1811,7 +1866,7 @@ p, li { white-space: pre-wrap; }
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
