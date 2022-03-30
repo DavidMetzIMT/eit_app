@@ -43,7 +43,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_device">
      <attribute name="title">
@@ -668,7 +668,7 @@
          </widget>
         </item>
         <item row="0" column="2">
-         <widget class="QPushButton" name="pB_refresh_chip_ctlg">
+         <widget class="QPushButton" name="pB_chip_refresh_ctlg">
           <property name="statusTip">
            <string>reload the catalog </string>
           </property>
@@ -813,7 +813,7 @@
          </widget>
         </item>
         <item row="2" column="2" colspan="2">
-         <widget class="QComboBox" name="cB_freq_meas_1">
+         <widget class="QComboBox" name="cB_eit_imaging_meas_freq">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -848,7 +848,7 @@
          </widget>
         </item>
         <item row="2" column="4">
-         <widget class="QComboBox" name="cB_ref_frame_idx">
+         <widget class="QComboBox" name="cB_eit_imaging_ref_frame">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -890,7 +890,7 @@
          </widget>
         </item>
         <item row="2" column="0" colspan="2">
-         <widget class="QComboBox" name="cB_freq_meas_0">
+         <widget class="QComboBox" name="cB_eit_imaging_ref_freq">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -915,14 +915,14 @@
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="1" column="0">
-         <widget class="QCheckBox" name="showAbsValue">
+         <widget class="QCheckBox" name="chB_eit_imaging_trans_abs">
           <property name="text">
            <string>Show absolute values</string>
           </property>
          </widget>
         </item>
         <item row="0" column="0">
-         <widget class="QComboBox" name="cB_transform_volt">
+         <widget class="QComboBox" name="cB_eit_imaging_trans">
           <property name="currentText">
            <string/>
           </property>
@@ -941,7 +941,7 @@
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="Acquisition">
        <property name="geometry">
@@ -1231,7 +1231,7 @@
          <string>Load reference dataset</string>
         </property>
        </widget>
-       <widget class="QComboBox" name="cB_current_idx_frame">
+       <widget class="QComboBox" name="cB_replay_frame_idx">
         <property name="geometry">
          <rect>
           <x>120</x>
@@ -1516,7 +1516,7 @@ p, li { white-space: pre-wrap; }
          <string>Current frame #</string>
         </property>
        </widget>
-       <widget class="QPushButton" name="pB_load_meas_dataset">
+       <widget class="QPushButton" name="pB_meas_dataset_load">
         <property name="geometry">
          <rect>
           <x>10</x>
@@ -1546,7 +1546,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>60</y>
+        <y>110</y>
         <width>411</width>
         <height>271</height>
        </rect>
@@ -1558,165 +1558,139 @@ p, li { white-space: pre-wrap; }
        <attribute name="title">
         <string>PyEIT</string>
        </attribute>
-       <widget class="QWidget" name="formLayoutWidget_3">
+       <widget class="QGroupBox" name="groupBox_6">
         <property name="geometry">
          <rect>
-          <x>40</x>
+          <x>20</x>
           <y>10</y>
-          <width>238</width>
-          <height>175</height>
+          <width>281</width>
+          <height>201</height>
          </rect>
         </property>
-        <layout class="QFormLayout" name="formLayout">
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_vmax_7">
-           <property name="text">
-            <string>p</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QDoubleSpinBox" name="eit_p">
-           <property name="decimals">
-            <number>1</number>
-           </property>
-           <property name="minimum">
-            <double>-1000000000000000.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>1000000000000000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>0.500000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_vmax_8">
-           <property name="text">
-            <string>lamda</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QDoubleSpinBox" name="eit_lamda">
-           <property name="decimals">
-            <number>4</number>
-           </property>
-           <property name="minimum">
-            <double>-1000000000000000.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>1000000000000000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>0.010000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_vmax_9">
-           <property name="text">
-            <string>n</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QDoubleSpinBox" name="eit_n">
-           <property name="decimals">
-            <number>0</number>
-           </property>
-           <property name="minimum">
-            <double>-1000000000000000.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>1000000000000000.000000000000000</double>
-           </property>
-           <property name="value">
-            <double>64.000000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QDoubleSpinBox" name="eit_FEMRefinement">
-           <property name="decimals">
-            <number>4</number>
-           </property>
-           <property name="minimum">
-            <double>0.000000000000000</double>
-           </property>
-           <property name="maximum">
-            <double>10.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.001000000000000</double>
-           </property>
-           <property name="value">
-            <double>0.100000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label_FEMRefinement">
-           <property name="text">
-            <string>FEM Refinement</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="QLabel" name="label_FEMRefinement_2">
-           <property name="text">
-            <string>BackGround</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QDoubleSpinBox" name="dSB_pyeit_bckgrnd">
-           <property name="decimals">
-            <number>4</number>
-           </property>
-           <property name="maximum">
-            <double>10.000000000000000</double>
-           </property>
-           <property name="singleStep">
-            <double>0.001000000000000</double>
-           </property>
-           <property name="value">
-            <double>0.100000000000000</double>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QComboBox" name="cB_solver"/>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="lab_solver">
-           <property name="text">
-            <string>Solver</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
-          <widget class="QCheckBox" name="normalize">
-           <property name="layoutDirection">
-            <enum>Qt::RightToLeft</enum>
-           </property>
-           <property name="inputMethodHints">
-            <set>Qt::ImhSensitiveData</set>
-           </property>
-           <property name="text">
-            <string>Normalize</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <property name="title">
+         <string>Reconstruction parameters</string>
+        </property>
+        <widget class="QWidget" name="formLayoutWidget_3">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>20</y>
+           <width>238</width>
+           <height>131</height>
+          </rect>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lab_solver">
+            <property name="text">
+             <string>Solver</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="cB_pyeit_solver"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_vmax_7">
+            <property name="text">
+             <string>p</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="sBd_pyeit_p">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>-1000000000000000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000000000000000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.500000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_vmax_8">
+            <property name="text">
+             <string>lamda</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="sBd_pyeit_lamda">
+            <property name="decimals">
+             <number>4</number>
+            </property>
+            <property name="minimum">
+             <double>-1000000000000000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000000000000000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.010000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_vmax_9">
+            <property name="text">
+             <string>n</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QDoubleSpinBox" name="sBd_pyeit_greit_n">
+            <property name="decimals">
+             <number>0</number>
+            </property>
+            <property name="minimum">
+             <double>-1000000000000000.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>1000000000000000.000000000000000</double>
+            </property>
+            <property name="value">
+             <double>64.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_FEMRefinement_2">
+            <property name="text">
+             <string>BackGround</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="sBd_pyeit_bckgrnd">
+            <property name="decimals">
+             <number>4</number>
+            </property>
+            <property name="maximum">
+             <double>10.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.001000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.100000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </widget>
       <widget class="QWidget" name="tab_nn">
        <attribute name="title">
         <string>NN</string>
        </attribute>
-       <widget class="QLineEdit" name="lE_load_model_dir">
+       <widget class="QLineEdit" name="lE_ai_model_dir">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -1738,7 +1712,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>290</x>
-        <y>50</y>
+        <y>100</y>
         <width>121</width>
         <height>23</height>
        </rect>
@@ -1751,6 +1725,63 @@ p, li { white-space: pre-wrap; }
       </property>
       <property name="text">
        <string>Set reconstruction</string>
+      </property>
+     </widget>
+     <widget class="QDoubleSpinBox" name="sBd_eit_model_fem_refinement">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>40</y>
+        <width>152</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="decimals">
+       <number>4</number>
+      </property>
+      <property name="minimum">
+       <double>0.000000000000000</double>
+      </property>
+      <property name="maximum">
+       <double>10.000000000000000</double>
+      </property>
+      <property name="singleStep">
+       <double>0.001000000000000</double>
+      </property>
+      <property name="value">
+       <double>0.100000000000000</double>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_FEMRefinement">
+      <property name="geometry">
+       <rect>
+        <x>46</x>
+        <y>40</y>
+        <width>78</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>FEM Refinement</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="chB_eit_mdl_normalize">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>80</y>
+        <width>69</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::RightToLeft</enum>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhSensitiveData</set>
+      </property>
+      <property name="text">
+       <string>Normalize</string>
       </property>
      </widget>
      <widget class="QWidget" name="">
@@ -1778,7 +1809,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="0" column="2">
-        <widget class="QPushButton" name="pB_refresh_eit_mdl_ctlg">
+        <widget class="QPushButton" name="pB_eit_mdl_refresh_ctlg">
          <property name="statusTip">
           <string>reload the catalog </string>
          </property>
@@ -1796,7 +1827,7 @@ p, li { white-space: pre-wrap; }
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>360</y>
+        <y>410</y>
         <width>231</width>
         <height>22</height>
        </rect>
@@ -1877,7 +1908,7 @@ p, li { white-space: pre-wrap; }
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">
-       <widget class="QComboBox" name="cB_video_devices">
+       <widget class="QComboBox" name="cB_capture_devices">
         <property name="toolTip">
          <string/>
         </property>
@@ -1928,14 +1959,14 @@ p, li { white-space: pre-wrap; }
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QComboBox" name="cB_img_size">
+       <widget class="QComboBox" name="cB_capture_img_size">
         <property name="currentText">
          <string/>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="lab_capture_mode">
+       <widget class="QLabel" name="lab_capture_status">
         <property name="autoFillBackground">
          <bool>true</bool>
         </property>
@@ -1986,7 +2017,7 @@ p, li { white-space: pre-wrap; }
        </widget>
       </item>
       <item row="1" column="3">
-       <widget class="QComboBox" name="cB_img_file_ext">
+       <widget class="QComboBox" name="cB_capture_img_file_ext">
         <property name="currentText">
          <string/>
         </property>
@@ -2007,7 +2038,7 @@ p, li { white-space: pre-wrap; }
     <property name="title">
      <string>Reconstruction</string>
     </property>
-    <widget class="QCheckBox" name="chB_plot_image_rec">
+    <widget class="QCheckBox" name="chB_eit_image_plot">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -2116,7 +2147,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>1</number>
     </property>
     <property name="tabBarAutoHide">
      <bool>true</bool>
@@ -2136,23 +2167,7 @@ p, li { white-space: pre-wrap; }
       </property>
       <layout class="QVBoxLayout" name="layout_graphs"/>
      </widget>
-     <widget class="QCheckBox" name="chB_plot_graph">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>100</y>
-        <width>48</width>
-        <height>17</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Graph</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="chB_diff">
+     <widget class="QCheckBox" name="chB_eit_data_Udiffplot">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -2168,7 +2183,7 @@ p, li { white-space: pre-wrap; }
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chB_Uplot">
+     <widget class="QCheckBox" name="chB_eit_data_Uplot">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -2184,7 +2199,7 @@ p, li { white-space: pre-wrap; }
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chB_y_log">
+     <widget class="QCheckBox" name="chB_eit_data_y_log">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -2200,7 +2215,7 @@ p, li { white-space: pre-wrap; }
     </widget>
     <widget class="QWidget" name="tab">
      <attribute name="title">
-      <string>Measured values graph</string>
+      <string>Channel Monitoring</string>
      </attribute>
      <widget class="QWidget" name="verticalLayoutWidget_4">
       <property name="geometry">
@@ -2213,7 +2228,7 @@ p, li { white-space: pre-wrap; }
       </property>
       <layout class="QVBoxLayout" name="layout_ch_graph"/>
      </widget>
-     <widget class="QComboBox" name="cB_transform_ch_volt">
+     <widget class="QComboBox" name="cB_monitoring_trans">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -2226,7 +2241,7 @@ p, li { white-space: pre-wrap; }
        <string/>
       </property>
      </widget>
-     <widget class="QCheckBox" name="chB_abs_ch_vol">
+     <widget class="QCheckBox" name="chB_monitoring_trans_abs">
       <property name="geometry">
        <rect>
         <x>10</x>

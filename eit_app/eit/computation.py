@@ -1,8 +1,9 @@
 
 from queue import Queue
 import logging
-from typing import Any, Tuple
-from eit_model.imaging_type import Imaging
+from typing import Any, Tuple, Union
+from eit_model.imaging import Imaging, IMAGING_TYPE, ChannelVoltageImaging
+
 import numpy as np
 from eit_app.eit.plots import (
     PlotterChannelVoltageMonitoring,
@@ -17,16 +18,18 @@ from eit_model.model import EITModel
 from eit_model.data import EITData,EITMeasMonitoring
 from eit_model.plot import EITPlotsType, CustomLabels
 from eit_app.com_channels import (
+    AddToGuiSignal,
     AddToPlotSignal,
     Data2Compute,
     SignalReciever,
     Data2Plot,
 )
+from eit_app.update_gui import EvtDataImagingInputsChanged
 
 logger = logging.getLogger(__name__)
 
 
-class ComputingAgent(SignalReciever, AddToPlotSignal):
+class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
 
 
     def __init__(self):
@@ -52,8 +55,8 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         self.compute_worker.start()
         self.compute_worker.start_polling()
 
-        self.eit_imaging = None
-        self.ch_imaging = None
+        self.eit_imaging:Imaging = None
+        self.monitoring = None
         self.eit_model:EITModel = None
         self.U, self.labels = None, None
         self.extract_voltages = False
@@ -96,7 +99,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         Args:
             data (Data2Compute): data for reconstruction
         """
-        self._preprocess_ch_voltage_for_monitoring(data)
+        # self._preprocess_monitoring(data)
         eit_data, labels , frame_name=self._prepocess(data)
         self._rec_image(eit_data, labels, frame_name)
         
@@ -113,7 +116,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         """
         frame_name= data.labels[1][0]
         # prepocess eitdata for eit_imaging
-        eit_data, labels = self.eit_imaging.process_data(
+        eit_data, eit_volt , labels = self.eit_imaging.process_data(
             **data.__dict__, eit_model=self.eit_model
         )
         self.to_plot.emit(Data2Plot(eit_data, labels, PlotterEITData))
@@ -121,19 +124,20 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         logger.info(f"{frame_name} - Voltages preproccessed")
         return eit_data, labels, frame_name
 
-    def _preprocess_ch_voltage_for_monitoring(self, data: Data2Compute)-> None:
+    def _preprocess_monitoring(self, data: Data2Compute)-> None:
         """Prepocee the data for the monitoring of the voltages. During 
         this method the voltages values are send for ploting
         """
          # prepocess channel voltages for visualisation
-        ch_data, ch_labels = self.ch_imaging.process_data(
+        ch_data, ch_volt, ch_labels = self.monitoring.process_data(
             **data.__dict__, eit_model=self.eit_model
         )
-        self.to_plot.emit(Data2Plot(ch_data, ch_labels, PlotterEITChannelVoltage))
-        volt = data.v_meas[:, : self.eit_model.n_elec]
-        self.eitmonitoringdata.add(volt, data.labels[1][0])
+        self.to_plot.emit(Data2Plot(ch_volt, ch_labels, PlotterEITChannelVoltage))
 
-        self.to_plot.emit(Data2Plot(self.eitmonitoringdata, ch_labels, PlotterChannelVoltageMonitoring))
+        volt = data.v_meas[:, : self.eit_model.n_elec]
+        self.monitoring_data.add(volt, data.labels[1][0])
+
+        self.to_plot.emit(Data2Plot(self.monitoring_data, ch_labels, PlotterChannelVoltageMonitoring))
 
     def _rec_image(self, eit_data:EITData, labels:dict[EITPlotsType, CustomLabels], frame_name: str ):
         """Reconstruct EIT image 
@@ -152,19 +156,6 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         self.to_plot.emit(Data2Plot(img_rec, labels, PlotterEITImage2D))
         logger.info(f"Frame #{frame_name} - Image rec")
 
-    def set_imaging_mode(self, eit_imaging: Imaging):
-        """Set ei imaging mode for reconstruction
-        """
-        if not isinstance(eit_imaging, Imaging):
-            return
-        self.eit_imaging = eit_imaging
-
-    def set_eit_model(self, eit_model: EITModel):
-        """Set the used EIT model environement
-        """
-        if not isinstance(eit_model, EITModel):
-            return
-        self.eit_model = eit_model
     
     def enable_rec(self, enable: bool = True):
         """Enable the EIT image reconstruction. if set to `False` only 
@@ -172,43 +163,58 @@ class ComputingAgent(SignalReciever, AddToPlotSignal):
         """
         self.rec_enable = enable
 
-    def set_solver(self, solver: Solver):
-        """Create reconstruction solver
-        """
-        if not isinstance(self.eit_model, EITModel) and not isinstance(solver, Solver):
-            return
-        self.solver = solver(self.eit_model)
-        logger.info(f"Reconstructions solver selected: {self.solver}")
-
-    def set_rec_params(self, params: RecParams):
-        """Set reconstruction parameters for solver"""
-        if not isinstance(params, RecParams):
-            return
-        self.params = params
 
     @catch_error
-    def init_solver(self, solver: Solver= None, params: Any = None)->None:
+    def init_solver(self, solver: Solver, eit_model: EITModel, params: Any)->None:
         """Initialize internal solver, optionaly new solver or reconstruction 
         parameters can be set before
         """
-        self.set_solver(solver)
+        self.set_solver(solver, eit_model)
         self.set_rec_params(params)
 
         img_rec, data_sim = self.solver.prepare_rec(self.params)
         self.to_plot.emit(Data2Plot(img_rec, {}, PlotterEITImage2D))
         self.to_plot.emit(Data2Plot(data_sim, {}, PlotterEITData))
 
-    def set_ch_imaging_mode(self, ch_imaging: Imaging):
+    def set_imaging_mode(self, eit_imaging: str, transform:str, show_abs:bool):
+        """Set ei imaging mode for reconstruction
+        """
+        if not isinstance(eit_imaging, str):
+            raise TypeError('eit_imaging should be str') 
+        self.eit_imaging = IMAGING_TYPE[eit_imaging](transform, show_abs)
+        self.to_gui.emit(EvtDataImagingInputsChanged(self.eit_imaging))
+
+    def set_eit_model(self, eit_model: EITModel):
+        """Set the used EIT model environement
+        """
+        if not isinstance(eit_model, EITModel):
+            raise TypeError('eit_model should be EITModel') 
+        self.eit_model = eit_model
+
+    def set_solver(self, solver: Solver, eit_model: EITModel):
+        """Create reconstruction solver
+        """
+        self.set_eit_model(eit_model)
+        if not isinstance(solver, Solver):
+            raise TypeError('solver should be Solver') 
+        self.solver = solver(self.eit_model)
+        logger.info(f"Reconstructions solver selected: {self.solver}")
+
+    def set_rec_params(self, params: RecParams):
+        """Set reconstruction parameters for solver"""
+        if not isinstance(params, RecParams):
+            raise TypeError('params should be RecParams') 
+        self.params = params
+
+    def set_monitoring(self, transform:str, show_abs:bool):
         """Set voltage channel imaging mode for data visualisation
         """
-        if not isinstance(ch_imaging, Imaging):
-            return
-        self.ch_imaging = ch_imaging
+        self.monitoring = ChannelVoltageImaging(transform, show_abs)
 
     def reset_monitoring_data(self):
         """Clear the Eit monitoring data for visualization
         """
-        self.eitmonitoringdata = EITMeasMonitoring()
+        self.monitoring_data = EITMeasMonitoring()
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@ from enum import Enum
 from logging import getLogger
 from queue import Queue
 from time import sleep
-from eit_app.sciospec.com_constants import (
+from eit_app.sciospec.constants import (
     ACK_FRAME,
     CMD_BYTE_INDX,
     SUCCESS,

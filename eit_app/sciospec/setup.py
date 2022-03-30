@@ -5,7 +5,7 @@ from typing import Any, Tuple, Union
 from matplotlib import pyplot as plt
 
 import numpy as np
-from eit_app.sciospec.com_constants import *
+from eit_app.sciospec.constants import *
 from eit_app.sciospec.utils import *
 
 from glob_utils.files.files import (
@@ -356,12 +356,12 @@ class FrequencyConfig(SetupBase):
         """
         if in_bytes:
             data = value[DATA_START_INDX:-1]
-            scale = {OP_LINEAR.tag: OP_LINEAR.name, OP_LOG.tag: OP_LOG.name}
+            
             freq_max_enable, error = self._set_data(
                 freq_min=convert4Bytes2Float(data[:4]),
                 freq_max=convert4Bytes2Float(data[4:8]),
                 freq_steps=convertBytes2Int(data[8:10]),
-                freq_scale=scale[data[10]],
+                freq_scale=FREQ_SCALE[data[10]]
             )
 
         else:

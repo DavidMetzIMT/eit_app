@@ -1,9 +1,8 @@
 from __future__ import absolute_import, division, print_function
 
-import logging
+
 import os
-from logging import getLogger
-from typing import Any
+import logging
 
 import eit_model.model
 import eit_model.solver_pyeit
@@ -12,12 +11,8 @@ import matplotlib
 import matplotlib.backends.backend_qt5agg
 import matplotlib.pyplot
 import numpy as np
-from default.set_default_dir import APP_DIRS, AppDirs, set_ai_default_dir
-from eit_model.imaging_type import (
-    DATA_TRANSFORMATIONS,
-    IMAGING_TYPE,
-    ChannelVoltageImaging,
-)
+from default.set_default_dir import AppStdDir, set_ai_default_dir, get_dir
+import eit_model.imaging
 from glob_utils.files.files import (
     FileExt,
     OpenDialogFileCancelledException,
@@ -28,8 +23,6 @@ from glob_utils.files.files import (
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.msgbox import warningMsgBox
 from PyQt5 import QtCore, QtWidgets
-
-import eit_app.eit.plots
 from eit_app.com_channels import AddUpdateAgent
 from eit_app.eit.computation import ComputingAgent
 from eit_app.eit.plots import (
@@ -38,20 +31,19 @@ from eit_app.eit.plots import (
     PlotterEITChannelVoltage,
     PlotterEITData,
     PlotterEITImage2D,
+    PlottingAgent,
 )
-from eit_app.gui import Ui_MainWindow as app_gui
+from eit_app.gui import Ui_MainWindow
 from eit_app.gui_utils import set_comboBox_items
-from eit_app.sciospec.com_constants import OP_LINEAR, OP_LOG
+import eit_app.sciospec.constants
 from eit_app.sciospec.device import SciospecEITDevice
 from eit_app.sciospec.measurement import ExtractIndexes, MeasurementDataset
 from eit_app.sciospec.replay import ReplayMeasurementsAgent
 from eit_app.update_gui import (
-    EvtDataAutosaveOptionsChanged,
     EvtDataEITDataPlotOptionsChanged,
-    EvtDataImagingInputsChanged,
     EvtDataSciospecDevSetup,
 )
-from eit_app.video.capture import EXT_IMG, IMG_SIZES, VideoCaptureAgent
+from eit_app.video.capture import VideoCaptureAgent
 from eit_app.video.microcam import MicroUSBCamera
 
 # Ensure using PyQt5 backend
@@ -66,13 +58,9 @@ __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
-
-LOG_LEVELS = {"DEBUG": logging.DEBUG, "INFO": logging.INFO, "WARNING": logging.WARNING}
-
-
-class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
+class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
     def __init__(self) -> None:
         super().__init__()
         self._initilizated = CustomFlag()
@@ -85,6 +73,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self._initilizated.set()
     
     def eventFilter(self, source: QtCore.QObject, event: QtCore.QEvent) -> bool:
+        
         #disable MouseWheel event on slider_replay
         if source== self.slider_replay and event.type() ==QtCore.QEvent.Wheel:
             return True
@@ -98,7 +87,7 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
     def _create_main_objects(self) -> None:
 
         # set canvas
-        self.plot_agent = eit_app.eit.plots.PlottingAgent()
+        self.plot_agent = PlottingAgent()
         self.canvas_rec = CanvasLayout(self, self.layout_rec, PlotterEITImage2D)
         self.plot_agent.add_canvas(self.canvas_rec)
         self.canvas_graphs = CanvasLayout(self, self.layout_graphs, PlotterEITData)
@@ -118,11 +107,12 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.replay_agent = ReplayMeasurementsAgent()
         self.live_capture = CustomFlag()
         self.capture_agent = VideoCaptureAgent(
-            capture_dev=MicroUSBCamera(), snapshot_dir=APP_DIRS.get(AppDirs.snapshot)
+            capture_dev=MicroUSBCamera(), snapshot_dir=get_dir(AppStdDir.snapshot)
         )
 
     def _connect_main_objects(self) -> None:
 
+        self.computing.to_gui.connect(self.to_reciever)
         self.computing.to_plot.connect(self.plot_agent.to_reciever)
 
         self.dataset.to_gui.connect(self.to_reciever)
@@ -141,19 +131,26 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
         self.capture_agent.to_gui.connect(self.to_reciever)
 
-        
-
+    
     def _init_values(self) -> None:
 
-        self._link_callbacks()
+        self._signals_to_capture()
+        self._signals_to_dataset()
+        self._signals_to_dev_setup()
+        self._signals_to_device()
+        self._signals_to_export_import()
+        self._signals_to_imaging()
+        self._signals_to_log()
+        self._signals_to_plot()
+        self._signals_to_replay()
+
         self.comboBox_init()
         self._update_log()
         self._get_dev_setup()
-        self._plots_to_show()
-        self._imaging_params_changed()
-        self._ch_imaging_params()
-        self._autosave()
-        self.capture_agent.get_devices_available()
+        self._set_plots_options()
+        self._imaging_changed()
+        self._monitoring_params()
+        self.capture_agent.get_devices()
         self.capture_agent.emit_status_changed()
         self.device.get_devices()
         self.device.to_gui_emit_connect_status()
@@ -162,27 +159,37 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
 
     def comboBox_init(self) -> None:
         """ """
-        set_comboBox_items(self.cB_log_level, list(LOG_LEVELS.keys()))
-        set_comboBox_items(self.cB_scale, [OP_LINEAR.name, OP_LOG.name])
-        set_comboBox_items(self.cB_solver, ["JAC", "BP", "GREIT"])
-        set_comboBox_items(self.cB_eit_imaging_type, list(IMAGING_TYPE.keys()))
-        set_comboBox_items(
-            self.cB_transform_volt, list(DATA_TRANSFORMATIONS.keys())[:4]
-        )
-        set_comboBox_items(
-            self.cB_transform_ch_volt, list(DATA_TRANSFORMATIONS.keys())[:4]
-        )
-        set_comboBox_items(self.cB_img_size, list(IMG_SIZES.keys()), init_index=-1)
-        set_comboBox_items(self.cB_img_file_ext, list(EXT_IMG.keys()))
-        set_comboBox_items(self.cB_ref_frame_idx, [0])
+        set_comboBox_items(self.cB_log_level, glob_utils.log.log.list_levels())
+        set_comboBox_items(self.cB_scale, eit_app.sciospec.constants.frequency_scales())
+        set_comboBox_items(self.cB_pyeit_solver, eit_model.solver_pyeit.used_solver())
+        set_comboBox_items(self.cB_eit_imaging_type, eit_model.imaging.eit_imaging_types())
+        set_comboBox_items(self.cB_eit_imaging_trans, eit_model.imaging.eit_data_transformations())
+        set_comboBox_items(self.cB_eit_imaging_ref_frame, [0])
+        set_comboBox_items(self.cB_monitoring_trans, eit_model.imaging.eit_data_transformations())
+
+        set_comboBox_items(self.cB_capture_img_size, self.capture_agent.used_img_sizes())
+        set_comboBox_items(self.cB_capture_img_file_ext, self.capture_agent.used_img_exts())
+        # init catalogs which neeeds some loading
         self._update_eit_mdl_ctlg()
         self._update_chip_ctlg()
 
-    def _link_callbacks(self) -> None:
-        """ """
+    ############################################################################
+    #### Logging
+    ############################################################################
+
+    def _signals_to_log(self):
         self.cB_log_level.activated.connect(self._update_log)
 
-        # device relative callbacks
+    def _update_log(self) -> None:
+        """Modify the actual logging level"""
+        glob_utils.log.log.change_level_logging(self.cB_log_level.currentText())
+
+    ############################################################################
+    #### Device, Setup
+    ############################################################################
+
+    def _signals_to_device(self):
+
         self.pB_refresh.clicked.connect(self.device.get_devices)
         self.pB_connect.clicked.connect(self.device.connect_device)
         self.pB_disconnect.clicked.connect(self.device.disconnect_device)
@@ -193,8 +200,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.pB_load_setup.clicked.connect(self.device.load_setup)
         self.pB_start_meas.clicked.connect(self.device.start_paused_resume_meas)
         self.pB_stop_meas.clicked.connect(self.device.stop_meas)
-
         self.cB_ports.activated[str].connect(self.device.set_device_name)
+    
+    def _signals_to_dev_setup(self):
 
         self.sBd_exc_amp.valueChanged.connect(self._get_dev_setup)
         self.sB_burst.valueChanged.connect(self._get_dev_setup)
@@ -203,103 +211,6 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         self.sB_freq_steps.valueChanged.connect(self._get_dev_setup)
         self.cB_scale.activated.connect(self._get_dev_setup)
         self.sBd_frame_rate.valueChanged.connect(self._get_dev_setup)
-
-        self.lE_meas_dataset_dir.textChanged.connect(self._autosave)
-        self.chB_dataset_autosave.toggled.connect(self._autosave)
-        self.chB_dataset_save_img.toggled.connect(self._autosave)
-        self.chB_load_after_meas.toggled.connect(self._autosave)
-        # frame plot/
-        self.chB_plot_graph.toggled.connect(self._plots_to_show)
-        self.chB_Uplot.toggled.connect(self._plots_to_show)
-        self.chB_diff.toggled.connect(self._plots_to_show)
-        self.chB_plot_image_rec.toggled.connect(self._plots_to_show)
-        self.chB_y_log.toggled.connect(self._plots_to_show)
-
-        # loading measurements / replay
-        self.pB_load_meas_dataset.clicked.connect(self.dataset.load)
-        self.pB_replay_begin.clicked.connect(self.replay_agent.begin)
-        self.pB_replay_end.clicked.connect(self.replay_agent.end)
-        self.pB_replay_play.clicked.connect(self.replay_agent.play_pause)
-        self.pB_replay_next.clicked.connect(self.replay_agent.next)
-        self.pB_replay_back.clicked.connect(self.replay_agent.back)
-        self.pB_replay_stop.clicked.connect(self.replay_agent.stop)
-        self.sB_replay_time.valueChanged[float].connect(self.replay_agent.set_timeout)
-        self.cB_current_idx_frame.activated[int].connect(
-            self.replay_agent.set_actual_frame
-        )
-        self.slider_replay.valueChanged[int].connect(self.replay_agent.set_actual_frame)
-        self.slider_replay.installEventFilter(self)
-        self.pB_export_meas_csv.clicked.connect(self._export_meas_csv)
-        self.pB_load_ref_dataset.clicked.connect(self._loadRef4TD)
-
-        self.pB_load_eidors_fwd_solution.clicked.connect(self._load_eidors_fwd_solution)
-        self.sB_eidors_factor.valueChanged.connect(self._eidors_reload)
-        self.pB_export_data_meas_vs_eidors.clicked.connect(
-            self._export_data_meas_vs_eidors
-        )
-
-        # EIT reconstruction
-        self.pB_set_reconstruction.clicked.connect(self._init_rec)
-        ## pyeit
-        self.scalePlot_vmax.valueChanged.connect(self._get_solvers_params)
-        self.scalePlot_vmin.valueChanged.connect(self._get_solvers_params)
-        self.normalize.toggled.connect(self._get_solvers_params)
-        self.eit_FEMRefinement.valueChanged.connect(self._get_solvers_params)
-        # self.cB_solver.activated.connect(self._set_reconstruction)
-
-        # eit imaging
-        self.pB_compute.clicked.connect(self.replay_agent.compute_actual_frame)
-        self.cB_eit_imaging_type.activated.connect(self._imaging_params_changed)
-        self.cB_ref_frame_idx.currentIndexChanged.connect(self._imaging_params_changed)
-        self.cB_freq_meas_0.activated.connect(self._imaging_params_changed)
-        self.cB_freq_meas_1.activated.connect(self._imaging_params_changed)
-        self.cB_transform_volt.activated.connect(self._imaging_params_changed)
-        self.showAbsValue.toggled.connect(self._imaging_params_changed)
-        self.chB_abs_ch_vol.toggled.connect(self._ch_imaging_params)
-        self.cB_transform_ch_volt.activated.connect(self._ch_imaging_params)
-
-        self.cB_eit_mdl_ctlg.currentTextChanged.connect(self._set_eit_mdl_ctlg)
-        self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._update_eit_mdl_ctlg)
-        self.cB_chip_ctlg.currentTextChanged.connect(self._set_chip_ctlg)
-        self.pB_refresh_eit_mdl_ctlg.clicked.connect(self._update_chip_ctlg)
-
-        # Video capture
-        self.pB_capture_refresh.clicked.connect(
-            self.capture_agent.get_devices_available
-        )
-        self.pB_capture_start_stop.clicked.connect(
-            self.capture_agent.start_stop_capture
-        )
-        self.pB_capture_snapshot.clicked.connect(self.capture_agent.take_snapshot)
-        self.cB_video_devices.activated[str].connect(self.capture_agent.set_device_name)
-        self.pB_capture_connect.clicked.connect(self.capture_agent.connect_device)
-        self.cB_img_size.activated.connect(self._set_capture_device)
-        self.cB_img_file_ext.activated.connect(self._set_capture_device)
-
-    def _abort_if_measuring(func):
-        """Decorator"""
-
-        def wrap(self, *args, **kwargs) -> Any:
-            if self.device.is_measuring:
-                warningMsgBox("Measurement is running", "First stop measurement")
-                return
-            return func(self, *args, **kwargs)
-
-        return wrap
-
-    ############################################################################
-    #### Logging
-    ############################################################################
-
-    def _update_log(self) -> None:
-        """Modify the actual logging level"""
-        glob_utils.log.log.change_level_logging(
-            LOG_LEVELS[self.cB_log_level.currentText()]
-        )
-
-    ############################################################################
-    #### Interaction with Device
-    ############################################################################
 
     def _get_dev_setup(self) -> None:
         """Save user entry from Gui in setup of device"""
@@ -316,63 +227,63 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
             EvtDataSciospecDevSetup(self.device.setup, freq_max_enable, error)
         )
 
+    
+
+
     ############################################################################
-    #### Reconstruction
+    #### Dataset, replay
     ############################################################################
 
-    def _init_rec(self) -> None:
-        """[summary]"""
-        rec_type = self.tabW_reconstruction.currentIndex()
-        solver = self._get_solver(rec_type)
-        params = self._get_solvers_params(rec_type)
-        self.computing.set_eit_model(self.eit_model)
-        # self.computing.set_solver(solver)
-        # self.computing.set_rec_params(params)
-        self.computing.init_solver(solver, params)
+    def _signals_to_dataset(self):
+        self.lE_meas_dataset_dir.textChanged[str].connect(self.dataset.set_name)
+        self.chB_dataset_autosave.toggled[bool].connect(self.dataset.set_autosave)
+        self.chB_dataset_save_img.toggled[bool].connect(self.dataset.set_save_img)
+        self.chB_load_after_meas.toggled[bool].connect(self.dataset.set_load_after_meas)
+        self.pB_meas_dataset_load.clicked.connect(self.dataset.load)
+        self.pB_load_ref_dataset.clicked.connect(self._loadRef4TD)
 
-    def _get_solver(self, rec_type: int = 0) -> None:
-        """[summary]"""
-        rec = {0: eit_model.solver_pyeit.SolverPyEIT}
-        return rec[rec_type]
-
-    def _get_solvers_params(self, rec_type: int = 0) -> None:
-        """[summary]"""
-        params = {
-            0: eit_model.solver_pyeit.PyEitRecParams(
-                solver_type=self.cB_solver.currentText(),
-                p=self.eit_p.value(),
-                lamb=self.eit_lamda.value(),
-                n=self.eit_n.value(),
-            )
-        }
-        self.eit_model.set_refinement(self.eit_FEMRefinement.value())
-        return params[rec_type]
-
-
+    def _signals_to_replay(self):
+        self.pB_replay_begin.clicked.connect(self.replay_agent.begin)
+        self.pB_replay_end.clicked.connect(self.replay_agent.end)
+        self.pB_replay_play.clicked.connect(self.replay_agent.play_pause)
+        self.pB_replay_next.clicked.connect(self.replay_agent.next)
+        self.pB_replay_back.clicked.connect(self.replay_agent.back)
+        self.pB_replay_stop.clicked.connect(self.replay_agent.stop)
+        self.sB_replay_time.valueChanged[float].connect(self.replay_agent.set_timeout)
+        self.cB_replay_frame_idx.activated[int].connect(self.replay_agent.set_actual_frame)
+        self.slider_replay.valueChanged[int].connect(self.replay_agent.set_actual_frame)
+        self.slider_replay.installEventFilter(self)
+    
     def _loadRef4TD(self) -> None:
-        """[summary]"""
 
         try:
             file_path = dialog_get_file_with_ext(
-                ext=FileExt.pkl, title="", initialdir=APP_DIRS.get(AppDirs.meas_set)
+                ext=FileExt.pkl, title="", initialdir=get_dir(AppStdDir.meas_set)
             )
         except OpenDialogFileCancelledException:
             return
         self._UpdateRef4TD(path=file_path)
 
     def _UpdateRef4TD(self, path=None) -> None:
-        """[summary]
 
-        Args:
-            path ([type], optional): [description]. Defaults to None.
-        """
         if self.device.is_measuring or self.device.is_paused:
             # Frame to use is ._last_frame[0] is the last updated...
             self.dataset.set_ref_frame()
         else:
             self.dataset.set_ref_frame(
-                self.cB_current_idx_frame.currentIndex(), path=path
+                self.cB_replay_frame_idx.currentIndex(), path=path
             )
+
+    ############################################################################
+    #### Export, import
+    ############################################################################
+
+    def _signals_to_export_import(self):
+        self.pB_export_meas_csv.clicked.connect(self._export_meas_csv)
+
+        self.pB_load_eidors_fwd_solution.clicked.connect(self._load_eidors_fwd_solution)
+        self.sB_eidors_factor.valueChanged.connect(self._eidors_reload)
+        self.pB_export_data_meas_vs_eidors.clicked.connect(self._export_data_meas_vs_eidors)
 
     def _load_eidors_fwd_solution(self) -> None:  # for Jiawei master thesis
         """load eidors foward solution(voltages) out of an mat-file"""
@@ -415,71 +326,9 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         # save_as_csv(file_path, data)
         # logger.debug(f"Measurements VS Eidors exported as CSV in : {file_path}")
 
-    def _init_eit_model(self):
-        # set pattern
-        self.eit_model.load_defaultmatfile()
-        self.update_setup_from_eit_mdl()
-        
-    def _update_eit_mdl_ctlg(self):
-        """Update catalog and if changed"""
-        files = search_for_file_with_ext(
-            APP_DIRS.get(AppDirs.eit_model.value), FileExt.mat
-        )
-        set_comboBox_items(self.cB_eit_mdl_ctlg, files)
-
-    def _set_eit_mdl_ctlg(self):
-        """Update catalog and if changed"""
-        path = os.path.join(
-            APP_DIRS.get(AppDirs.eit_model.value), self.cB_eit_mdl_ctlg.currentText()
-        )
-        self.eit_model.load_matfile(path)
-        self.update_setup_from_eit_mdl()
-
-    def _update_chip_ctlg(self):
-        """Update catalog and if changed"""
-        files = search_for_file_with_ext(
-            APP_DIRS.get(AppDirs.chips.value), FileExt.txt
-        )
-        set_comboBox_items(self.cB_chip_ctlg, files)
-
-    def _set_chip_ctlg(self):
-        """Update catalog and if changed"""
-        path = os.path.join(
-            APP_DIRS.get(AppDirs.chips.value), self.cB_chip_ctlg.currentText()
-        )
-        self.eit_model.load_chip_trans(path)
-        self.update_setup_from_eit_mdl()
-    
-    def update_setup_from_eit_mdl(self):
-        exc_mat = self.eit_model.excitation_mat().tolist()
-        self.device.setup.set_exc_pattern_mdl(exc_mat)
-        exc_mat = self.eit_model.excitation_mat_chip().tolist()
-        self.device.setup.set_exc_pattern(exc_mat)
-        self.update_gui(EvtDataSciospecDevSetup(self.device.setup))
-
-
-    ############################################################################
-    #### Replay of Measurements
-    ############################################################################
-
-    def _autosave(self) -> None:
-        """update selected autosave mode"""
-
-        self.dataset.set_name(self.lE_meas_dataset_dir.text())
-
-        autosave = self.chB_dataset_autosave.isChecked()
-        save_img = self.chB_dataset_save_img.isChecked()
-        self.dataset._autosave.set(autosave)
-        self.dataset._save_img.set(save_img and autosave)
-
-        logger.debug(
-            f"Autosave: {self.dataset._autosave.is_set()}, save_img:{self.dataset._save_img.is_set()}"
-        )
-        self.update_gui(EvtDataAutosaveOptionsChanged())
-
     def _export_meas_csv(self) -> None:
         """Export the actual measurments frames in csv"""
-        idx_freq = self.cB_freq_meas_0.currentIndex()
+        idx_freq = self.cB_eit_imaging_meas_freq.currentIndex()
         n = self.dataset.get_frame_cnt()
         data = {
             f"frame{i}": np.real(self.dataset.get_meas_voltage(i, idx_freq)[:, 0:16])
@@ -492,62 +341,180 @@ class UiBackEnd(app_gui, QtWidgets.QMainWindow, AddUpdateAgent):
         logger.debug(f"Measurements exported as CSV in : {file_path}")
 
     ############################################################################
-    #### Interaction with Microcam
+    #### Capture
     ############################################################################
 
-    @_abort_if_measuring
-    def _set_capture_device(self, *args, **kwargs) -> None:
+    def _signals_to_capture(self):
+        self.pB_capture_refresh.clicked.connect(self.capture_agent.get_devices)
+        self.pB_capture_start_stop.clicked.connect(self.capture_agent.start_stop)
+        self.pB_capture_snapshot.clicked.connect(self.capture_agent.take_snapshot)
+        self.cB_capture_devices.activated[str].connect(self.capture_agent.set_device_name)
+        self.pB_capture_connect.clicked.connect(self.capture_agent.connect_device)
+        self.cB_capture_img_size.activated[str].connect(self.capture_agent.set_image_size)
+        self.cB_capture_img_file_ext.activated[str].connect(self.capture_agent.set_image_file_format)
 
-        # self.capture_agent.connect_device(self.cB_video_devices.currentText())
-        self.capture_agent.set_image_size(self.cB_img_size.currentText())
-        self.capture_agent.set_image_file_format(
-            file_ext=self.cB_img_file_ext.currentText()
-        )
+    # def _set_capture_device(self, *args, **kwargs) -> None:
+    #     self.capture_agent.set_image_size(self.cB_capture_img_size.currentText())
+    #     self.capture_agent.set_image_file_format(file_ext=self.cB_capture_img_file_ext.currentText())
 
     ############################################################################
     #### Plotting
     ############################################################################
+    
+    def _signals_to_plot(self):
 
-    def _actual_imaging_mode(self):
+        self.chB_eit_data_Uplot.toggled.connect(self._set_plots_options)
+        self.chB_eit_data_Udiffplot.toggled.connect(self._set_plots_options)
+        self.chB_eit_data_y_log.toggled.connect(self._set_plots_options)
+        self.chB_eit_image_plot.toggled.connect(self._set_plots_options)
 
-        imaging_mode = self.cB_eit_imaging_type.currentText()
-        if imaging_mode not in list(IMAGING_TYPE.keys()):
-            raise ValueError(f"The imaging type {imaging_mode} ist not known")
-        return imaging_mode
+        # self.scalePlot_vmax.valueChanged.connect(self._set_plots_options)
+        # self.scalePlot_vmin.valueChanged.connect(self._set_plots_options)
 
-    def _imaging_params_changed(self) -> None:
+    def _set_plots_options(self) -> None:
+        self.canvas_rec.set_visible(self.chB_eit_image_plot.isChecked())
+        self.computing.enable_rec(self.chB_eit_image_plot.isChecked())
+        self.update_gui(EvtDataEITDataPlotOptionsChanged())
 
-        imaging_type = self._actual_imaging_mode()
-        transform = self.cB_transform_volt.currentText()
-        show_abs = self.showAbsValue.isChecked()
+    ############################################################################
+    #### Reconstruction, computation
+    ############################################################################
+    def _signals_to_rec(self):
+        # EIT reconstruction
+        self.pB_set_reconstruction.clicked.connect(self._init_rec)
+        self.pB_compute.clicked.connect(self.replay_agent.compute_actual_frame)
 
-        eit_imaging = IMAGING_TYPE[imaging_type](transform, show_abs)
-        self.computing.set_imaging_mode(eit_imaging)
-        self.update_gui(EvtDataImagingInputsChanged(eit_imaging))
+        # self.chB_eit_mdl_normalize.toggled.connect(self._get_solvers_params)
+        # self.sBd_eit_model_fem_refinement.valueChanged.connect(self._get_solvers_params)
+    
+    def _init_rec(self) -> None:
+        """Init the reconstruction solver"""
+        rec_type = self.tabW_reconstruction.currentIndex()
+        solver = self._rec_solver(rec_type)
+        params = self._rec_params(rec_type)
+        self.computing.init_solver(solver,self.eit_model, params)
+
+    def _rec_solver(self, rec_type: int = 0) -> None:
+        """Return the reconstruction solver"""
+        rec = {0: eit_model.solver_pyeit.SolverPyEIT}
+        return rec[rec_type]
+
+    def _rec_params(self, rec_type: int = 0) -> None:
+        """Return the reconstruction parameter"""
+        params = {
+            0: eit_model.solver_pyeit.PyEitRecParams(
+                solver_type=self.cB_pyeit_solver.currentText(),
+                p=self.sBd_pyeit_p.value(),
+                lamb=self.sBd_pyeit_lamda.value(),
+                n=self.sBd_pyeit_greit_n.value(),
+                normalize=self.chB_eit_mdl_normalize.isChecked(),
+                background= self.sBd_pyeit_bckgrnd.value()
+            )
+        }
+        self.eit_model.set_refinement(self.sBd_eit_model_fem_refinement.value())
+        return params[rec_type]
+    
+    ############################################################################
+    #### Imaging,
+    ############################################################################
+    
+    def _signals_to_imaging(self):
+        self.cB_eit_imaging_type.activated.connect(self._imaging_changed)
+        self.cB_eit_imaging_ref_frame.currentIndexChanged.connect(self._imaging_changed)
+        self.cB_eit_imaging_ref_freq.activated.connect(self._imaging_changed)
+        self.cB_eit_imaging_meas_freq.activated.connect(self._imaging_changed)
+        self.cB_eit_imaging_trans.activated.connect(self._imaging_changed)
+        self.chB_eit_imaging_trans_abs.toggled.connect(self._imaging_changed)
+
+        # eit model catalog
+        self.cB_eit_mdl_ctlg.currentTextChanged.connect(self._set_eit_mdl_ctlg)
+        self.pB_eit_mdl_refresh_ctlg.clicked.connect(self._update_eit_mdl_ctlg)
+        # chip design catalog
+        self.cB_chip_ctlg.currentTextChanged.connect(self._set_chip_ctlg)
+        self.pB_chip_refresh_ctlg.clicked.connect(self._update_chip_ctlg)
+
+    def _imaging_changed(self) -> None:
+        imaging_type = self.cB_eit_imaging_type.currentText()
+        transform = self.cB_eit_imaging_trans.currentText()
+        show_abs = self.chB_eit_imaging_trans_abs.isChecked()
+        self.computing.set_imaging_mode(imaging_type, transform, show_abs)
         self._set_actual_indexesforcomputation(imaging_type)
 
     def _set_actual_indexesforcomputation(self, imaging_type: str):
-
         index = ExtractIndexes(
-            ref_idx=self.cB_ref_frame_idx.currentIndex(),
-            meas_idx=self.cB_current_idx_frame.currentIndex(),
-            ref_freq=self.cB_freq_meas_0.currentIndex(),
-            meas_freq=self.cB_freq_meas_1.currentIndex(),
+            ref_idx=self.cB_eit_imaging_ref_frame.currentIndex(),
+            meas_idx=self.cB_replay_frame_idx.currentIndex(),
+            ref_freq=self.cB_eit_imaging_ref_freq.currentIndex(),
+            meas_freq=self.cB_eit_imaging_meas_freq.currentIndex(),
             imaging=imaging_type,
         )
         self.dataset.set_index_of_data_for_computation(index)
-        self.computing.set_eit_model(self.eit_model)
 
-    def _ch_imaging_params(self) -> None:
-        transform = self.cB_transform_ch_volt.currentText()
-        show_abs = self.chB_abs_ch_vol.isChecked()
-        self.ch_imaging = ChannelVoltageImaging(transform, show_abs)
-        self.computing.set_ch_imaging_mode(self.ch_imaging)
+    ############################################################################
+    #### Monitoring
+    ############################################################################
 
-    def _plots_to_show(self) -> None:
-        self.canvas_rec.set_visible(self.chB_plot_image_rec.isChecked())
-        self.computing.enable_rec(self.chB_plot_image_rec.isChecked())
-        self.update_gui(EvtDataEITDataPlotOptionsChanged())
+    def _signals_to_monitoring(self):
+        self.chB_monitoring_trans_abs.toggled.connect(self._monitoring_params)
+        self.cB_monitoring_trans.activated.connect(self._monitoring_params)
+
+    def _monitoring_params(self) -> None:
+        transform = self.cB_monitoring_trans.currentText()
+        show_abs = self.chB_monitoring_trans_abs.isChecked()
+        self.computing.set_monitoring(transform, show_abs)
+    
+
+    
+    ############################################################################
+    #### Eit model
+    ############################################################################
+
+    def _init_eit_model(self):
+        # set pattern
+        self.eit_model.load_defaultmatfile()
+        self.update_setup_from_eit_mdl()
+        
+    def _update_eit_mdl_ctlg(self):
+        """Update catalog and if changed"""
+        files = search_for_file_with_ext(
+            get_dir(AppStdDir.eit_model), FileExt.mat
+        )
+        set_comboBox_items(self.cB_eit_mdl_ctlg, files)
+
+    def _set_eit_mdl_ctlg(self):
+        """Update catalog and if changed"""
+        path = os.path.join(
+            get_dir(AppStdDir.eit_model), self.cB_eit_mdl_ctlg.currentText()
+        )
+        self.eit_model.load_matfile(path)
+        self.update_setup_from_eit_mdl()
+
+    def _update_chip_ctlg(self):
+        """Update catalog and if changed"""
+        files = search_for_file_with_ext(
+            get_dir(AppStdDir.chips), FileExt.txt
+        )
+        set_comboBox_items(self.cB_chip_ctlg, files)
+
+    def _set_chip_ctlg(self):
+        """Update catalog and if changed"""
+        path = os.path.join(
+            get_dir(AppStdDir.chips), self.cB_chip_ctlg.currentText()
+        )
+        self.eit_model.load_chip_trans(path)
+        self.update_setup_from_eit_mdl()
+    
+    def update_setup_from_eit_mdl(self):
+        exc_mat = self.eit_model.excitation_mat().tolist()
+        self.device.setup.set_exc_pattern_mdl(exc_mat)
+        exc_mat = self.eit_model.excitation_mat_chip().tolist()
+        self.device.setup.set_exc_pattern(exc_mat)
+        self.update_gui(EvtDataSciospecDevSetup(self.device.setup))
+    
+
+
+
+        
 
     # def kill_workers(self) -> None:
     #     """Kill alls the running threads workers"""

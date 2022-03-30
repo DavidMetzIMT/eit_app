@@ -130,6 +130,10 @@ class DataAddRxMeasStream:
 class DataEmitFrame4Computation:
     idx: int
 
+@dataclass
+class DataLoadLastDataset:
+    """"""
+
 class AddToDatasetSignal(object):
     to_dataset: Signal 
 

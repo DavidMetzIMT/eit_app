@@ -28,13 +28,17 @@ from PyQt5.QtGui import QImage
 
 logger = getLogger(__name__)
 
-IMG_SIZES = {
+IMAGE_SIZES = {
     # '1600 x 1200':(1600,1200),
-    "1280 x 960": (1280, 960),
+    # "1280 x 960": (1280, 960),
     # '800 x 600':(800,600),
     "640 x 480": (640, 480),
 }
-EXT_IMG = {"PNG": ".png", "JPEG": ".jpg"}
+
+IMAGE_FILE_FORMAT = {
+    "PNG": ".png",
+    # "JPEG": ".jpg"
+}
 
 
 ################################################################################
@@ -67,8 +71,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.capture_device = capture_dev
         self.snapshot_dir = snapshot_dir
 
-        self.image_size = IMG_SIZES[list(IMG_SIZES.keys())[-1]]
-        self.image_file_ext = EXT_IMG[list(EXT_IMG.keys())[0]]
+        self.image_size = IMAGE_SIZES[list(IMAGE_SIZES.keys())[-1]]
+        self.image_file_ext = IMAGE_FILE_FORMAT[list(IMAGE_FILE_FORMAT.keys())[0]]
         self.process = {
             CaptureStatus.NOT_CONNECTED: self._process_replay,
             CaptureStatus.CONNECTED: self._process_replay,
@@ -129,7 +133,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self._buffer_in.put(data.frame_path)
         logger.info(f"Capture frame path added: {data.frame_path}")
 
-    def get_devices_available(self) -> None:
+    def get_devices(self) -> None:
         """Return a list of the name of the availbale devices
 
         Returns:
@@ -143,7 +147,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.capture_device.set_name(name)
 
     @handle_capture_device_error
-    def connect_device(self, name: str = None) -> None:
+    def connect_device(self, name: str = None, **kwargs) -> None:
         """Select a device
 
         Args:
@@ -161,7 +165,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             logger.info(f"Video capture device: {self.capture_device._name} - CONNECTED")
 
     @handle_capture_device_error
-    def set_image_size(self, size: str) -> None:
+    def set_image_size(self, size: str, **kwargs) -> None:
         """Set the captured image size
 
         Args:
@@ -172,23 +176,23 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
                                     '640 x 480':(640,480)
                                 }
         """
-        if size not in IMG_SIZES:
+        if size not in IMAGE_SIZES:
             logger.error(f"Wrong image size : {size}")
             return
-        self.image_size = IMG_SIZES[size]
+        self.image_size = IMAGE_SIZES[size]
         self.capture_device.set_settings(size=self.image_size)
 
-    def set_image_file_format(self, file_ext=list(EXT_IMG.keys())[0]) -> None:
+    def set_image_file_format(self, file_ext: str=list(IMAGE_FILE_FORMAT.keys())[0], **kwargs) -> None:
         """Set the file format for image saving
 
         Args:
             file_ext ([type], optional): file extension.
             Defaults to list(EXT_IMG.keys())[0].
         """
-        self.image_file_ext = EXT_IMG[file_ext]
+        self.image_file_ext = IMAGE_FILE_FORMAT[file_ext]
         logger.debug(f"image_file_ext selected {self.image_file_ext}")
 
-    def start_stop_capture(self, *args, **kwargs) -> None:
+    def start_stop(self, *args, **kwargs) -> None:
         """Start or Stop Live Capture,
         toggle between both modis IDLE and LIVE
         if MEASURING mode active nothing will be done!
@@ -290,7 +294,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             return None, None
 
         filepath = None
-        for ext in list(EXT_IMG.values()):
+        for ext in list(IMAGE_FILE_FORMAT.values()):
             filepath = append_extension(path, ext)
             if is_file(filepath):
                 break
@@ -312,6 +316,12 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         logger.debug(f"Image saved in {path}")
         path = append_extension(path, self.image_file_ext)
         self.capture_device.save_frame(frame, path)
+    
+    def used_img_exts(self)->list[str]:
+        return list(IMAGE_FILE_FORMAT.keys())
+
+    def used_img_sizes(self)->list[str]:
+        return list(IMAGE_SIZES.keys())
 
 
 def convert_frame_to_Qt_format(frame: np.ndarray) -> QImage:

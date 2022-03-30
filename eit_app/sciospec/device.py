@@ -3,7 +3,7 @@ from logging import getLogger
 from time import sleep
 from typing import Any, Union
 
-from eit_app.sciospec.com_constants import (
+from eit_app.sciospec.constants import (
     CMD_GET_DEVICE_INFOS,
     CMD_GET_ETHERNET_CONFIG,
     CMD_GET_MEAS_SETUP,
@@ -46,6 +46,7 @@ from eit_app.com_channels import (
     AddToDatasetSignal,
     AddToGuiSignal,
     DataCheckBurst,
+    DataLoadLastDataset,
     DataLoadSetup,
     SignalReciever,
 )
@@ -374,6 +375,7 @@ class SciospecEITDevice(
         if success := self._stop_meas():
             self.set_status(MeasuringStatus.NOT_MEASURING)
             self.to_gui.emit(EvtDataNewFrameProgress(0, 0))
+            self.to_dataset.emit(DataLoadLastDataset())
         logger.info(f"Stop Measurements - {SUCCESS[success]}")
 
     ## -------------------------------------------------------------------------

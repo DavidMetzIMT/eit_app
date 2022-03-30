@@ -5,8 +5,8 @@ from sys import argv
 from typing import Union
 
 import numpy as np
-from default.set_default_dir import APP_DIRS, AppDirs
-from eit_app.sciospec.com_constants import OPTION_BYTE_INDX
+from default.set_default_dir import APP_DIRS, AppStdDir
+from eit_app.sciospec.constants import OPTION_BYTE_INDX
 from eit_app.sciospec.setup import SciospecSetup
 from eit_app.sciospec.utils import convert4Bytes2Float, convertBytes2Int
 from eit_app.com_channels import (
@@ -20,6 +20,7 @@ from eit_app.com_channels import (
     DataCheckBurst,
     DataEmitFrame4Computation,
     DataInit4Start,
+    DataLoadLastDataset,
     DataLoadSetup,
     DataReInit4Pause,
     DataReplayStart,
@@ -27,11 +28,12 @@ from eit_app.com_channels import (
     SignalReciever,
 )
 from eit_app.update_gui import (
+    EvtDataAutosaveOptionsChanged,
     EvtDataMeasDatasetLoaded,
     EvtDataNewFrameInfo,
     EvtDataNewFrameProgress,
 )
-from eit_model.imaging_type import IMAGING_TYPE
+from eit_model.imaging import IMAGING_TYPE
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.files.files import FileExt, search_for_file_with_ext
 from glob_utils.files.json import read_json, save_to_json
@@ -453,7 +455,7 @@ class MeasurementDataset(
     _ref_frame: MeasurementFrame # meas. frame used tio save acztual TD ref frame
     _autosave: CustomFlag
     _save_img: CustomFlag
-
+    _load_after_meas: CustomFlag
     def __init__(self):
         super().__init__()
 
@@ -463,6 +465,7 @@ class MeasurementDataset(
                 DataReInit4Pause: self.reinit_4_pause,
                 DataAddRxMeasStream: self.add_data,
                 DataEmitFrame4Computation: self.emit_frame_4_computatiom,
+                DataLoadLastDataset: self.load_last_dataset
             }
         )
 
@@ -474,9 +477,14 @@ class MeasurementDataset(
         self._rx_meas_frame = None
         self.meas_frame = []
         self._ref_frame = None
+
         self._autosave = CustomFlag()
         self._autosave.set()
         self._save_img = CustomFlag()
+        self._save_img.set()
+        self._load_after_meas = CustomFlag()
+        self._load_after_meas.set()
+        self._update_gui_autosave()
 
     ## =========================================================================
     ##  Aquisition
@@ -491,7 +499,7 @@ class MeasurementDataset(
         folder = append_date_time(self.name, self.time_stamps)
         self.output_dir = None
         if self._autosave.is_set():
-            self.output_dir = mk_new_dir(folder, APP_DIRS.get(AppDirs.meas_set))
+            self.output_dir = mk_new_dir(folder, APP_DIRS.get(AppStdDir.meas_set))
             self.dev_setup.save(self.output_dir)
 
         self.frame_cnt = 0
@@ -514,6 +522,12 @@ class MeasurementDataset(
         """Send frame to computation (called by a signal)
         """
         self.emit_meas_frame(data.idx)
+    
+    def load_last_dataset(self,  data:DataLoadLastDataset):
+        
+        if self._load_after_meas.is_set():
+            self.load_auto(self.output_dir)
+
 
     def set_name(self, name: str = None, *args, **kwargs) -> None:
         """set new name of the dataset (Called by the gui)
@@ -523,6 +537,7 @@ class MeasurementDataset(
         """
         if name is None:
             return
+        logger.debug(f"Set meas dataset:{name}")
         self.name = name
 
     @catch_error
@@ -719,7 +734,7 @@ class MeasurementDataset(
 
         if not dir_path:
             title = "Select a measurement dataset directory"
-            initialdir = APP_DIRS.get(AppDirs.meas_set)
+            initialdir = APP_DIRS.get(AppStdDir.meas_set)
             dir_path = get_dir(title=title, initialdir=initialdir)
         return dir_path
 
@@ -818,6 +833,36 @@ class MeasurementDataset(
 
     def get_frame_cnt(self)->int:
         return self.frame_cnt
+
+    def _update_gui_autosave(self):
+        self.to_gui.emit(
+            EvtDataAutosaveOptionsChanged(
+                self._autosave.is_set(),
+                self._save_img.is_set(),
+                self._load_after_meas.is_set()
+            )
+        )
+
+    def set_autosave(self, val:bool= None, *kwargs):
+        if val is None:
+            return
+        self._autosave.set(val)
+        if not self._autosave.is_set():
+            self._save_img.set(False)
+            self._load_after_meas.set(False)
+        self._update_gui_autosave()
+
+    def set_save_img(self, val:bool= None, *kwargs):
+        if val is None:
+            return
+        self._save_img.set(val)
+        self._update_gui_autosave()
+    
+    def set_load_after_meas(self, val:bool= None, *kwargs):
+        if val is None:
+            return
+        self._load_after_meas.set(val)
+        self._update_gui_autosave()
 
 
 def convert_meas_data(meas_data):

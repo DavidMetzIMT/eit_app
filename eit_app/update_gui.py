@@ -27,7 +27,7 @@ from eit_app.gui_utils import (
     set_QTableWidget,
 )
 from eit_app.sciospec.setup import SciospecSetup
-from eit_model.imaging_type import (
+from eit_model.imaging import (
     Imaging,
     AbsoluteImaging,
     TimeDifferenceImaging,
@@ -168,7 +168,7 @@ class EvtDataSciospecDevices(EventDataClass):
 def update_available_capture_devices(app: Ui_MainWindow, device: dict):
     """Refesh the list of devices in the comboBox"""
     items = list(device) or ["None device"]
-    set_comboBox_items(app.cB_video_devices, items)
+    set_comboBox_items(app.cB_capture_devices, items)
 
 
 register_func_in_catalog(update_available_capture_devices)
@@ -275,8 +275,8 @@ class EvtDataSciospecDevSetup(EventDataClass):
 
 
 def update_freqs_list(app: Ui_MainWindow, freqs: List[Any]):
-    set_comboBox_items(app.cB_freq_meas_0, list(freqs))
-    set_comboBox_items(app.cB_freq_meas_1, list(freqs))
+    set_comboBox_items(app.cB_eit_imaging_ref_freq, list(freqs))
+    set_comboBox_items(app.cB_eit_imaging_meas_freq, list(freqs))
 
 
 # -------------------------------------------------------------------------------
@@ -385,25 +385,25 @@ class CaptureStatus(BaseStatus):
     )
 
 
-def update_capture_mode(app: Ui_MainWindow, capture_mode: CaptureStatus):
+def update_capture_status(app: Ui_MainWindow, capture_mode: CaptureStatus):
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
     v: CaptureStatusUpdateData = capture_mode.value
-    app.lab_capture_mode.setText(v.lab_txt)
-    app.lab_capture_mode.setStyleSheet(v.lab_style)
+    app.lab_capture_status.setText(v.lab_txt)
+    app.lab_capture_status.setStyleSheet(v.lab_style)
     app.pB_capture_start_stop.setText(v.pB_txt)
     app.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
     app.pB_capture_start_stop.setEnabled(v.pB_enable)
     app.pB_capture_connect.setText(v.pB_con_txt)
 
 
-register_func_in_catalog(update_capture_mode)
+register_func_in_catalog(update_capture_status)
 
 
 @dataclass
 class EvtDataCaptureStatusChanged(EventDataClass):
     capture_mode: CaptureStatus
-    func: str = update_capture_mode.__name__
+    func: str = update_capture_status.__name__
 
 
 # -------------------------------------------------------------------------------
@@ -472,15 +472,15 @@ def update_imaging_inputs_fields(app: Ui_MainWindow, imaging: Imaging):
     elif isinstance(imaging, FrequenceDifferenceImaging):
         meas_0["show"] = True
 
-    app.cB_ref_frame_idx.setEnabled(ref["show"])
+    app.cB_eit_imaging_ref_frame.setEnabled(ref["show"])
     app.lab_ref_frame_idx.setEnabled(ref["show"])
     app.lab_freq_meas_0.setText(ref["lab_text"])
 
-    app.cB_freq_meas_0.setEnabled(meas_0["show"])
+    app.cB_eit_imaging_ref_freq.setEnabled(meas_0["show"])
     app.lab_freq_meas_0.setEnabled(meas_0["show"])
     app.lab_freq_meas_0.setText(meas_0["lab_text"])
 
-    app.cB_freq_meas_1.setEnabled(meas_1["show"])
+    app.cB_eit_imaging_meas_freq.setEnabled(meas_1["show"])
     app.lab_freq_meas_1.setEnabled(meas_1["show"])
     app.lab_freq_meas_1.setText(meas_1["lab_text"])
 
@@ -501,9 +501,9 @@ class EvtDataImagingInputsChanged(EventDataClass):
 
 def update_EITData_plots_options(app: Ui_MainWindow):
     """Activate/deactivate checkbox for EITData plots"""
-    app.chB_Uplot.setEnabled(app.chB_plot_graph.isChecked())
-    app.chB_diff.setEnabled(app.chB_plot_graph.isChecked())
-    app.chB_y_log.setEnabled(app.chB_plot_graph.isChecked())
+    app.chB_eit_data_Uplot.setEnabled(True)
+    app.chB_eit_data_Udiffplot.setEnabled(True)
+    app.chB_eit_data_y_log.setEnabled(True)
 
 
 register_func_in_catalog(update_EITData_plots_options)
@@ -566,18 +566,21 @@ class EvtDataNewFrameInfo(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_autosave_options(app: Ui_MainWindow):
+def update_autosave_options(app: Ui_MainWindow, autosave:bool, save_img:bool, load_after_meas:bool):
     """Activate/deactivate saving options"""
     app.lE_meas_dataset_dir.setEnabled(app.chB_dataset_autosave.isChecked())
     app.chB_dataset_save_img.setEnabled(app.chB_dataset_autosave.isChecked())
     app.chB_load_after_meas.setEnabled(app.chB_dataset_autosave.isChecked())
-    app.chB_dataset_save_img.setChecked(
-        app.chB_dataset_autosave.isChecked() and app.chB_dataset_save_img.isChecked()
-    )
+    block_signals(app.chB_dataset_autosave.setChecked, autosave)
+    block_signals(app.chB_dataset_save_img.setChecked, save_img)
+    block_signals(app.chB_load_after_meas.setChecked, load_after_meas)
+    # app.chB_dataset_save_img.setChecked(
+    #     app.chB_dataset_autosave.isChecked() and app.chB_dataset_save_img.isChecked()
+    # )
 
-    app.chB_load_after_meas.setChecked(
-        app.chB_dataset_autosave.isChecked() and app.chB_load_after_meas.isChecked()
-    )
+    # app.chB_load_after_meas.setChecked(
+    #     app.chB_dataset_autosave.isChecked() and app.chB_load_after_meas.isChecked()
+    # )
 
 
 register_func_in_catalog(update_autosave_options)
@@ -585,6 +588,9 @@ register_func_in_catalog(update_autosave_options)
 
 @dataclass
 class EvtDataAutosaveOptionsChanged(EventDataClass):
+    autosave:bool
+    save_img:bool
+    load_after_meas:bool
     func: str = update_autosave_options.__name__
 
 
@@ -597,7 +603,7 @@ def update_dataset_loaded(app: Ui_MainWindow, dataset_dir: str, nb_loaded_frame:
     """update the path of the loaded dataset and init the combosboxes and slider
     for the nb of loaded frames"""
     app.tE_load_dataset_dir.setText(dataset_dir)
-    set_comboBox_items(app.cB_current_idx_frame, list(range(nb_loaded_frame)))
+    set_comboBox_items(app.cB_replay_frame_idx, list(range(nb_loaded_frame)))
     set_comboBox_items(app.cB_ref_frame_idx, list(range(nb_loaded_frame)))
     set_QSlider_scale(app.slider_replay, nb_pos=nb_loaded_frame)
 
@@ -620,7 +626,7 @@ class EvtDataMeasDatasetLoaded(EventDataClass):
 def update_replay_frame_changed(app: Ui_MainWindow, idx: int):
     """update the path of the loaded dataset and init the combosboxes and slider
     for the nb of loaded frames"""
-    set_comboBox_index(app.cB_current_idx_frame, index=idx)
+    set_comboBox_index(app.cB_replay_frame_idx, index=idx)
     set_QSlider_position(app.slider_replay, pos=idx)
 
 

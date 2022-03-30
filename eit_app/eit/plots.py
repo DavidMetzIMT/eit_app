@@ -149,6 +149,9 @@ class CanvasLayout(object):
         layout.addWidget(self._toolbar)
         layout.addWidget(self._canvas)
         self._plotter = plotter()
+    
+    def set_options(self, options:Any):
+        """"""
 
     def set_visible(self, visible: bool = True):
         """Make the Canvas visible or insisible"""
@@ -166,7 +169,7 @@ class CanvasLayout(object):
         if not self._visible:
             self.clear_canvas()
             return
-        self._plotter.build(self._figure, data)
+        self._plotter.build(self._figure, data, )
         self._canvas.draw()
 
 

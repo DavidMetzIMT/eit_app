@@ -133,6 +133,7 @@ OP_ACTIVE_GUARD = SciospecOption("OP_Active_Guard", 0x07, [0x01, 0x01])
 
 OP_LINEAR = SciospecOption("LINEAR", 0x00, [0x00, 0x00])
 OP_LOG = SciospecOption("LOG", 0x01, [0x00, 0x00])
+
 used_ops = [
     OP_RESET_SETUP,
     OP_BURST_COUNT,
@@ -309,6 +310,13 @@ cmds = [
     CMD_GET_ETHERNET_CONFIG,
     CMD_GET_DEVICE_INFOS,
 ]
+
+
+FREQ_SCALE = {OP_LINEAR.tag: OP_LINEAR.name, OP_LOG.tag: OP_LOG.name}
+
+def frequency_scales()->list[str]:
+    return list(FREQ_SCALE.values())
+
 
 
 def is_start_meas(cmd: SciospecCmd, op: SciospecOption):
