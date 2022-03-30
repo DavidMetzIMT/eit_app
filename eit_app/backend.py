@@ -438,6 +438,7 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
         transform = self.cB_eit_imaging_trans.currentText()
         show_abs = self.chB_eit_imaging_trans_abs.isChecked()
         self.computing.set_imaging_mode(imaging_type, transform, show_abs)
+        self.computing.set_eit_model(self.eit_model)
         self._set_actual_indexesforcomputation(imaging_type)
 
     def _set_actual_indexesforcomputation(self, imaging_type: str):

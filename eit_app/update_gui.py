@@ -604,7 +604,7 @@ def update_dataset_loaded(app: Ui_MainWindow, dataset_dir: str, nb_loaded_frame:
     for the nb of loaded frames"""
     app.tE_load_dataset_dir.setText(dataset_dir)
     set_comboBox_items(app.cB_replay_frame_idx, list(range(nb_loaded_frame)))
-    set_comboBox_items(app.cB_ref_frame_idx, list(range(nb_loaded_frame)))
+    set_comboBox_items(app.cB_eit_imaging_ref_frame, list(range(nb_loaded_frame)))
     set_QSlider_scale(app.slider_replay, nb_pos=nb_loaded_frame)
 
 
