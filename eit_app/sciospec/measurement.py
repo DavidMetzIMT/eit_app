@@ -661,7 +661,14 @@ class MeasurementDataset(
         self.meas_frame[idx].save(path)
 
     def _load_frame(self, path: str) -> Union[MeasurementFrame, bool]:
-        """Load measurement frame"""
+        """Load measurement frame
+
+        Args:
+            path (str): loading path
+
+        Returns:
+            Union[MeasurementFrame, bool]: Loade frame and success
+        """
 
         frame = self.get_new_frame_for_acquisition()
         success = frame.load(path)

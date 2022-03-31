@@ -331,12 +331,12 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
         idx_freq = self.cB_eit_imaging_meas_freq.currentIndex()
         n = self.dataset.get_frame_cnt()
         data = {
-            f"frame{i}": np.real(self.dataset.get_meas_voltage(i, idx_freq)[:, 0:16])
+            f"frame{i}": np.real(self.eit_model.get_meas_voltages(self.dataset.get_meas_voltage(i, idx_freq))[0])
             for i in range(n)
         }
-        freq = self.dataset.meas_frame[0].get_freq_val(idx_freq)
+        freq = self.dataset.meas_frame[0].freq_label(idx_freq)
 
-        file_path = os.path.join(self.dataset.output_dir, f"Meas#1-{n}_freq{freq}Hz")
+        file_path = os.path.join(self.dataset.output_dir, f"Meas#1-{n}_freq{freq}")
         save_as_csv(file_path, data)
         logger.debug(f"Measurements exported as CSV in : {file_path}")
 
