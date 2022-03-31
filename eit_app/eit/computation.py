@@ -99,7 +99,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         Args:
             data (Data2Compute): data for reconstruction
         """
-        # self._preprocess_monitoring(data)
+        self._preprocess_monitoring(data)
         eit_data, labels , frame_name=self._prepocess(data)
         self._rec_image(eit_data, labels, frame_name)
         
@@ -132,10 +132,10 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         ch_data, ch_volt, ch_labels = self.monitoring.process_data(
             **data.__dict__, eit_model=self.eit_model
         )
-        self.to_plot.emit(Data2Plot(ch_volt, ch_labels, PlotterEITChannelVoltage))
+        self.to_plot.emit(Data2Plot(ch_data, ch_labels, PlotterEITChannelVoltage))
 
-        volt = data.v_meas[:, : self.eit_model.n_elec]
-        self.monitoring_data.add(volt, data.labels[1][0])
+        # volt = data.v_meas[:, : self.eit_model.n_elec]
+        self.monitoring_data.add(ch_volt.volt_frame, data.labels[1][0])
 
         self.to_plot.emit(Data2Plot(self.monitoring_data, ch_labels, PlotterChannelVoltageMonitoring))
 
