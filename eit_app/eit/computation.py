@@ -99,13 +99,14 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         Args:
             data (Data2Compute): data for reconstruction
         """
+        self._actual_frame_name= data.v_meas.get_frame_name()
         self._preprocess_monitoring(data)
-        eit_data, labels , frame_name=self._prepocess(data)
-        self._rec_image(eit_data, labels, frame_name)
+        eit_data, plot_labels =self._prepocess(data)
+        self._rec_image(eit_data, plot_labels)
         
     def _prepocess(self, data: Data2Compute)-> Tuple[EITData, dict[EITPlotsType, CustomLabels], str]:
         """Returns the eit_data for reconstruction. During this method 
-        the eit data er send fro ploting
+        the eit data are send for plotting
 
         Args:
             data (Data2Compute): data for reconstruction
@@ -114,15 +115,17 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             Tuple[EITData, dict[EITPlotsType, CustomLabels], str]: eit_data for rec,
             labels for plots , and actual frame name
         """
-        frame_name= data.labels[1][0]
+        
         # prepocess eitdata for eit_imaging
-        eit_data, eit_volt , labels = self.eit_imaging.process_data(
-            **data.__dict__, eit_model=self.eit_model
+        eit_data, eit_volt , plot_labels = self.eit_imaging.process_data(
+            v_ref=data.v_ref,
+            v_meas=data.v_meas,
+            eit_model=self.eit_model
         )
-        self.to_plot.emit(Data2Plot(eit_data, labels, PlotterEITData))
+        self.to_plot.emit(Data2Plot(eit_data, plot_labels, PlotterEITData))
 
-        logger.info(f"{frame_name} - Voltages preproccessed")
-        return eit_data, labels, frame_name
+        logger.info(f"{self._actual_frame_name} - Voltages preproccessed")
+        return eit_data, plot_labels
 
     def _preprocess_monitoring(self, data: Data2Compute)-> None:
         """Prepocee the data for the monitoring of the voltages. During 
@@ -130,16 +133,16 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         """
          # prepocess channel voltages for visualisation
         ch_data, ch_volt, ch_labels = self.monitoring.process_data(
-            **data.__dict__, eit_model=self.eit_model
+            v_ref=data.v_ref,
+            v_meas=data.v_meas,
+            eit_model=self.eit_model
         )
         self.to_plot.emit(Data2Plot(ch_data, ch_labels, PlotterEITChannelVoltage))
 
-        # volt = data.v_meas[:, : self.eit_model.n_elec]
-        self.monitoring_data.add(ch_volt.volt_frame, data.labels[1][0])
-
+        self.monitoring_data.add(ch_volt.volt_frame, data.v_meas.get_frame_name())
         self.to_plot.emit(Data2Plot(self.monitoring_data, ch_labels, PlotterChannelVoltageMonitoring))
 
-    def _rec_image(self, eit_data:EITData, labels:dict[EITPlotsType, CustomLabels], frame_name: str ):
+    def _rec_image(self, eit_data:EITData, labels:dict[EITPlotsType, CustomLabels]):
         """Reconstruct EIT image 
 
         Args:
@@ -154,7 +157,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             return
         img_rec = self.solver.rec(eit_data)
         self.to_plot.emit(Data2Plot(img_rec, labels, PlotterEITImage2D))
-        logger.info(f"Frame #{frame_name} - Image rec")
+        logger.info(f"Frame #{self._actual_frame_name} - Image rec")
 
     
     def enable_rec(self, enable: bool = True):

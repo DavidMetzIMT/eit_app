@@ -54,7 +54,7 @@ from glob_utils.thread_process.threads_worker import CustomWorker, Poller
 import numpy as np
 from eit_app.sciospec.setup import SciospecSetup
 from eit_app.update_gui import UPDATE_EVENTS, EventDataClass, UpdateAgent
-
+from eit_model.data import EITVoltage
 
 class SignalDataClass(ABC):
     """Abstract class of the dataclass defined for each update events"""
@@ -98,9 +98,9 @@ class AddToReplaySignal(object):
 
 @dataclass
 class Data2Compute:
-    v_ref: np.ndarray = None
-    v_meas: np.ndarray = None
-    labels: list = None
+    v_ref: EITVoltage #np.ndarray = None
+    v_meas: EITVoltage #np.ndarray = None
+    # labels: list = None
 
 
 class AddToComputationSignal(object):

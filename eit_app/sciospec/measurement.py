@@ -34,6 +34,7 @@ from eit_app.update_gui import (
     EvtDataNewFrameProgress,
 )
 from eit_model.imaging import IMAGING_TYPE
+from eit_model.data import EITVoltage, EITVoltageLabels
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.files.files import FileExt, search_for_file_with_ext
 from glob_utils.files.json import read_json, save_to_json
@@ -614,27 +615,15 @@ class MeasurementDataset(
         self.extract_idx.set_ref_idx(idx)
         self.extract_idx.set_meas_idx(idx)
 
-        ref_idx = self.extract_idx.ref_idx
-        ref_freq = self.extract_idx.ref_freq
-        meas_idx = self.extract_idx.meas_idx
-        meas_freq = self.extract_idx.meas_freq
+        vref = self._get_vref()
+        vmeas = self._get_vmeas()
 
-        if ref_idx is None:
-            v_ref = self.get_ref_voltage(ref_freq)
-            l_ref = self.get_ref_labels(ref_freq)
-        else:
-            v_ref = self.get_meas_voltage(ref_idx, ref_freq)
-            l_ref = self.get_meas_labels(ref_idx, ref_freq)
+        logger.debug(f"Emit Frame for computation {vmeas.labels=} {vref.labels=}")
 
-        v_meas = self.get_meas_voltage(meas_idx, meas_freq)
-        l_meas = self.get_meas_labels(meas_idx, meas_freq)
-
-        logger.debug(f"Emit Frame for computation {l_meas=} {l_ref=}")
-
-        self.to_gui.emit(EvtDataNewFrameInfo(self.get_meas_info(meas_idx)))
+        self.to_gui.emit(EvtDataNewFrameInfo(self.get_meas_info(self.extract_idx.meas_idx)))
         self.to_device.emit(DataCheckBurst(self.get_frame_cnt()))
-        self.to_computation.emit(Data2Compute(v_ref, v_meas, [l_ref, l_meas]))
-        self.to_capture.emit(DataSaveLoadImage(self.get_meas_path(meas_idx)))
+        self.to_computation.emit(Data2Compute(vref, vmeas))
+        self.to_capture.emit(DataSaveLoadImage(self.get_meas_path(self.extract_idx.meas_idx)))
 
     def emit_progression(self) -> None:
         """Send signal to update Frame aquisition progress bar"""
@@ -645,6 +634,38 @@ class MeasurementDataset(
             EvtDataNewFrameProgress(self.get_frame_cnt(), self.get_filling())
         )
 
+    def _get_vref(self)->EITVoltage:
+        ref_idx = self.extract_idx.ref_idx
+        ref_freq = self.extract_idx.ref_freq
+
+        if ref_idx is None:
+            v_ref = self.get_ref_voltage(ref_freq)
+            l_ref = self.get_ref_labels(ref_freq)
+            ref_idx= self.get_ref_idx()
+        else:
+            v_ref = self.get_meas_voltage(ref_idx, ref_freq)
+            l_ref = self.get_meas_labels(ref_idx, ref_freq)
+            ref_idx= self.get_meas_idx(self.extract_idx.meas_idx)
+
+        return (
+            EITVoltage(
+                volt=v_ref, 
+                labels= EITVoltageLabels(ref_idx,ref_freq,*l_ref)
+            )
+        )
+    def _get_vmeas(self)-> EITVoltage:
+
+        meas_idx = self.extract_idx.meas_idx
+        meas_freq = self.extract_idx.meas_freq
+        v_meas = self.get_meas_voltage(meas_idx, meas_freq)
+        l_meas = self.get_meas_labels(meas_idx, meas_freq)
+        meas_idx= self.get_meas_idx(meas_idx)
+        return (
+            EITVoltage(
+                volt=v_meas, 
+                labels= EITVoltageLabels(meas_idx, meas_freq,*l_meas)
+            )
+        )
     ## =========================================================================
     ##  Save load
     ## =========================================================================
@@ -783,8 +804,8 @@ class MeasurementDataset(
         """
         return self.meas_frame[idx_frame].get_voltages(idx_freq)
 
-    def get_meas_labels(self, idx_frame: int = 0, idx_freq: int = 0) -> np.ndarray:
-        """Return the measured voltage for the given frequency index"""
+    def get_meas_labels(self, idx_frame: int = 0, idx_freq: int = 0) -> list[str]:
+        """"""
         return [
             self.meas_frame[idx_frame].frame_label(),
             self.meas_frame[idx_frame].freq_label(idx_freq),
