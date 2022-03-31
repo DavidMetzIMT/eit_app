@@ -590,17 +590,16 @@ class MeasurementDataset(
             path = self.meas_frame[0].build_path(self.output_dir, idx)
             self._ref_frame = self._load_frame(path)
         else:
-            meas_frame = self._load_frame(path)
-            self.meas_frame.insert(0, meas_frame)
-            self.meas_frame[0].path = path
-            self.meas_frame[0].build_info()
+            meas_frame, success = self._load_frame(path)
+            self._ref_frame = meas_frame
+            self._ref_frame.path = path
+            self._ref_frame.build_info()
 
     ## =========================================================================
     ##  New_Frame Signal
     ## =========================================================================
 
     def set_index_of_data_for_computation(self, extract_idx: ExtractIndexes):
-
         self.extract_idx = extract_idx
 
     def emit_meas_frame(self, idx: int = None) -> None:

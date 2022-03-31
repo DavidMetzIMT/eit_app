@@ -258,7 +258,7 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
 
         try:
             file_path = dialog_get_file_with_ext(
-                ext=FileExt.pkl, title="", initialdir=get_dir(AppStdDir.meas_set)
+                ext=FileExt.json, title="", initialdir=get_dir(AppStdDir.meas_set)
             )
         except OpenDialogFileCancelledException:
             return
