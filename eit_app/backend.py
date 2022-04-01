@@ -147,7 +147,7 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
         self._signals_to_monitoring()
 
         self.comboBox_init()
-        self._update_log()
+        glob_utils.log.log.change_level_logging()
         self._get_dev_setup()
         self._set_plots_options()
         self._imaging_changed()
@@ -423,7 +423,7 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
         self.chB_eit_imaging_trans_abs.toggled.connect(self._imaging_changed)
 
         # eit model catalog
-        self.cB_eit_mdl_ctlg.currentTextChanged.connect(self._set_eit_mdl_ctlg)
+        self.cB_eit_mdl_ctlg.activated.connect(self._set_eit_mdl_ctlg)
         self.pB_eit_mdl_refresh_ctlg.clicked.connect(self._update_eit_mdl_ctlg)
         # chip design catalog
         self.cB_chip_ctlg.currentTextChanged.connect(self._set_chip_ctlg)
