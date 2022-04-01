@@ -198,7 +198,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         """Create reconstruction solver
         """
         self.set_eit_model(eit_model)
-        if not isinstance(solver, Solver):
+        if not issubclass(solver, Solver):
             raise TypeError('solver should be Solver') 
         self.solver = solver(self.eit_model)
         logger.info(f"Reconstructions solver selected: {self.solver}")

@@ -134,15 +134,17 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
     
     def _init_values(self) -> None:
 
-        self._signals_to_capture()
-        self._signals_to_dataset()
-        self._signals_to_dev_setup()
-        self._signals_to_device()
-        self._signals_to_export_import()
-        self._signals_to_imaging()
         self._signals_to_log()
-        self._signals_to_plot()
+        self._signals_to_device()
+        self._signals_to_dev_setup()
+        self._signals_to_dataset()
         self._signals_to_replay()
+        self._signals_to_export_import()
+        self._signals_to_capture()
+        self._signals_to_plot()
+        self._signals_to_rec()
+        self._signals_to_imaging()
+        self._signals_to_monitoring()
 
         self.comboBox_init()
         self._update_log()
@@ -178,11 +180,7 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
     ############################################################################
 
     def _signals_to_log(self):
-        self.cB_log_level.activated.connect(self._update_log)
-
-    def _update_log(self) -> None:
-        """Modify the actual logging level"""
-        glob_utils.log.log.change_level_logging(self.cB_log_level.currentText())
+        self.cB_log_level.activated[str].connect(glob_utils.log.log.change_level_logging)
 
     ############################################################################
     #### Device, Setup
@@ -226,8 +224,6 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
         self.update_gui(
             EvtDataSciospecDevSetup(self.device.setup, freq_max_enable, error)
         )
-
-    
 
 
     ############################################################################
@@ -392,7 +388,7 @@ class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
         rec_type = self.tabW_reconstruction.currentIndex()
         solver = self._rec_solver(rec_type)
         params = self._rec_params(rec_type)
-        self.computing.init_solver(solver,self.eit_model, params)
+        self.computing.init_solver(solver, self.eit_model, params)
 
     def _rec_solver(self, rec_type: int = 0) -> None:
         """Return the reconstruction solver"""
