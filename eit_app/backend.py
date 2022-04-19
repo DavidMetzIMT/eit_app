@@ -13,6 +13,7 @@ import matplotlib.pyplot
 import numpy as np
 from default.set_default_dir import AppStdDir, set_ai_default_dir, get_dir
 import eit_model.imaging
+import eit_model.vista_plot
 from glob_utils.files.files import (
     FileExt,
     OpenDialogFileCancelledException,
@@ -370,6 +371,7 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
         self.ui.chB_eit_data_y_log.toggled.connect(self._set_plots_options)
         self.ui.chB_eit_image_plot.toggled.connect(self._set_plots_options)
 
+        self.ui.pB_pyvista.clicked.connect(self.open_pyvista)
         # self.scalePlot_vmax.valueChanged.connect(self._set_plots_options)
         # self.scalePlot_vmin.valueChanged.connect(self._set_plots_options)
 
@@ -377,6 +379,10 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
         self.canvas_rec.set_visible(self.ui.chB_eit_image_plot.isChecked())
         self.computing.enable_rec(self.ui.chB_eit_image_plot.isChecked())
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
+
+    def open_pyvista(self, checked) -> None:
+        self.w = eit_model.vista_plot.PyVistaPlotWidget()
+        self.w.show()
 
     ############################################################################
     #### Reconstruction, computation
