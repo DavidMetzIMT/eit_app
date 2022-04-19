@@ -23,7 +23,7 @@ from glob_utils.files.files import (
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.msgbox import warningMsgBox
 from PyQt5 import QtCore, QtWidgets
-from eit_app.com_channels import AddUpdateAgent
+from eit_app.com_channels import AddUpdateUiAgent
 from eit_app.eit.computation import ComputingAgent
 from eit_app.eit.plots import (
     CanvasLayout,
@@ -60,11 +60,13 @@ __status__ = "Production"
 
 logger = logging.getLogger(__name__)
 
-class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
+# class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
+class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
     def __init__(self) -> None:
         super().__init__()
         self._initilizated = CustomFlag()
         self.setupUi(self)  # setup the UI created with designer
+        self.init_update_ui_agent(self.ui)
         self.set_title()
         set_ai_default_dir()
         self._create_main_objects()
