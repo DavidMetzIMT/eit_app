@@ -8,21 +8,19 @@ import numpy as np
 from eit_app.sciospec.constants import *
 from eit_app.sciospec.utils import *
 
-from glob_utils.files.files import (
+from glob_utils.file.utils import (
     DataLoadedNotCompatibleError,
     FileExt,
     OpenDialogFileCancelledException,
     dialog_get_file_with_ext,
-    load_pickle_app,
-    save_as_pickle,
     search_for_file_with_ext,
 )
-from glob_utils.pth.path_utils import (
+from glob_utils.directory.utils import (
     get_datetime_s,
     get_dir,
 )
 from glob_utils.types.dict import visualise, dict_nested
-from glob_utils.files.json import save_to_json, read_json
+from glob_utils.file.json_utils import save_to_json, read_json
 
 logger = getLogger(__name__)
 

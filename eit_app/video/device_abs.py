@@ -24,7 +24,7 @@ from typing import Any, Tuple
 import numpy as np
 from glob_utils.flags.flag import CustomFlag
 from PyQt5.QtGui import QImage
-from glob_utils.msgbox import infoMsgBox, errorMsgBox, warningMsgBox
+from glob_utils.dialog.Qt_dialogs import infoMsgBox, errorMsgBox, warningMsgBox
 
 
 __author__ = "David Metz"

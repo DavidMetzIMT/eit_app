@@ -22,7 +22,7 @@ from eit_app.sciospec.constants import (
 from eit_app.sciospec.interface import Interface
 from glob_utils.flags.flag import CustomFlag
 from glob_utils.flags.timer import CustomTimer
-from glob_utils.pth.path_utils import get_datetime_s
+from glob_utils.directory.utils import get_datetime_s
 from glob_utils.thread_process.buffer import BufferList
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.threads_worker import Poller

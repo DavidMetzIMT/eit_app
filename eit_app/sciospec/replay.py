@@ -18,7 +18,7 @@ from eit_app.update_gui import (
     ReplayStatus,
 )
 from glob_utils.flags.status import AddStatus
-from glob_utils.msgbox import warningMsgBox
+from glob_utils.dialog.Qt_dialogs import warningMsgBox
 from PyQt5 import QtCore
 
 logger = getLogger(__name__)

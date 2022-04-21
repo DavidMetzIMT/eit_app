@@ -36,11 +36,11 @@ from eit_app.update_gui import (
 from eit_model.imaging import IMAGING_TYPE
 from eit_model.data import EITVoltage, EITVoltageLabels
 from glob_utils.decorator.decorator import catch_error
-from glob_utils.files.files import FileExt, search_for_file_with_ext
-from glob_utils.files.json import read_json, save_to_json
+from glob_utils.file.utils import FileExt, search_for_file_with_ext
+from glob_utils.file.json_utils import read_json, save_to_json
 from glob_utils.flags.flag import CustomFlag
-from glob_utils.msgbox import warningMsgBox
-from glob_utils.pth.path_utils import (
+from glob_utils.dialog.Qt_dialogs import warningMsgBox, openDirDialog
+from glob_utils.directory.utils import (
     append_date_time,
     get_datetime_s,
     get_dir,
@@ -762,7 +762,7 @@ class MeasurementDataset(
         if not dir_path:
             title = "Select a measurement dataset directory"
             initialdir = APP_DIRS.get(AppStdDir.meas_set)
-            dir_path = get_dir(title=title, initialdir=initialdir)
+            dir_path = openDirDialog(directory=initialdir, title=title)
         return dir_path
 
     def _get_all_frame_file(

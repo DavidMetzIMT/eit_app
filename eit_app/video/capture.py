@@ -19,10 +19,10 @@ from eit_app.update_gui import (
     EvtDataCaptureImageChanged,
     EvtDataCaptureStatusChanged,
 )
-from glob_utils.files.files import is_file, append_extension
+from glob_utils.file.utils import is_file, append_extension
 from glob_utils.flags.status import AddStatus
-from glob_utils.msgbox import infoMsgBox
-from glob_utils.pth.path_utils import get_datetime_s
+from glob_utils.dialog.Qt_dialogs import infoMsgBox
+from glob_utils.directory.utils import get_datetime_s
 from glob_utils.thread_process.threads_worker import Poller
 from PyQt5.QtGui import QImage
 

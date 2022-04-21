@@ -14,15 +14,15 @@ import numpy as np
 from default.set_default_dir import AppStdDir, set_ai_default_dir, get_dir
 import eit_model.imaging
 import eit_model.vista_plot
-from glob_utils.files.files import (
+from glob_utils.file.utils import (
     FileExt,
     OpenDialogFileCancelledException,
     dialog_get_file_with_ext,
-    save_as_csv,
     search_for_file_with_ext,
 )
+from glob_utils.file.csv_utils import save_as_csv
 from glob_utils.flags.flag import CustomFlag
-from glob_utils.msgbox import warningMsgBox
+from glob_utils.dialog.Qt_dialogs import warningMsgBox
 from PyQt5 import QtCore, QtWidgets
 from eit_app.com_channels import AddUpdateUiAgent
 from eit_app.eit.computation import ComputingAgent

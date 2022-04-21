@@ -61,7 +61,7 @@ from eit_app.update_gui import (
 )
 from glob_utils.flags.status import AddStatus
 from glob_utils.log.log import main_log
-from glob_utils.msgbox import errorMsgBox, infoMsgBox, warningMsgBox
+from glob_utils.dialog.Qt_dialogs import errorMsgBox, infoMsgBox, warningMsgBox
 from serial import (  # get from http://pyserial.sourceforge.net/
     PortNotOpenError,
     SerialException,
