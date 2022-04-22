@@ -13,6 +13,7 @@ def main():
     """Run the eit_app"""
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     app = QApplication(sys.argv)
+    app.setStyle('Fusion')
     app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     ui = UiBackEnd()
     ui.show()
