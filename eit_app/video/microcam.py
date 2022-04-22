@@ -1,5 +1,5 @@
 import time
-from logging import getLogger
+import logging
 from typing import Any, Tuple
 
 import cv2
@@ -13,7 +13,7 @@ from eit_app.video.capture import convert_frame_to_Qt_format
 from PyQt5.QtGui import QImage
 
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MicroUSBCamera(CaptureDevices):

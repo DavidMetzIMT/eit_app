@@ -43,15 +43,14 @@ class Obj2Class(SignalReciever)
 """
 
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, field
 from queue import Queue
-from typing import Any, Callable, Union
+from typing import Any, Callable
 
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.signal import Signal
-from glob_utils.thread_process.threads_worker import CustomWorker, Poller
-import numpy as np
+from glob_utils.thread_process.threads_worker import CustomWorker
 from eit_app.sciospec.setup import SciospecSetup
 from eit_app.update_gui import UPDATE_EVENTS, EventDataClass, UpdateAgent
 from eit_model.data import EITVoltage

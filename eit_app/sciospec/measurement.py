@@ -1,11 +1,11 @@
 import os
 from dataclasses import dataclass
-from logging import getLogger
+import logging
 from sys import argv
 from typing import Union
 
 import numpy as np
-from default.set_default_dir import APP_DIRS, AppStdDir
+from eit_app.default.set_default_dir import APP_DIRS, AppStdDir
 from eit_app.sciospec.constants import OPTION_BYTE_INDX
 from eit_app.sciospec.setup import SciospecSetup
 from eit_app.sciospec.utils import convert4Bytes2Float, convertBytes2Int
@@ -36,11 +36,11 @@ from eit_app.update_gui import (
 from eit_model.imaging import IMAGING_TYPE
 from eit_model.data import EITVoltage, EITVoltageLabels
 from glob_utils.decorator.decorator import catch_error
-from glob_utils.files.files import FileExt, search_for_file_with_ext
-from glob_utils.files.json import read_json, save_to_json
+from glob_utils.file.utils import FileExt, search_for_file_with_ext
+from glob_utils.file.json_utils import read_json, save_to_json
 from glob_utils.flags.flag import CustomFlag
-from glob_utils.msgbox import warningMsgBox
-from glob_utils.pth.path_utils import (
+import glob_utils.dialog.Qt_dialogs
+from glob_utils.directory.utils import (
     append_date_time,
     get_datetime_s,
     get_dir,
@@ -49,7 +49,7 @@ from glob_utils.pth.path_utils import (
 from glob_utils.types.dict import dict_nested, visualise
 from glob_utils.unit.unit import eng
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 N_CH_PER_STREAM = 16
 ## =============================================================================
@@ -773,7 +773,7 @@ class MeasurementDataset(
             filenames = search_for_file_with_ext(dir_path, ext=ext)
         except FileNotFoundError as e:
             logger.warning(f"FileNotFoundError: ({e})")
-            warningMsgBox(
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 "FileNotFoundError",
                 f"{e}",
             )
@@ -784,7 +784,8 @@ class MeasurementDataset(
                 filenames.remove(filename)
 
         if not filenames:
-            warningMsgBox(
+            logger.warning(f"Files Not Found, No Frames-files in directory: {dir_path}!")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 "Files Not Found", f"No Frames-files in directory: {dir_path}!"
             )
             return None

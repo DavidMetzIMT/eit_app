@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from logging import getLogger
+import logging
 from queue import Queue
 from typing import Any
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -11,7 +11,7 @@ from eit_model.data import EITData, EITImage, EITMeasMonitoring
 from eit_model.plot import EITCustomPlots,EITImage2DPlot, EITUPlot, EITUPlotDiff, MeasErrorPlot
 from eit_app.com_channels import Data2Plot, SignalReciever
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Plotter(ABC):

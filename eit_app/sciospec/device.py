@@ -1,5 +1,5 @@
 from enum import Enum
-from logging import getLogger
+import logging
 from time import sleep
 from typing import Any, Union
 
@@ -61,13 +61,13 @@ from eit_app.update_gui import (
 )
 from glob_utils.flags.status import AddStatus
 from glob_utils.log.log import main_log
-from glob_utils.msgbox import errorMsgBox, infoMsgBox, warningMsgBox
+import glob_utils.dialog.Qt_dialogs
 from serial import (  # get from http://pyserial.sourceforge.net/
     PortNotOpenError,
     SerialException,
 )
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 NONE_DEVICE = "None Device"
 
@@ -176,10 +176,12 @@ class SciospecEITDevice(
     def _handle_interface_error(self, error, **kwargs):
         """Manage the error from the interface"""
         if isinstance(error, PortNotOpenError):
-            warningMsgBox("None devices available", f"{error.__str__()}")
+            logger.warning(f"None devices available\n{error.__str__()}")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox("None devices available", f"{error.__str__()}")
 
         elif isinstance(error, SerialException):
-            warningMsgBox("Device not detected", f"{error.__str__()}")
+            logger.warning(f"Device not detected\n{error.__str__()}")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox("Device not detected", f"{error.__str__()}")
             self.disconnect_device()
             self.get_devices()
 
@@ -254,7 +256,8 @@ class SciospecEITDevice(
                 else:
                     msg = "Please stop measurements first"
                 if msg:  # show msg only if msg is not empty/None
-                    infoMsgBox("Measurements still running!", msg)
+                    logger.info(f'"Measurements still running!, {msg}')
+                    glob_utils.dialog.Qt_dialogs.infoMsgBox("Measurements still running!", msg)
                 return func(self, *args, **kwargs) if run_func else None
             return wrap
         return _check_not_measuring
@@ -341,14 +344,14 @@ class SciospecEITDevice(
         """Asset if a port is defined for device name, and returen it if yes"""
         if not self.sciospec_devices:
             logger.warning("No Sciospec devices - DETECTED")
-            warningMsgBox(
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 "No Sciospec devices - DETECTED",
                 "Please refresh the list of availables device first and retry!",
             )
             return None
         if device_name not in self.sciospec_devices:
             logger.error(f'Sciospec device "{device_name}" - NOT FOUND')
-            errorMsgBox(
+            glob_utils.dialog.Qt_dialogs.errorMsgBox(
                 "Sciospec device - NOT FOUND ",
                 f'Please reconnect your device "{device_name}"',
             )
@@ -492,7 +495,7 @@ class SciospecEITDevice(
         self.communicator.wait_not_busy()
         sleep(10)
         logger.info("Softreset of device - done")
-        infoMsgBox("Device reset ", "Reset done")
+        glob_utils.dialog.Qt_dialogs.infoMsgBox("Device reset ", "Reset done")
 
     def save_setup(self, *args, **kwargs) -> None:
         """Save Setup

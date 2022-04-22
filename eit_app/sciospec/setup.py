@@ -1,30 +1,26 @@
 from genericpath import isdir
 import os
-from logging import getLogger
+import logging
 from typing import Any, Tuple, Union
-from matplotlib import pyplot as plt
 
 import numpy as np
 from eit_app.sciospec.constants import *
 from eit_app.sciospec.utils import *
 
-from glob_utils.files.files import (
-    DataLoadedNotCompatibleError,
+from glob_utils.file.utils import (
     FileExt,
     OpenDialogFileCancelledException,
     dialog_get_file_with_ext,
-    load_pickle_app,
-    save_as_pickle,
     search_for_file_with_ext,
 )
-from glob_utils.pth.path_utils import (
+from glob_utils.directory.utils import (
     get_datetime_s,
     get_dir,
 )
 from glob_utils.types.dict import visualise, dict_nested
-from glob_utils.files.json import save_to_json, read_json
+from glob_utils.file.json_utils import save_to_json, read_json
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 # ===============================================================================
@@ -583,8 +579,6 @@ class SciospecSetup(SetupBase):
 
         path = os.path.join(dir, f"setup_{get_datetime_s()}")
 
-        # save_as_pickle(file, self)
-
         d = dict_nested(self, ignore_private=True)
         visualise(d)
         save_to_json(path, d)
@@ -617,8 +611,6 @@ class SciospecSetup(SetupBase):
                     return None
 
                 filepath = os.path.join(dir, filepath[0])
-
-            # load_pickle_app(file_path, self)
 
             setup_as_dict = read_json(filepath)
             if setup_as_dict is None:

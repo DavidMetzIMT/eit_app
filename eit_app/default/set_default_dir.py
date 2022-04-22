@@ -1,11 +1,11 @@
 
 
 from enum import Enum
-from glob_utils.pth.inout_dir import DefaultDir, set_default_dir
+from glob_utils.directory.inout_dir import DefaultDir, set_default_dir
 import os
 import pathlib
-from logging import getLogger
-logger = getLogger(__name__)
+import logging
+logger = logging.getLogger(__name__)
 
 ################################################################################
 # management of global default directory

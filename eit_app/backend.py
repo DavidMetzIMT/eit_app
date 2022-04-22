@@ -1,57 +1,46 @@
 from __future__ import absolute_import, division, print_function
 
-
-import os
 import logging
+import os
 
+import eit_model.imaging
 import eit_model.model
+import eit_model.pyvista_plot
 import eit_model.solver_pyeit
 import glob_utils.log.log
+import glob_utils.log.msg_trans
 import matplotlib
 import matplotlib.backends.backend_qt5agg
 import matplotlib.pyplot
 import numpy as np
-from default.set_default_dir import AppStdDir, set_ai_default_dir, get_dir
-import eit_model.imaging
-import eit_model.vista_plot
-from glob_utils.files.files import (
-    FileExt,
-    OpenDialogFileCancelledException,
-    dialog_get_file_with_ext,
-    save_as_csv,
-    search_for_file_with_ext,
-)
-from glob_utils.flags.flag import CustomFlag
-from glob_utils.msgbox import warningMsgBox
+from glob_utils.file.utils import (FileExt, OpenDialogFileCancelledException,
+                                    dialog_get_file_with_ext,
+                                    search_for_file_with_ext)
+import glob_utils.file.csv_utils
+import glob_utils.dialog.Qt_dialogs
 from PyQt5 import QtCore, QtWidgets
-from eit_app.com_channels import AddUpdateUiAgent
-from eit_app.eit.computation import ComputingAgent
-from eit_app.eit.plots import (
-    CanvasLayout,
-    PlotterChannelVoltageMonitoring,
-    PlotterEITChannelVoltage,
-    PlotterEITData,
-    PlotterEITImage2D,
-    PlottingAgent,
-)
-from eit_app.gui import Ui_MainWindow
-from eit_app.gui_utils import set_comboBox_items
+
+import eit_app.com_channels
+import eit_app.default.set_default_dir
+import eit_app.eit.computation
+import eit_app.gui
 import eit_app.sciospec.constants
-from eit_app.sciospec.device import SciospecEITDevice
-from eit_app.sciospec.measurement import ExtractIndexes, MeasurementDataset
-from eit_app.sciospec.replay import ReplayMeasurementsAgent
-from eit_app.update_gui import (
-    EvtDataEITDataPlotOptionsChanged,
-    EvtDataSciospecDevSetup,
-)
-from eit_app.video.capture import VideoCaptureAgent
-from eit_app.video.microcam import MicroUSBCamera
+import eit_app.sciospec.device
+import eit_app.sciospec.measurement
+import eit_app.sciospec.replay
+import eit_app.video.capture
+import eit_app.video.microcam
+from eit_app.default.set_default_dir import AppStdDir, get_dir
+import eit_app.eit.plots
+from eit_app.gui_utils import set_comboBox_items
+from eit_app.update_gui import (EvtDataEITDataPlotOptionsChanged,
+                                EvtDataSciospecDevSetup)
 
 # Ensure using PyQt5 backend
 matplotlib.use("QT5Agg")
 
 __author__ = "David Metz"
-__copyright__ = "Copyright 2021, microEIT"
+__copyright__ = "Copyright 2021, David Metz"
 __credits__ = ["David Metz"]
 __license__ = "GPL"
 __version__ = "2.0.0"
@@ -62,21 +51,31 @@ __status__ = "Production"
 logger = logging.getLogger(__name__)
 
 # class UiBackEnd(Ui_MainWindow, QtWidgets.QMainWindow, AddUpdateAgent):
-class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
+class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
     def __init__(self) -> None:
         super().__init__()
-        self._initilizated = CustomFlag()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-        self.init_update_ui_agent(self.ui)
+        self.init_logging()
+        
 
-        # self.setupUi(self)  # setup the UI created with designer
+        self.ui = eit_app.gui.Ui_MainWindow()
+        self.ui.setupUi(self)
+
+        
+
+        self.init_update_ui_agent(self.ui)
         self.set_title()
-        set_ai_default_dir()
+        eit_app.default.set_default_dir.set_ai_default_dir()
         self._create_main_objects()
         self._connect_main_objects()
         self._init_values()
-        self._initilizated.set()
+
+    
+    def init_logging(self):
+        glob_utils.log.log.change_level_logging(logging.DEBUG)
+        start_msg= (
+        f'                          Start of EIT app : v{__version__}\n\
+                          {__copyright__}')
+        logger.info(glob_utils.log.msg_trans.highlight_msg(start_msg))
     
     def eventFilter(self, source: QtCore.QObject, event: QtCore.QEvent) -> bool:
         
@@ -93,28 +92,32 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
     def _create_main_objects(self) -> None:
 
         # set canvas
-        self.plot_agent = PlottingAgent()
+        self.plot_agent = eit_app.eit.plots.PlottingAgent()
 
-        self.canvas_rec = CanvasLayout(self, self.ui.layout_rec, PlotterEITImage2D)
+        self.canvas_rec = eit_app.eit.plots.CanvasLayout(
+            self,
+            self.ui.layout_rec,
+            eit_app.eit.plots.PlotterEITImage2D
+        )
         self.plot_agent.add_canvas(self.canvas_rec)
-        self.canvas_graphs = CanvasLayout(self, self.ui.layout_graphs, PlotterEITData)
+        self.canvas_graphs = eit_app.eit.plots.CanvasLayout(
+            self, self.ui.layout_graphs, eit_app.eit.plots.PlotterEITData)
         self.plot_agent.add_canvas(self.canvas_graphs)
-        self.canvas_ch_graph = CanvasLayout(
-            self, self.ui.layout_ch_graph, PlotterEITChannelVoltage
+        self.canvas_ch_graph = eit_app.eit.plots.CanvasLayout(
+            self, self.ui.layout_ch_graph, eit_app.eit.plots.PlotterEITChannelVoltage
         )
         self.plot_agent.add_canvas(self.canvas_ch_graph)
-        self.canvas_monitoring = CanvasLayout(
-            self, self.ui.layout_monitoring, PlotterChannelVoltageMonitoring
+        self.canvas_monitoring = eit_app.eit.plots.CanvasLayout(
+            self, self.ui.layout_monitoring, eit_app.eit.plots.PlotterChannelVoltageMonitoring
         )
         self.plot_agent.add_canvas(self.canvas_monitoring)
         self.eit_model = eit_model.model.EITModel()
-        self.computing = ComputingAgent()
-        self.dataset = MeasurementDataset()
-        self.device = SciospecEITDevice(32)
-        self.replay_agent = ReplayMeasurementsAgent()
-        self.live_capture = CustomFlag()
-        self.capture_agent = VideoCaptureAgent(
-            capture_dev=MicroUSBCamera(), snapshot_dir=get_dir(AppStdDir.snapshot)
+        self.computing = eit_app.eit.computation.ComputingAgent()
+        self.dataset = eit_app.sciospec.measurement.MeasurementDataset()
+        self.device = eit_app.sciospec.device.SciospecEITDevice(32)
+        self.replay_agent = eit_app.sciospec.replay.ReplayMeasurementsAgent()
+        self.capture_agent = eit_app.video.capture.VideoCaptureAgent(
+            capture_dev=eit_app.video.microcam.MicroUSBCamera(), snapshot_dir=get_dir(AppStdDir.snapshot)
         )
 
     def _connect_main_objects(self) -> None:
@@ -154,7 +157,6 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
         self._signals_to_monitoring()
 
         self.comboBox_init()
-        glob_utils.log.log.change_level_logging()
         self._get_dev_setup()
         self._set_plots_options()
         self._imaging_changed()
@@ -290,7 +292,9 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
 
     def _load_eidors_fwd_solution(self) -> None:  # for Jiawei master thesis
         """load eidors foward solution(voltages) out of an mat-file"""
-        warningMsgBox("Not implemented", "Not implemented")
+        # QtWidgets.QMessageBox.information(parent= None, text='hrhuhr', title='hbkotkbokt')
+
+        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
 
         # sol = matlab.load_mat_var(initialdir=os.getcwd(), var_name="X")
         # U, _ = sol[0]
@@ -301,12 +305,13 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
 
     def _eidors_reload(self) -> None:  # for Jiawei master thesis
         """replot the data witha different scaling factor"""
-        warningMsgBox("Not implemented", "Not implemented")
+        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
         # volt = self.eidors_sol
         # self._extracted_from__eidors_reload_9(volt)
 
     def _extracted_from__eidors_reload_9(self, volt):
-        warningMsgBox("Not implemented", "Not implemented")
+        """"""
+        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
         # volt = volt * self.ui.sB_eidors_factor.value()
         # self.dataset.set_voltages(volt, 0, 0)
         # self.dataset.set_ref_frame(0)
@@ -314,7 +319,7 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
 
     def _export_data_meas_vs_eidors(self) -> None:
         """export the actual raw data in csv from"""
-        warningMsgBox("Not implemented", "Not implemented")
+        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
         # frame, freq = (
         #     self.ui.slider_replay.sliderPosition(),
         #     self.ui.cB_freq_meas_0.currentIndex(),
@@ -326,7 +331,7 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
         # file_path = os.path.join(
         #     self.dataset.output_dir, f"eidorsvsmeas#{frame}_freq{freq}"
         # )
-        # save_as_csv(file_path, data)
+        #  glob_utils.file.csv_utils.save_as_csv(file_path, data)
         # logger.debug(f"Measurements VS Eidors exported as CSV in : {file_path}")
 
     def _export_meas_csv(self) -> None:
@@ -340,7 +345,7 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
         freq = self.dataset.meas_frame[0].freq_label(idx_freq)
 
         file_path = os.path.join(self.dataset.output_dir, f"Meas#1-{n}_freq{freq}")
-        save_as_csv(file_path, data)
+        glob_utils.file.csv_utils.save_as_csv(file_path, data)
         logger.debug(f"Measurements exported as CSV in : {file_path}")
 
     ############################################################################
@@ -381,8 +386,9 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
 
     def open_pyvista(self, checked) -> None:
-        self.w = eit_model.vista_plot.PyVistaPlotWidget()
-        self.w.show()
+        self.w = eit_model.pyvista_plot.PyVistaPlotWidget(self)
+        self.w.set_eitmodel(self.eit_model)
+
 
     ############################################################################
     #### Reconstruction, computation
@@ -451,7 +457,7 @@ class UiBackEnd(QtWidgets.QMainWindow, AddUpdateUiAgent):
         self._set_actual_indexesforcomputation(imaging_type)
 
     def _set_actual_indexesforcomputation(self, imaging_type: str):
-        index = ExtractIndexes(
+        index = eit_app.sciospec.measurement.ExtractIndexes(
             ref_idx=self.ui.cB_eit_imaging_ref_frame.currentIndex(),
             meas_idx=self.ui.cB_replay_frame_idx.currentIndex(),
             ref_freq=self.ui.cB_eit_imaging_ref_freq.currentIndex(),

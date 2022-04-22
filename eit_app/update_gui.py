@@ -12,7 +12,7 @@ trouh the call
 
 from abc import ABC
 from dataclasses import dataclass, is_dataclass
-from logging import getLogger
+import logging
 import threading
 from typing import Any, Callable, List
 from PyQt5 import QtGui
@@ -37,7 +37,7 @@ from glob_utils.decorator.decorator import catch_error
 from glob_utils.flags.status import BaseStatus
 
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def is_dataclass_instance(obj):
@@ -97,7 +97,7 @@ class UpdateAgent:
             logger.error("data are not compatible for update")
             return
 
-        logger.info(f"thread update_event {threading.get_ident()}")
+        logger.debug(f"thread update_event {threading.get_ident()}")
         data = self._mk_dict(data)
         func = data.pop("func")
         logger.debug(f"updating {func=} with {data=}")

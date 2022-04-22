@@ -1,5 +1,5 @@
 from enum import Enum
-from logging import getLogger
+import logging
 from threading import Timer
 from typing import Any, Callable, Iterable, Mapping, Union
 
@@ -18,10 +18,10 @@ from eit_app.update_gui import (
     ReplayStatus,
 )
 from glob_utils.flags.status import AddStatus
-from glob_utils.msgbox import warningMsgBox
+import glob_utils.dialog.Qt_dialogs
 from PyQt5 import QtCore
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 
@@ -42,7 +42,8 @@ def check_is_on(func):
     """
     def wrap(self, *args, **kwargs) -> Union[Any, None]:
         if self.is_off:
-            warningMsgBox(
+            logger.warning("No Measurement loaded!, Please load measurements first!")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 title="No Measurement loaded!",
                 message="Please load measurements first!",
             )
@@ -186,7 +187,8 @@ class ReplayMeasurementsAgent(
         """Play/Pause the dataset replay
         """
         if self.is_off:
-            warningMsgBox(
+            logger.warning("No Measurement loaded!, Please load measurements first!")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 title="No Measurement loaded!",
                 message="Please load measurements first!",
             )

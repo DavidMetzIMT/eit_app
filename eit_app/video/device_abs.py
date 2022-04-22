@@ -19,12 +19,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. """
 
 
 from abc import ABC, abstractmethod
-from logging import getLogger
+import logging
 from typing import Any, Tuple
 import numpy as np
 from glob_utils.flags.flag import CustomFlag
-from PyQt5.QtGui import QImage
-from glob_utils.msgbox import infoMsgBox, errorMsgBox, warningMsgBox
+import PyQt5.QtGui
+import glob_utils.dialog.Qt_dialogs
 
 
 __author__ = "David Metz"
@@ -36,7 +36,7 @@ __maintainer__ = "David Metz"
 __email__ = "d.metz@tu-bs.de"
 __status__ = "Production"
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 ################################################################################
@@ -62,10 +62,10 @@ def handle_capture_device_error(func):
             return func(self, *args, **kwargs)
         except NoCaptureDeviceSelected as e:
             logger.warning(f"No Capture Device Selected; ({e})")
-            errorMsgBox(title="No Capture Device Selected", message=f"{e}")
+            glob_utils.dialog.Qt_dialogs.errorMsgBox(title="No Capture Device Selected", message=f"{e}")
         except CaptureFrameError as e:
             logger.error(f"Capture frame failed; ({e})")
-            errorMsgBox(title="Capture frame failed", message=f"{e}")
+            glob_utils.dialog.Qt_dialogs.errorMsgBox(title="Capture frame failed", message=f"{e}")
 
     return wrapper
 
@@ -112,7 +112,8 @@ class CaptureDevices(ABC):
             return
 
         if self.is_connected():
-            warningMsgBox(
+            logger.warning("Capture Device already connected - please disconnect first capture device")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 title="Capture Device already connected",
                 message="please disconnect first capture device"
             )
@@ -189,7 +190,7 @@ class CaptureDevices(ABC):
         """
 
     @abstractmethod
-    def get_Qimage(self, frame: np.ndarray) -> QImage:
+    def get_Qimage(self, frame: np.ndarray) -> PyQt5.QtGui.QImage:
         """Convert a frame (ndarray) in a Qt Image format object
 
         Args:

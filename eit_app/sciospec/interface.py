@@ -40,7 +40,7 @@ import contextlib
 from abc import ABC, abstractmethod
 
 from glob import glob
-from logging import getLogger
+import logging
 from sys import platform
 from time import sleep
 from typing import Union,Any
@@ -55,7 +55,7 @@ from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.thread_process.signal import Signal
 from glob_utils.flags.flag import CustomFlag
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 SER_TIMEOUT = 0.1
 SERIAL_BAUD_RATE_DEFAULT = 115200

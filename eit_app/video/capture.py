@@ -1,8 +1,7 @@
 import os
 from enum import Enum
-from logging import getLogger
+import logging
 from queue import Queue
-from typing import Tuple
 
 import numpy as np
 from eit_app.com_channels import (
@@ -19,14 +18,14 @@ from eit_app.update_gui import (
     EvtDataCaptureImageChanged,
     EvtDataCaptureStatusChanged,
 )
-from glob_utils.files.files import is_file, append_extension
+from glob_utils.file.utils import is_file, append_extension
 from glob_utils.flags.status import AddStatus
-from glob_utils.msgbox import infoMsgBox
-from glob_utils.pth.path_utils import get_datetime_s
+import glob_utils.dialog.Qt_dialogs
+from glob_utils.directory.utils import get_datetime_s
 from glob_utils.thread_process.threads_worker import Poller
 from PyQt5.QtGui import QImage
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 IMAGE_SIZES = {
     # '1600 x 1200':(1600,1200),
@@ -198,17 +197,18 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         if MEASURING mode active nothing will be done!
         """
         if self.is_status(CaptureStatus.MEASURING):
-            infoMsgBox(
+            logger.info("Measurements are running - Stop first Measurements!")
+            glob_utils.dialog.Qt_dialogs.infoMsgBox(
                 title="Measurements are running", message="Stop first Measurements"
             )
             return
 
         if self.is_status(CaptureStatus.NOT_CONNECTED):
-            infoMsgBox(
+            logger.info("No Capture device connected - Connect first capture device!")
+            glob_utils.dialog.Qt_dialogs.infoMsgBox(
                 title="No Capture device connected",
                 message="Connect first a capture device!",
             )
-            logger.info("No Capture device connected - Connect first capture device!")
             return
 
         if self.is_status(CaptureStatus.CONNECTED):
