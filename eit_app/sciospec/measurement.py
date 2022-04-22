@@ -731,7 +731,8 @@ class MeasurementDataset(
 
         if (filenames := self._get_all_frame_file(dir_path, ext=FileExt.json)) is None:
             return False
-
+        filenames.sort()# MacOS do not sort filenames...
+        
         # load the setup present in the directory
         self.dev_setup = SciospecSetup(32)
         if self.dev_setup.load(dir_path) is None:
