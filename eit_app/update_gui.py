@@ -682,6 +682,10 @@ def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage):
         return
 
     ui.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
+    # resize the group box to fit image size 
+    w= max(image.width()+ 20, ui.groupBox_video.minimumWidth())
+    ui.groupBox_video.setMaximumWidth(w)
+    
 
 
 register_func_in_catalog(update_captured_image)

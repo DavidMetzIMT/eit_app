@@ -32,6 +32,8 @@ IMAGE_SIZES = {
     # "1280 x 960": (1280, 960),
     # '800 x 600':(800,600),
     "640 x 480": (640, 480),
+    "320 x 240": (320, 240),
+    "160 x 120": (160, 120),
 }
 
 IMAGE_FILE_FORMAT = {
@@ -70,7 +72,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.capture_device = capture_dev
         self.snapshot_dir = snapshot_dir
 
-        self.image_size = IMAGE_SIZES[list(IMAGE_SIZES.keys())[-1]]
+        self.image_size = IMAGE_SIZES[list(IMAGE_SIZES.keys())[0]]
         self.image_file_ext = IMAGE_FILE_FORMAT[list(IMAGE_FILE_FORMAT.keys())[0]]
         self.process = {
             CaptureStatus.NOT_CONNECTED: self._process_replay,
@@ -86,12 +88,16 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             return
         image = self.capture_device.get_Qimage(frame)
         logger.debug("video image emitted")
-        self.to_gui.emit(EvtDataCaptureImageChanged(image))
+        self.to_gui.emit(EvtDataCaptureImageChanged(image.scaled(self.image_size[0], self.image_size[1])))
 
     # @abstractmethod - AddStatus
     def status_has_changed(self, status: Enum, was_status: Enum) -> None:
         self.to_gui.emit(EvtDataCaptureStatusChanged(status))
         logger.debug(f"Capture module mode set to : {status.value}")
+        # reset image
+        if self.is_status(CaptureStatus.NOT_CONNECTED) or self.is_status(CaptureStatus.CONNECTED):
+            self.emit_new_Qtimage(np.array([[]])) 
+
 
     def set_status_w_meas(self, data: DataSetStatusWMeas):
         """Set internal mode depending on the measuring status of
@@ -179,7 +185,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             logger.error(f"Wrong image size : {size}")
             return
         self.image_size = IMAGE_SIZES[size]
-        self.capture_device.set_settings(size=self.image_size)
+        # self.capture_device.set_settings(size=self.image_size)
 
     def set_image_file_format(self, file_ext: str=list(IMAGE_FILE_FORMAT.keys())[0], **kwargs) -> None:
         """Set the file format for image saving

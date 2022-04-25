@@ -102,17 +102,17 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             eit_app.eit.plots.PlotterEITImage2D
         )
         self.plot_agent.add_canvas(self.canvas_rec)
-        self.canvas_graphs = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_graphs, eit_app.eit.plots.PlotterEITData)
-        self.plot_agent.add_canvas(self.canvas_graphs)
-        self.canvas_ch_graph = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_ch_graph, eit_app.eit.plots.PlotterEITChannelVoltage
+        self.canvas_UPlot = eit_app.eit.plots.CanvasLayout(
+            self, self.ui.layout_Uplot, eit_app.eit.plots.PlotterEITData)
+        self.plot_agent.add_canvas(self.canvas_UPlot)
+        self.canvas_Uch = eit_app.eit.plots.CanvasLayout(
+            self, self.ui.layout_Uch, eit_app.eit.plots.PlotterEITChannelVoltage
         )
-        self.plot_agent.add_canvas(self.canvas_ch_graph)
-        self.canvas_monitoring = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_monitoring, eit_app.eit.plots.PlotterChannelVoltageMonitoring
+        self.plot_agent.add_canvas(self.canvas_Uch)
+        self.canvas_error = eit_app.eit.plots.CanvasLayout(
+            self, self.ui.layout_error, eit_app.eit.plots.PlotterChannelVoltageMonitoring
         )
-        self.plot_agent.add_canvas(self.canvas_monitoring)
+        self.plot_agent.add_canvas(self.canvas_error)
         self.eit_model = eit_model.model.EITModel()
         self.computing = eit_app.eit.computation.ComputingAgent()
         self.dataset = eit_app.sciospec.measurement.MeasurementDataset()
@@ -376,18 +376,15 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
     
     def _signals_to_plot(self):
 
-        self.ui.chB_eit_data_Uplot.toggled.connect(self._set_plots_options)
-        self.ui.chB_eit_data_Udiffplot.toggled.connect(self._set_plots_options)
-        self.ui.chB_eit_data_y_log.toggled.connect(self._set_plots_options)
         self.ui.chB_eit_image_plot.toggled.connect(self._set_plots_options)
-
+        self.ui.chB_eit_data_monitoring.toggled.connect(self._set_plots_options)
         self.ui.pB_pyvista.clicked.connect(self.open_pyvista)
-        # self.scalePlot_vmax.valueChanged.connect(self._set_plots_options)
-        # self.scalePlot_vmin.valueChanged.connect(self._set_plots_options)
 
     def _set_plots_options(self) -> None:
-        self.canvas_rec.set_visible(self.ui.chB_eit_image_plot.isChecked())
+
+        self.ui.tabW_rec.setVisible(self.ui.chB_eit_image_plot.isChecked())
         self.computing.enable_rec(self.ui.chB_eit_image_plot.isChecked())
+        self.ui.tabW_monitoring.setVisible(self.ui.chB_eit_data_monitoring.isChecked())
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
 
     def open_pyvista(self, checked) -> None:
