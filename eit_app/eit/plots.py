@@ -66,6 +66,7 @@ class PlotterEITImage2D(Plotter):
         ax = fig.add_subplot(1, 1, 1)
         lab = labels.get(self._plotting_func.type)
         fig, ax = self._plotting_func.plot(fig, ax, data, lab)
+        fig.set_tight_layout(True)
 
 class PlotterEITData(Plotter):
     """Plots the EIT reconstruction data.
@@ -149,6 +150,7 @@ class CanvasLayout(object):
         layout.addWidget(self._toolbar)
         layout.addWidget(self._canvas)
         self._plotter = plotter()
+        self.clear_canvas()
     
     def set_options(self, options:Any):
         """"""

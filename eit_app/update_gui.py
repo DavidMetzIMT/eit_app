@@ -15,7 +15,7 @@ from dataclasses import dataclass, is_dataclass
 import logging
 import threading
 from typing import Any, Callable, List
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from eit_app.gui import Ui_MainWindow
 from eit_app.gui_utils import (
@@ -60,7 +60,7 @@ class EventDataClass(ABC):
 
 
 class UpdateAgent:
-    def __init__(self, app, events_ctlg) -> None:
+    def __init__(self, ui, events_ctlg) -> None:
         """This agent runs updating funntion of the Gui (app) 
         depending on the data posted
 
@@ -70,21 +70,9 @@ class UpdateAgent:
             function callbacks
         """
         self._subscribers = {}
-        self._app = app
+        self._ui = ui
         self._events_ctlg = events_ctlg
 
-    def _mk_dict(self, data: EventDataClass)->dict:
-        """Transform the event data in dict and add the "app" key
-
-        Args:
-            data (EventDataClass): event data
-
-        Returns:
-            dict: data as dict with added "app" key
-        """
-        d = data.__dict__
-        d["app"] = self._app
-        return d
 
     @catch_error
     def post(self, data: EventDataClass):
@@ -103,6 +91,18 @@ class UpdateAgent:
         logger.debug(f"updating {func=} with {data=}")
         self._events_ctlg[func](**data)
 
+    def _mk_dict(self, data: EventDataClass)->dict:
+        """Transform the event data in dict and add the "app" key
+
+        Args:
+            data (EventDataClass): event data
+
+        Returns:
+            dict: data as dict with added "app" key
+        """
+        d = data.__dict__
+        d["ui"] = self._ui
+        return d
 
 ################################################################################
 # Update events Catalog
@@ -127,7 +127,7 @@ def register_func_in_catalog(func: Callable):
 # ## Update somthing
 # # ------------------------------------------------------------------------------
 
-# def update_something(app: Ui_MainWindow, data: Any):
+# def update_something(ui: Ui_MainWindow, data: Any):
 #     """code for updating somteh from app"""
 
 # register_func_in_catalog(update_something)
@@ -143,11 +143,39 @@ def register_func_in_catalog(func: Callable):
 ## Update available EIT devices
 # -------------------------------------------------------------------------------
 
+# Colors for status
+blue_light= '#bce6ff'
+red_light= '#ff9f9c'
+green_light= '#74a26b'
+orange_light= '#ffd062'
 
-def update_available_devices(app: Ui_MainWindow, device: dict):
+#colors for buttons
+bck_gnd_buttons= '#00aaff'
+
+def initial_formatting_of_ui(ui: Ui_MainWindow):
+    """Run some initial custom formating on gui object"""
+    # set background of all buttons
+    bck_gnd= "* { background-color: " + f"{bck_gnd_buttons}"+ " }"
+    for button in ui.centralwidget.findChildren(QtWidgets.QPushButton):
+        button.setStyleSheet(bck_gnd) # blue
+
+register_func_in_catalog(initial_formatting_of_ui)
+
+
+@dataclass
+class EvtInitFormatUI(EventDataClass):
+    """Event data to update the list of detected sciospec device"""
+    func: str = initial_formatting_of_ui.__name__
+
+# -------------------------------------------------------------------------------
+## Update available EIT devices
+# -------------------------------------------------------------------------------
+
+
+def update_available_devices(ui: Ui_MainWindow, device: dict):
     """Refesh the list of devices in the comboBox"""
     items = list(device) or ["None device"]
-    set_comboBox_items(app.cB_ports, items)
+    set_comboBox_items(ui.cB_ports, items)
 
 
 register_func_in_catalog(update_available_devices)
@@ -165,10 +193,10 @@ class EvtDataSciospecDevices(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_available_capture_devices(app: Ui_MainWindow, device: dict):
+def update_available_capture_devices(ui: Ui_MainWindow, device: dict):
     """Refesh the list of devices in the comboBox"""
     items = list(device) or ["None device"]
-    set_comboBox_items(app.cB_capture_devices, items)
+    set_comboBox_items(ui.cB_capture_devices, items)
 
 
 register_func_in_catalog(update_available_capture_devices)
@@ -187,16 +215,16 @@ class EvtDataCaptureDevices(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_device_status(app: Ui_MainWindow, connected: bool, connect_prompt: str):
+def update_device_status(ui: Ui_MainWindow, connected: bool, connect_prompt: str):
     """Actualize the status of the device"""
-    app.lab_device_status.setText(connect_prompt)
-    app.lab_device_status.adjustSize
+    ui.lab_device_status.setText(connect_prompt)
+    ui.lab_device_status.adjustSize
     color = (
-        "background-color: green;color :white"
+        f"background-color: {green_light}; color :white"
         if connected
-        else "background-color: red;color :black"
+        else f"background-color: {red_light}; color :black"
     )
-    app.lab_device_status.setStyleSheet(color)
+    ui.lab_device_status.setStyleSheet(color)
 
 
 register_func_in_catalog(update_device_status)
@@ -216,46 +244,46 @@ class EvtDataSciospecDevConnected(EventDataClass):
 
 
 def update_device_setup(
-    app: Ui_MainWindow,
+    ui: Ui_MainWindow,
     setup: SciospecSetup,
     set_freq_max_enable: bool = True,
     error: bool = False,
 ):
     """Actualize the inputs fields for the setup of the device coresponding to it"""
-    app.lE_sn.setText(setup.get_sn())
+    ui.lE_sn.setText(setup.get_sn())
     ## Update EthernetConfig
-    app.chB_dhcp.setChecked(bool(setup.ethernet_config.get_dhcp()))
-    app.lE_ip.setText(setup.ethernet_config.get_ip())
-    app.lE_mac.setText(setup.ethernet_config.get_mac())
+    ui.chB_dhcp.setChecked(bool(setup.ethernet_config.get_dhcp()))
+    ui.lE_ip.setText(setup.ethernet_config.get_ip())
+    ui.lE_mac.setText(setup.ethernet_config.get_mac())
 
     ## Update OutputConfig Stamps
-    app.chB_exc_stamp.setChecked(bool(setup.output_config.get_exc_stamp()))
-    app.chB_current_stamp.setChecked(bool(setup.output_config.get_current_stamp()))
-    app.chB_time_stamp.setChecked(bool(setup.output_config.get_time_stamp()))
+    ui.chB_exc_stamp.setChecked(bool(setup.output_config.get_exc_stamp()))
+    ui.chB_current_stamp.setChecked(bool(setup.output_config.get_current_stamp()))
+    ui.chB_time_stamp.setChecked(bool(setup.output_config.get_time_stamp()))
 
     # Update Measurement Setups
-    block_signals(app.sBd_frame_rate.setValue, setup.get_frame_rate())
+    block_signals(ui.sBd_frame_rate.setValue, setup.get_frame_rate())
     block_signals(
-        app.sBd_max_frame_rate.setValue, setup.get_max_frame_rate()
+        ui.sBd_max_frame_rate.setValue, setup.get_max_frame_rate()
     )
-    block_signals(app.sB_burst.setValue, setup.get_burst())
+    block_signals(ui.sB_burst.setValue, setup.get_burst())
     block_signals(
-        app.sBd_exc_amp.setValue, setup.get_exc_amp() * 1000
+        ui.sBd_exc_amp.setValue, setup.get_exc_amp() * 1000
     )  # from A -> mA
-    block_signals(app.sBd_freq_min.setValue, setup.get_freq_min())
-    block_signals(app.sBd_freq_max.setValue, setup.get_freq_max())
-    block_signals(app.sB_freq_steps.setValue, setup.get_freq_steps())
-    block_signals(app.cB_scale.setCurrentText, setup.get_freq_scale())
+    block_signals(ui.sBd_freq_min.setValue, setup.get_freq_min())
+    block_signals(ui.sBd_freq_max.setValue, setup.get_freq_max())
+    block_signals(ui.sB_freq_steps.setValue, setup.get_freq_steps())
+    block_signals(ui.cB_scale.setCurrentText, setup.get_freq_scale())
 
-    app.sBd_freq_max.setEnabled(set_freq_max_enable)
-    color = "background-color: red" if error else "background-color: white"
-    app.lab_maxF.setStyleSheet(color)
-    app.lab_minF.setStyleSheet(color)
-    app.lab_steps.setStyleSheet(color)
+    ui.sBd_freq_max.setEnabled(set_freq_max_enable)
+    color = f"background-color: {red_light}" if error else "background-color: white"
+    ui.lab_maxF.setStyleSheet(color)
+    ui.lab_minF.setStyleSheet(color)
+    ui.lab_steps.setStyleSheet(color)
 
-    set_QTableWidget(app.tw_exc_mat_model, setup.get_exc_pattern_mdl(), 0)
-    set_QTableWidget(app.tw_exc_mat_chip, setup.get_exc_pattern(), 0)
-    update_freqs_list(app, setup.get_freqs_list())
+    set_QTableWidget(ui.tw_exc_mat_model, setup.get_exc_pattern_mdl(), 0)
+    set_QTableWidget(ui.tw_exc_mat_chip, setup.get_exc_pattern(), 0)
+    update_freqs_list(ui, setup.get_freqs_list())
 
 
 register_func_in_catalog(update_device_setup)
@@ -274,9 +302,9 @@ class EvtDataSciospecDevSetup(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_freqs_list(app: Ui_MainWindow, freqs: List[Any]):
-    set_comboBox_items(app.cB_eit_imaging_ref_freq, list(freqs))
-    set_comboBox_items(app.cB_eit_imaging_meas_freq, list(freqs))
+def update_freqs_list(ui: Ui_MainWindow, freqs: List[Any]):
+    set_comboBox_items(ui.cB_eit_imaging_ref_freq, list(freqs))
+    set_comboBox_items(ui.cB_eit_imaging_meas_freq, list(freqs))
 
 
 # -------------------------------------------------------------------------------
@@ -295,32 +323,32 @@ class MeasuringStatusUpdateData:
 class MeasuringStatus(BaseStatus):
     NOT_MEASURING = MeasuringStatusUpdateData(
         lab_txt="NOT MEASURING",
-        lab_style="background-color: red",
+        lab_style=f"background-color: {red_light}; color :black",
         pB_txt="Start",
         pB_status_tip="Start aquisition of a new measurement dataset (Ctrl + Shift +Space)",
     )
     MEASURING = MeasuringStatusUpdateData(
         lab_txt="MEASUREMENTS RUN",
-        lab_style="background-color: green; color :white",
+        lab_style=f"background-color: {green_light}; color :black",
         pB_txt="Pause",
         pB_status_tip="Pause aquisition of measurement dataset (Ctrl + Shift +Space)",
     )
     PAUSED = MeasuringStatusUpdateData(
         lab_txt="MEASUREMENTS PAUSED",
-        lab_style="background-color: yellow",
+        lab_style=f"background-color: {orange_light}; color :black",
         pB_txt="Resume",
         pB_status_tip="Restart aquisition of measurement dataset (Ctrl + Shift +Space)",
     )
 
 
-def update_meas_status(app: Ui_MainWindow, meas_status: MeasuringStatus):
+def update_meas_status(ui: Ui_MainWindow, meas_status: MeasuringStatus):
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
     v: MeasuringStatusUpdateData = meas_status.value
-    app.lab_live_meas_status.setText(v.lab_txt)
-    app.lab_live_meas_status.setStyleSheet(v.lab_style)
-    app.pB_start_meas.setText(v.pB_txt)
-    app.pB_start_meas.setStatusTip(v.pB_status_tip)
+    ui.lab_live_meas_status.setText(v.lab_txt)
+    ui.lab_live_meas_status.setStyleSheet(v.lab_style)
+    ui.pB_start_meas.setText(v.pB_txt)
+    ui.pB_start_meas.setStatusTip(v.pB_status_tip)
 
 
 register_func_in_catalog(update_meas_status)
@@ -352,49 +380,58 @@ class CaptureStatusUpdateData:
 class CaptureStatus(BaseStatus):
     NOT_CONNECTED = CaptureStatusUpdateData(
         lab_txt="NOT CONNECTED",
-        lab_style="background-color: red; color :black",
+        lab_style=f"background-color: {red_light}; color :black",
         pB_txt="Start capture",
         pB_status_tip="",
         pB_con_txt="Connect",
     )
     CONNECTED = CaptureStatusUpdateData(
         lab_txt="CONNECTED",
-        lab_style="background-color: grey",
+        lab_style=f"background-color: {orange_light}; color :black",
         pB_txt="Start capture",
         pB_status_tip="",
     )
-    REPLAY = CaptureStatusUpdateData(
-        lab_txt="REPLAY",
-        lab_style="background-color: blue; color :white",
+    REPLAY_AUTO = CaptureStatusUpdateData(
+        lab_txt="REPLAY Auto",
+        lab_style=f"background-color: {green_light}; color :black",
         pB_txt="Start capture",
         pB_status_tip="",
         pB_enable=False,
         pB_con_enable=True,
     )
+    REPLAY_MAN = CaptureStatusUpdateData(
+        lab_txt="REPLAY MAN",
+        lab_style=f"background-color: {blue_light}; color :black",
+        pB_txt="Start capture",
+        pB_status_tip="",
+        pB_enable=False,
+    )
+    
     MEASURING = CaptureStatusUpdateData(
         lab_txt="MEASURING",
-        lab_style="background-color: darkGreen; color :white",
+        lab_style=f"background-color: {green_light}; color :black",
         pB_txt="Start capture",
         pB_enable=False,
         pB_con_enable=True,
     )
     LIVE = CaptureStatusUpdateData(
         lab_txt="LIVE",
-        lab_style="background-color: green; color :white",
+        lab_style=f"background-color: {green_light}; color :black",
         pB_txt="Stop capture",
     )
 
 
-def update_capture_status(app: Ui_MainWindow, capture_mode: CaptureStatus):
+def update_capture_status(ui: Ui_MainWindow, capture_mode: CaptureStatus):
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
     v: CaptureStatusUpdateData = capture_mode.value
-    app.lab_capture_status.setText(v.lab_txt)
-    app.lab_capture_status.setStyleSheet(v.lab_style)
-    app.pB_capture_start_stop.setText(v.pB_txt)
-    app.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
-    app.pB_capture_start_stop.setEnabled(v.pB_enable)
-    app.pB_capture_connect.setText(v.pB_con_txt)
+    ui.lab_capture_status.setText(v.lab_txt)
+    ui.lab_capture_status.setStyleSheet(v.lab_style)
+    ui.pB_capture_start_stop.setText(v.pB_txt)
+    ui.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
+    ui.pB_capture_start_stop.setEnabled(v.pB_enable)
+    if 'CONN' in v.lab_txt:
+        ui.pB_capture_connect.setText(v.pB_con_txt)
 
 
 register_func_in_catalog(update_capture_status)
@@ -419,29 +456,29 @@ class ReplayStatusUpdateData:
 class ReplayStatus(BaseStatus):
     OFF = ReplayStatusUpdateData(
         lab_txt="NONE DATASET",
-        lab_style="background-color: red; color :black",
+        lab_style=f"background-color: {red_light}; color :black",
         pB_icon=":/icons/icons/icon_play.png",
     )
     LOADED = ReplayStatusUpdateData(
         lab_txt="DATASET LOADED",
-        lab_style="background-color: green; color :white",
+        lab_style=f"background-color: {blue_light}; color :black",
         pB_icon=":/icons/icons/icon_play.png",
     )
     PLAYING = ReplayStatusUpdateData(
         lab_txt="REPLAY RUN",
-        lab_style="background-color: blue; color :white",
+        lab_style=f"background-color: {green_light}; color :black",
         pB_icon=":/icons/icons/icon_pause.png",
     )
 
 
-def update_replay_status(app: Ui_MainWindow, status: ReplayStatus):
+def update_replay_status(ui: Ui_MainWindow, status: ReplayStatus):
     """Update the status label"""
     v: ReplayStatusUpdateData = status.value
-    app.lab_replay_status.setText(v.lab_txt)
-    app.lab_replay_status.setStyleSheet(v.lab_style)
+    ui.lab_replay_status.setText(v.lab_txt)
+    ui.lab_replay_status.setStyleSheet(v.lab_style)
     icon = QtGui.QIcon()
     icon.addPixmap(QtGui.QPixmap(v.pB_icon), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-    app.pB_replay_play.setIcon(icon)
+    ui.pB_replay_play.setIcon(icon)
 
 
 register_func_in_catalog(update_replay_status)
@@ -458,7 +495,7 @@ class EvtDataReplayStatusChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_imaging_inputs_fields(app: Ui_MainWindow, imaging: Imaging):
+def update_imaging_inputs_fields(ui: Ui_MainWindow, imaging: Imaging):
     """Activate deactive the input fileddepending on the imaging type"""
 
     meas_0 = {"show": False, "lab_text": "Ref. Frequency"}
@@ -472,17 +509,17 @@ def update_imaging_inputs_fields(app: Ui_MainWindow, imaging: Imaging):
     elif isinstance(imaging, FrequenceDifferenceImaging):
         meas_0["show"] = True
 
-    app.cB_eit_imaging_ref_frame.setEnabled(ref["show"])
-    app.lab_ref_frame_idx.setEnabled(ref["show"])
-    app.lab_freq_meas_0.setText(ref["lab_text"])
+    ui.cB_eit_imaging_ref_frame.setEnabled(ref["show"])
+    ui.lab_ref_frame_idx.setEnabled(ref["show"])
+    ui.lab_freq_meas_0.setText(ref["lab_text"])
 
-    app.cB_eit_imaging_ref_freq.setEnabled(meas_0["show"])
-    app.lab_freq_meas_0.setEnabled(meas_0["show"])
-    app.lab_freq_meas_0.setText(meas_0["lab_text"])
+    ui.cB_eit_imaging_ref_freq.setEnabled(meas_0["show"])
+    ui.lab_freq_meas_0.setEnabled(meas_0["show"])
+    ui.lab_freq_meas_0.setText(meas_0["lab_text"])
 
-    app.cB_eit_imaging_meas_freq.setEnabled(meas_1["show"])
-    app.lab_freq_meas_1.setEnabled(meas_1["show"])
-    app.lab_freq_meas_1.setText(meas_1["lab_text"])
+    ui.cB_eit_imaging_meas_freq.setEnabled(meas_1["show"])
+    ui.lab_freq_meas_1.setEnabled(meas_1["show"])
+    ui.lab_freq_meas_1.setText(meas_1["lab_text"])
 
 
 register_func_in_catalog(update_imaging_inputs_fields)
@@ -499,11 +536,12 @@ class EvtDataImagingInputsChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_EITData_plots_options(app: Ui_MainWindow):
+def update_EITData_plots_options(ui: Ui_MainWindow):
     """Activate/deactivate checkbox for EITData plots"""
-    app.chB_eit_data_Uplot.setEnabled(True)
-    app.chB_eit_data_Udiffplot.setEnabled(True)
-    app.chB_eit_data_y_log.setEnabled(True)
+    # ui.rB_UPlot.setEnabled(ui.chB_eit_data_monitoring.isChecked())
+    # ui.rB_Uch.setEnabled(ui.chB_eit_data_monitoring.isChecked())
+
+    # ui.rB_monitoring.setEnabled(ui.chB_eit_data_monitoring.isChecked())
 
 
 register_func_in_catalog(update_EITData_plots_options)
@@ -520,13 +558,13 @@ class EvtDataEITDataPlotOptionsChanged(EventDataClass):
 
 
 def update_progress_acquired_frame(
-    app: Ui_MainWindow, idx_frame: int = 0, progression: int = 0
+    ui: Ui_MainWindow, idx_frame: int = 0, progression: int = 0
 ):
     """Update the progression bar and the idx of the aquired frame"""
     logger.debug("update_progress_acquired_frame-in")
     if idx_frame is not None:
-        app.sB_actual_frame_cnt.setValue(idx_frame)
-    app.meas_progress_bar.setValue(progression)
+        ui.sB_actual_frame_cnt.setValue(idx_frame)
+    ui.meas_progress_bar.setValue(progression)
     logger.debug("update_progress_acquired_frame-ou")
 
 
@@ -547,9 +585,9 @@ class EvtDataNewFrameProgress(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_frame_info(app: Ui_MainWindow, info: str = ""):
+def update_frame_info(ui: Ui_MainWindow, info: str = ""):
     if info is not None:
-        app.tE_frame_info.setText("\r\n".join(info))
+        ui.tE_frame_info.setText("\r\n".join(info))
 
 
 register_func_in_catalog(update_frame_info)
@@ -566,20 +604,20 @@ class EvtDataNewFrameInfo(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_autosave_options(app: Ui_MainWindow, autosave:bool, save_img:bool, load_after_meas:bool):
+def update_autosave_options(ui: Ui_MainWindow, autosave:bool, save_img:bool, load_after_meas:bool):
     """Activate/deactivate saving options"""
-    app.lE_meas_dataset_dir.setEnabled(app.chB_dataset_autosave.isChecked())
-    app.chB_dataset_save_img.setEnabled(app.chB_dataset_autosave.isChecked())
-    app.chB_load_after_meas.setEnabled(app.chB_dataset_autosave.isChecked())
-    block_signals(app.chB_dataset_autosave.setChecked, autosave)
-    block_signals(app.chB_dataset_save_img.setChecked, save_img)
-    block_signals(app.chB_load_after_meas.setChecked, load_after_meas)
-    # app.chB_dataset_save_img.setChecked(
-    #     app.chB_dataset_autosave.isChecked() and app.chB_dataset_save_img.isChecked()
+    ui.lE_meas_dataset_dir.setEnabled(ui.chB_dataset_autosave.isChecked())
+    ui.chB_dataset_save_img.setEnabled(ui.chB_dataset_autosave.isChecked())
+    ui.chB_load_after_meas.setEnabled(ui.chB_dataset_autosave.isChecked())
+    block_signals(ui.chB_dataset_autosave.setChecked, autosave)
+    block_signals(ui.chB_dataset_save_img.setChecked, save_img)
+    block_signals(ui.chB_load_after_meas.setChecked, load_after_meas)
+    # ui.chB_dataset_save_img.setChecked(
+    #     ui.chB_dataset_autosave.isChecked() and ui.chB_dataset_save_img.isChecked()
     # )
 
-    # app.chB_load_after_meas.setChecked(
-    #     app.chB_dataset_autosave.isChecked() and app.chB_load_after_meas.isChecked()
+    # ui.chB_load_after_meas.setChecked(
+    #     ui.chB_dataset_autosave.isChecked() and ui.chB_load_after_meas.isChecked()
     # )
 
 
@@ -599,13 +637,13 @@ class EvtDataAutosaveOptionsChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_dataset_loaded(app: Ui_MainWindow, dataset_dir: str, nb_loaded_frame: int):
+def update_dataset_loaded(ui: Ui_MainWindow, dataset_dir: str, nb_loaded_frame: int):
     """update the path of the loaded dataset and init the combosboxes and slider
     for the nb of loaded frames"""
-    app.tE_load_dataset_dir.setText(dataset_dir)
-    set_comboBox_items(app.cB_replay_frame_idx, list(range(nb_loaded_frame)))
-    set_comboBox_items(app.cB_eit_imaging_ref_frame, list(range(nb_loaded_frame)))
-    set_QSlider_scale(app.slider_replay, nb_pos=nb_loaded_frame)
+    ui.tE_load_dataset_dir.setText(dataset_dir)
+    set_comboBox_items(ui.cB_replay_frame_idx, list(range(nb_loaded_frame)))
+    set_comboBox_items(ui.cB_eit_imaging_ref_frame, list(range(nb_loaded_frame)))
+    set_QSlider_scale(ui.slider_replay, nb_pos=nb_loaded_frame)
 
 
 register_func_in_catalog(update_dataset_loaded)
@@ -623,11 +661,11 @@ class EvtDataMeasDatasetLoaded(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_replay_frame_changed(app: Ui_MainWindow, idx: int):
+def update_replay_frame_changed(ui: Ui_MainWindow, idx: int):
     """update the path of the loaded dataset and init the combosboxes and slider
     for the nb of loaded frames"""
-    set_comboBox_index(app.cB_replay_frame_idx, index=idx)
-    set_QSlider_position(app.slider_replay, pos=idx)
+    set_comboBox_index(ui.cB_replay_frame_idx, index=idx)
+    set_QSlider_position(ui.slider_replay, pos=idx)
 
 
 register_func_in_catalog(update_replay_frame_changed)
@@ -644,13 +682,18 @@ class EvtDataReplayFrameChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_captured_image(app: Ui_MainWindow, image: QtGui.QImage):
+def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage):
     """update the path of the loaded dataset and init the combosboxes and slider
     for the nb of loaded frames"""
     if not isinstance(image, QtGui.QImage):
         logger.warning(f"{image=} is not an QtGui.QImage")
         return
-    app.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
+
+    ui.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
+    # resize the group box to fit image size 
+    w= max(image.width()+ 20, ui.groupBox_video.minimumWidth())
+    ui.groupBox_video.setMaximumWidth(w)
+    
 
 
 register_func_in_catalog(update_captured_image)

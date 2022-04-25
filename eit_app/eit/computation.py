@@ -152,7 +152,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         """
         if not self.rec_enable: 
             return
-        if not self.solver.ready.is_set(): #
+        if not self.solver or not self.solver.ready.is_set(): #
             logger.warning("Solver not set")
             return
         img_rec = self.solver.rec(eit_data)
