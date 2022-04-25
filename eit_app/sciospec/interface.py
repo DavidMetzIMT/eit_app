@@ -41,7 +41,7 @@ from abc import ABC, abstractmethod
 
 from glob import glob
 import logging
-from sys import platform
+import sys
 from time import sleep
 from typing import Union,Any
 
@@ -263,23 +263,27 @@ class SciospecSerialInterface(Interface):
         Returns:
             list[str]: A list of the serial ports available on the system
         """
-        if platform.startswith("win"):
+        if sys.platform.startswith("win"):
             ports = [f"COM{i + 1}" for i in range(256)]
-        elif platform.startswith("linux") or platform.startswith("cygwin"):
+        elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
             # this excludes your current terminal "/dev/tty"
             ports = glob("/dev/tty[A-Za-z]*")
-        elif platform.startswith("darwin"):
+        elif sys.platform.startswith("darwin"):
             ports = glob("/dev/tty.*")
         else:
             raise EnvironmentError("Unsupported platform")
 
         actual_ports = []
         for port in ports:
+            if "Bluetooth" in port:
+                logger.debug(f"Port: {port} -deleted")
+                continue
             with contextlib.suppress(OSError, SerialException):
                 ser = Serial(port, str(SERIAL_BAUD_RATE_DEFAULT), timeout=None)
                 actual_ports.append(port)
                 ser.close()
         self.ports_available = actual_ports
+
 
         msg = f"Available serial ports : {self.ports_available}"
         logger.debug(msg)

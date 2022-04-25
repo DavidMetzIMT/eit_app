@@ -1,3 +1,4 @@
+import sys
 import time
 import logging
 from typing import Any, Tuple
@@ -47,7 +48,8 @@ class MicroUSBCamera(CaptureDevices):
     def get_devices_available(self) -> dict[str, Any]:
         self._devices_available = {}
         for index, _ in enumerate(range(10)):
-            cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
+            
+            cap = cv2.VideoCapture(index) if sys.platform.startswith("darwin") else cv2.VideoCapture(index, cv2.CAP_DSHOW)
             if cap.read()[0]:
                 self._devices_available[f"MicroUSB {index}"] = index
                 cap.release()
