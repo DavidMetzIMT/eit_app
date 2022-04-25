@@ -123,6 +123,8 @@ class CanvasLayout(object):
     _toolbar = None
     _plotter: Plotter = None
     _visible: bool = True
+    _gui=None
+    _last_data:Data2Plot=None
 
     def __init__(self, gui, layout: QVBoxLayout, plotter: Plotter) -> None:
         """Create a CanvasLayout object with predefined plotter, 
@@ -145,20 +147,32 @@ class CanvasLayout(object):
         if not issubclass(plotter, Plotter):
             raise TypeError(f"wrong plot type {plotter}")
 
-        self._figure = matplotlib.pyplot.figure()
-        self._canvas = FigureCanvasQTAgg(self._figure)
-        self._toolbar = NavigationToolbar2QT(self._canvas, gui)
-        layout.addWidget(self._toolbar)
-        layout.addWidget(self._canvas)
+        self._gui=gui
+        self._layout= layout
         self._plotter = plotter()
+        self._init_layout()
+        
+    
+    def _init_layout(self, **kwargs):
+
+        dpi=kwargs.pop('dpi', 100)
+        self._figure= matplotlib.pyplot.figure(dpi=dpi)
+        self._canvas = FigureCanvasQTAgg(self._figure)
+        self._toolbar = NavigationToolbar2QT(self._canvas, self._gui)
+        self._layout.addWidget(self._toolbar)
+        self._layout.addWidget(self._canvas)
         self.clear_canvas()
+
     
     def set_options(self, **kwargs):
         """"""
         if (dpi:=kwargs.pop('dpi', None)):
-            self._figure.set_dpi(dpi)
-            self._figure.set_tight_layout(True)
-        self._canvas.draw()
+            self._layout.removeWidget(self._toolbar)
+            self._layout.removeWidget(self._canvas)
+            self._init_layout(dpi=dpi)
+
+        if self._last_data:
+            self.plot(self._last_data)
 
     def set_visible(self, visible: bool = True):
         """Make the Canvas visible or insisible"""
@@ -176,7 +190,8 @@ class CanvasLayout(object):
         if not self._visible:
             self.clear_canvas()
             return
-        self._plotter.build(self._figure, data, )
+        self._plotter.build(self._figure, data)
+        self._last_data= data
         self._canvas.draw()
 
 
