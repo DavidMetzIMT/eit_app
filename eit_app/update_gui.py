@@ -15,7 +15,7 @@ from dataclasses import dataclass, is_dataclass
 import logging
 import threading
 from typing import Any, Callable, List
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from eit_app.gui import Ui_MainWindow
 from eit_app.gui_utils import (
@@ -150,6 +150,28 @@ green_light= '#74a26b'
 orange_light= '#ffd062'
 
 #colors for buttons
+bck_gnd_buttons= '#00aaff'
+
+def initial_formatting_of_ui(ui: Ui_MainWindow):
+    """Run some initial custom formating on gui object"""
+    # set background of all buttons
+    bck_gnd= "* { background-color: " + f"{bck_gnd_buttons}"+ " }"
+    for button in ui.centralwidget.findChildren(QtWidgets.QPushButton):
+        button.setStyleSheet(bck_gnd) # blue
+
+register_func_in_catalog(initial_formatting_of_ui)
+
+
+@dataclass
+class EvtInitFormatUI(EventDataClass):
+    """Event data to update the list of detected sciospec device"""
+    func: str = initial_formatting_of_ui.__name__
+
+# -------------------------------------------------------------------------------
+## Update available EIT devices
+# -------------------------------------------------------------------------------
+
+
 def update_available_devices(ui: Ui_MainWindow, device: dict):
     """Refesh the list of devices in the comboBox"""
     items = list(device) or ["None device"]

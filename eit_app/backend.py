@@ -34,7 +34,7 @@ from eit_app.default.set_default_dir import AppStdDir, get_dir
 import eit_app.eit.plots
 from eit_app.gui_utils import set_comboBox_items
 from eit_app.update_gui import (EvtDataEITDataPlotOptionsChanged,
-                                EvtDataSciospecDevSetup)
+                                EvtDataSciospecDevSetup, EvtInitFormatUI)
 
 # Ensure using PyQt5 backend
 matplotlib.use("QT5Agg")
@@ -69,6 +69,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self._connect_main_objects()
         self._init_values()
 
+        self.update_gui(EvtInitFormatUI())
     
     def init_logging(self):
         glob_utils.log.log.change_level_logging(logging.DEBUG)
