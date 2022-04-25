@@ -77,7 +77,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.process = {
             CaptureStatus.NOT_CONNECTED: self._process_replay,
             CaptureStatus.CONNECTED: self._process_replay,
-            CaptureStatus.REPLAY: self._process_replay,
+            CaptureStatus.REPLAY_AUTO: self._process_replay,
             CaptureStatus.MEASURING: self._process_meas,
             CaptureStatus.LIVE: self._process_live,
         }
@@ -130,7 +130,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             return
 
         if replay_status:
-            self.set_status(CaptureStatus.REPLAY)
+            self.set_status(CaptureStatus.REPLAY_AUTO)
         else:
             self.reset_to_last_status()
 
@@ -240,6 +240,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         path = self._buffer_in.get()
         logger.info("replay loading image")
         frame = self.load_image(path)
+        if not self.is_status(CaptureStatus.REPLAY_AUTO):
+            self.set_status(CaptureStatus.REPLAY_MAN)
         self.emit_new_Qtimage(frame)
 
     def _process_meas(self) -> None:

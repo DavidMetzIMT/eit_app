@@ -391,14 +391,22 @@ class CaptureStatus(BaseStatus):
         pB_txt="Start capture",
         pB_status_tip="",
     )
-    REPLAY = CaptureStatusUpdateData(
-        lab_txt="REPLAY",
+    REPLAY_AUTO = CaptureStatusUpdateData(
+        lab_txt="REPLAY Auto",
         lab_style=f"background-color: {green_light}; color :black",
         pB_txt="Start capture",
         pB_status_tip="",
         pB_enable=False,
         pB_con_enable=True,
     )
+    REPLAY_MAN = CaptureStatusUpdateData(
+        lab_txt="REPLAY MAN",
+        lab_style=f"background-color: {blue_light}; color :black",
+        pB_txt="Start capture",
+        pB_status_tip="",
+        pB_enable=False,
+    )
+    
     MEASURING = CaptureStatusUpdateData(
         lab_txt="MEASURING",
         lab_style=f"background-color: {green_light}; color :black",
@@ -422,8 +430,8 @@ def update_capture_status(ui: Ui_MainWindow, capture_mode: CaptureStatus):
     ui.pB_capture_start_stop.setText(v.pB_txt)
     ui.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
     ui.pB_capture_start_stop.setEnabled(v.pB_enable)
-    app.pB_capture_connect.setText(v.pB_con_txt)
-    ui.pB_capture_connect.setText(v.pB_con_txt)
+    if 'CONN' in v.lab_txt:
+        ui.pB_capture_connect.setText(v.pB_con_txt)
 
 
 register_func_in_catalog(update_capture_status)
