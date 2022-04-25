@@ -67,6 +67,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         eit_app.default.set_default_dir.set_ai_default_dir()
         self._create_main_objects()
         self._connect_main_objects()
+        self._connect_menu()
         self._init_values()
 
         self.update_gui(EvtInitFormatUI())
@@ -120,6 +121,9 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.capture_agent = eit_app.video.capture.VideoCaptureAgent(
             capture_dev=eit_app.video.microcam.MicroUSBCamera(), snapshot_dir=get_dir(AppStdDir.snapshot)
         )
+
+    def _connect_menu(self):
+        self.ui.action_exit.triggered.connect(self.close)
 
     def _connect_main_objects(self) -> None:
 
