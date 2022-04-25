@@ -379,6 +379,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.chB_eit_image_plot.toggled.connect(self._set_plots_options)
         self.ui.chB_eit_data_monitoring.toggled.connect(self._set_plots_options)
         self.ui.pB_pyvista.clicked.connect(self.open_pyvista)
+        self.ui.pB_set_dpi.clicked.connect(self._set_dpi)
 
     def _set_plots_options(self) -> None:
 
@@ -386,6 +387,15 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.computing.enable_rec(self.ui.chB_eit_image_plot.isChecked())
         self.ui.tabW_monitoring.setVisible(self.ui.chB_eit_data_monitoring.isChecked())
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
+    
+    def _set_dpi(self) -> None:
+
+        dpi= self.ui.dsB_dpi_rec.value()
+        self.canvas_rec.set_options(dpi=dpi)
+        self.canvas_UPlot.set_options(dpi=dpi)
+        self.canvas_Uch.set_options(dpi=dpi)
+        self.canvas_error.set_options(dpi=dpi)
+
 
     def open_pyvista(self, checked) -> None:
         self.w = eit_model.pyvista_plot.PyVistaPlotWidget(self)

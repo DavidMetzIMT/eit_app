@@ -47,6 +47,7 @@ class Plotter(ABC):
             return
 
         fig.clear()  # clear figure
+        
 
         self._build(fig, data.data, data.labels)
 
@@ -152,8 +153,12 @@ class CanvasLayout(object):
         self._plotter = plotter()
         self.clear_canvas()
     
-    def set_options(self, options:Any):
+    def set_options(self, **kwargs):
         """"""
+        if (dpi:=kwargs.pop('dpi', None)):
+            self._figure.set_dpi(dpi)
+            self._figure.set_tight_layout(True)
+        self._canvas.draw()
 
     def set_visible(self, visible: bool = True):
         """Make the Canvas visible or insisible"""
