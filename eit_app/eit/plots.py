@@ -112,7 +112,7 @@ class PlotterChannelVoltageMonitoring(Plotter):
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
         lab = labels.get(self._plotting_func[0].type)
-        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
+        #fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
 
