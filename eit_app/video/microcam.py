@@ -39,8 +39,12 @@ class MicroUSBCamera(CaptureDevices):
             logger.debug(f"Availabe devices:{self._devices_available}")
             raise NoCaptureDeviceSelected(f'Device "{self._name}" not available')
 
-        self._device = cv2.VideoCapture(self._devices_available[self._name], cv2.CAP_DSHOW)
+        self._device = self._connect_to_device(self._devices_available[self._name])
         self._check_device()
+    
+    def _connect_to_device(self, index:int):
+        # MAC OS do not need option CAP_SHOW
+        return cv2.VideoCapture(index) if sys.platform.startswith("darwin") else cv2.VideoCapture(index, cv2.CAP_DSHOW)
 
     def disconnect_device(self) -> None:
         self._device = None
@@ -49,7 +53,8 @@ class MicroUSBCamera(CaptureDevices):
         self._devices_available = {}
         for index, _ in enumerate(range(10)):
             
-            cap = cv2.VideoCapture(index) if sys.platform.startswith("darwin") else cv2.VideoCapture(index, cv2.CAP_DSHOW)
+            cap = self._connect_to_device(index)
+            # cap = cv2.VideoCapture(index)
             if cap.read()[0]:
                 self._devices_available[f"MicroUSB {index}"] = index
                 cap.release()
