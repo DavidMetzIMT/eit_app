@@ -85,10 +85,10 @@ class UpdateAgent:
             logger.error("data are not compatible for update")
             return
 
-        logger.debug(f"thread update_event {threading.get_ident()}")
+        #logger.debug(f"thread update_event {threading.get_ident()}")
         data = self._mk_dict(data)
         func = data.pop("func")
-        logger.debug(f"updating {func=} with {data=}")
+        #logger.debug(f"updating {func=} with {data=}")
         self._events_ctlg[func](**data)
 
     def _mk_dict(self, data: EventDataClass)->dict:
