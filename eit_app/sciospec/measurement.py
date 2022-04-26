@@ -763,7 +763,7 @@ class MeasurementDataset(
         if not dir_path:
             title = "Select a measurement dataset directory"
             initialdir = APP_DIRS.get(AppStdDir.meas_set)
-            dir_path = get_dir(title=title, initialdir=initialdir)
+            dir_path = glob_utils.dialog.Qt_dialogs.openDirDialog(directory=initialdir, title=title )
         return dir_path
 
     def _get_all_frame_file(
