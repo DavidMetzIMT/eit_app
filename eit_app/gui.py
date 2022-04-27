@@ -1120,6 +1120,93 @@ class Ui_MainWindow(object):
         self.verticalLayout_21.addWidget(self.chB_monitoring_trans_abs)
         self.verticalLayout_23.addWidget(self.groupBox_7)
         self.tabW_settings.addTab(self.tab_3, "")
+        self.tab_6 = QtWidgets.QWidget()
+        self.tab_6.setObjectName("tab_6")
+        self.verticalLayout_14 = QtWidgets.QVBoxLayout(self.tab_6)
+        self.verticalLayout_14.setObjectName("verticalLayout_14")
+        self.groupBox_10 = QtWidgets.QGroupBox(self.tab_6)
+        self.groupBox_10.setObjectName("groupBox_10")
+        self.gridLayout_8 = QtWidgets.QGridLayout(self.groupBox_10)
+        self.gridLayout_8.setObjectName("gridLayout_8")
+        self.formLayout_4 = QtWidgets.QFormLayout()
+        self.formLayout_4.setObjectName("formLayout_4")
+        self.lab_measdataset_gdir = QtWidgets.QLabel(self.groupBox_10)
+        self.lab_measdataset_gdir.setObjectName("lab_measdataset_gdir")
+        self.formLayout_4.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.lab_measdataset_gdir
+        )
+        self.lE_measdataset_gdir = QtWidgets.QLineEdit(self.groupBox_10)
+        self.lE_measdataset_gdir.setEnabled(True)
+        self.lE_measdataset_gdir.setText("")
+        self.lE_measdataset_gdir.setFrame(True)
+        self.lE_measdataset_gdir.setReadOnly(True)
+        self.lE_measdataset_gdir.setObjectName("lE_measdataset_gdir")
+        self.formLayout_4.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.lE_measdataset_gdir
+        )
+        self.lab_snapshot_gdir = QtWidgets.QLabel(self.groupBox_10)
+        self.lab_snapshot_gdir.setObjectName("lab_snapshot_gdir")
+        self.formLayout_4.setWidget(
+            1, QtWidgets.QFormLayout.LabelRole, self.lab_snapshot_gdir
+        )
+        self.lE_snapshot_gdir = QtWidgets.QLineEdit(self.groupBox_10)
+        self.lE_snapshot_gdir.setEnabled(True)
+        self.lE_snapshot_gdir.setText("")
+        self.lE_snapshot_gdir.setFrame(True)
+        self.lE_snapshot_gdir.setReadOnly(True)
+        self.lE_snapshot_gdir.setObjectName("lE_snapshot_gdir")
+        self.formLayout_4.setWidget(
+            1, QtWidgets.QFormLayout.FieldRole, self.lE_snapshot_gdir
+        )
+        self.lab_export_gdir = QtWidgets.QLabel(self.groupBox_10)
+        self.lab_export_gdir.setObjectName("lab_export_gdir")
+        self.formLayout_4.setWidget(
+            2, QtWidgets.QFormLayout.LabelRole, self.lab_export_gdir
+        )
+        self.lE_export_gdir = QtWidgets.QLineEdit(self.groupBox_10)
+        self.lE_export_gdir.setEnabled(True)
+        self.lE_export_gdir.setText("")
+        self.lE_export_gdir.setFrame(True)
+        self.lE_export_gdir.setReadOnly(True)
+        self.lE_export_gdir.setObjectName("lE_export_gdir")
+        self.formLayout_4.setWidget(
+            2, QtWidgets.QFormLayout.FieldRole, self.lE_export_gdir
+        )
+        self.lab_eit_mdl_ctlg_gdir = QtWidgets.QLabel(self.groupBox_10)
+        self.lab_eit_mdl_ctlg_gdir.setObjectName("lab_eit_mdl_ctlg_gdir")
+        self.formLayout_4.setWidget(
+            3, QtWidgets.QFormLayout.LabelRole, self.lab_eit_mdl_ctlg_gdir
+        )
+        self.lE_eit_mdl_ctlg_gdir = QtWidgets.QLineEdit(self.groupBox_10)
+        self.lE_eit_mdl_ctlg_gdir.setEnabled(True)
+        self.lE_eit_mdl_ctlg_gdir.setText("")
+        self.lE_eit_mdl_ctlg_gdir.setFrame(True)
+        self.lE_eit_mdl_ctlg_gdir.setReadOnly(True)
+        self.lE_eit_mdl_ctlg_gdir.setObjectName("lE_eit_mdl_ctlg_gdir")
+        self.formLayout_4.setWidget(
+            3, QtWidgets.QFormLayout.FieldRole, self.lE_eit_mdl_ctlg_gdir
+        )
+        self.lab_chip_ctlg_gdir = QtWidgets.QLabel(self.groupBox_10)
+        self.lab_chip_ctlg_gdir.setObjectName("lab_chip_ctlg_gdir")
+        self.formLayout_4.setWidget(
+            4, QtWidgets.QFormLayout.LabelRole, self.lab_chip_ctlg_gdir
+        )
+        self.lE_chip_ctlg_gdir = QtWidgets.QLineEdit(self.groupBox_10)
+        self.lE_chip_ctlg_gdir.setEnabled(True)
+        self.lE_chip_ctlg_gdir.setText("")
+        self.lE_chip_ctlg_gdir.setFrame(True)
+        self.lE_chip_ctlg_gdir.setReadOnly(True)
+        self.lE_chip_ctlg_gdir.setObjectName("lE_chip_ctlg_gdir")
+        self.formLayout_4.setWidget(
+            4, QtWidgets.QFormLayout.FieldRole, self.lE_chip_ctlg_gdir
+        )
+        self.gridLayout_8.addLayout(self.formLayout_4, 0, 0, 1, 1)
+        self.verticalLayout_14.addWidget(self.groupBox_10)
+        spacerItem3 = QtWidgets.QSpacerItem(
+            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
+        self.verticalLayout_14.addItem(spacerItem3)
+        self.tabW_settings.addTab(self.tab_6, "")
         self.horizontalLayout_13.addWidget(self.tabW_settings)
         self.verticalLayout_22 = QtWidgets.QVBoxLayout()
         self.verticalLayout_22.setObjectName("verticalLayout_22")
@@ -1185,10 +1272,10 @@ class Ui_MainWindow(object):
         self.gridLayout_5.addLayout(self.layout_error, 0, 0, 1, 1)
         self.tabW_monitoring.addTab(self.tab_4, "")
         self.verticalLayout_22.addWidget(self.tabW_monitoring)
-        spacerItem3 = QtWidgets.QSpacerItem(
+        spacerItem4 = QtWidgets.QSpacerItem(
             20, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
         )
-        self.verticalLayout_22.addItem(spacerItem3)
+        self.verticalLayout_22.addItem(spacerItem4)
         self.verticalLayout_22.setStretch(1, 1)
         self.verticalLayout_22.setStretch(2, 1)
         self.horizontalLayout_13.addLayout(self.verticalLayout_22)
@@ -1371,10 +1458,10 @@ class Ui_MainWindow(object):
         self.cB_capture_img_file_ext.setObjectName("cB_capture_img_file_ext")
         self.horizontalLayout_15.addWidget(self.cB_capture_img_file_ext)
         self.verticalLayout_9.addLayout(self.horizontalLayout_15)
-        spacerItem4 = QtWidgets.QSpacerItem(
+        spacerItem5 = QtWidgets.QSpacerItem(
             20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
         )
-        self.verticalLayout_9.addItem(spacerItem4)
+        self.verticalLayout_9.addItem(spacerItem5)
         self.formLayout_3 = QtWidgets.QFormLayout()
         self.formLayout_3.setObjectName("formLayout_3")
         self.cB_log_level = QtWidgets.QComboBox(self.groupBox_video)
@@ -1407,7 +1494,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabW_settings.setCurrentIndex(0)
+        self.tabW_settings.setCurrentIndex(4)
         self.tabWidget.setCurrentIndex(1)
         self.toolBox.setCurrentIndex(0)
         self.tabW_reconstruction.setCurrentIndex(0)
@@ -1674,6 +1761,16 @@ class Ui_MainWindow(object):
         self.tabW_settings.setTabText(
             self.tabW_settings.indexOf(self.tab_3),
             _translate("MainWindow", "Plot settings"),
+        )
+        self.groupBox_10.setTitle(_translate("MainWindow", "Global directories"))
+        self.lab_measdataset_gdir.setText(_translate("MainWindow", "Measurement Sets"))
+        self.lab_snapshot_gdir.setText(_translate("MainWindow", "Snapshot"))
+        self.lab_export_gdir.setText(_translate("MainWindow", "Export"))
+        self.lab_eit_mdl_ctlg_gdir.setText(_translate("MainWindow", "EIT Model"))
+        self.lab_chip_ctlg_gdir.setText(_translate("MainWindow", "Chips"))
+        self.tabW_settings.setTabText(
+            self.tabW_settings.indexOf(self.tab_6),
+            _translate("MainWindow", "Gui setttings"),
         )
         self.label.setText(_translate("MainWindow", "Show:"))
         self.chB_eit_image_plot.setText(_translate("MainWindow", "EIT image"))

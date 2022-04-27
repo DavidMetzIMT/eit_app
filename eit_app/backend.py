@@ -39,6 +39,8 @@ from eit_app.gui_utils import set_comboBox_items
 from eit_app.update_gui import (
     EvtDataEITDataPlotOptionsChanged,
     EvtDataSciospecDevSetup,
+    EvtEitModelLoaded,
+    EvtGlobalDirectoriesSet,
     EvtInitFormatUI,
 )
 
@@ -68,6 +70,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.init_update_ui_agent(self.ui)
         self.set_title()
         eit_app.default.set_default_dir.set_ai_default_dir()
+        self.update_gui(EvtGlobalDirectoriesSet())
         self._create_main_objects()
         self._connect_main_objects()
         self._connect_menu()
@@ -76,7 +79,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.update_gui(EvtInitFormatUI())
 
     def init_logging(self):
-        glob_utils.log.log.change_level_logging(logging.DEBUG)
+        glob_utils.log.log.change_level_logging(logging.INFO)
         start_msg = f"                          Start of EIT app : v{__version__}\n\
                           {__copyright__}"
         logger.info(glob_utils.log.msg_trans.highlight_msg(start_msg))
@@ -116,7 +119,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             eit_app.eit.plots.PlotterChannelVoltageMonitoring,
         )
         self.plot_agent.add_canvas(self.canvas_error)
-        self.eit_model = eit_model.model.EITModel()
+        self.eit_mdl = eit_model.model.EITModel()
         self.computing = eit_app.eit.computation.ComputingAgent()
         self.dataset = eit_app.sciospec.measurement.MeasurementDataset()
         self.device = eit_app.sciospec.device.SciospecEITDevice(32)
@@ -174,7 +177,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.device.get_devices()
         self.device.to_gui_emit_connect_status()
         self.device.emit_status_changed()
-        self._init_eit_model()
+        self._init_eit_mdl()
 
     def comboBox_init(self) -> None:
         """ """
@@ -375,7 +378,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         n = self.dataset.get_frame_cnt()
         data = {
             f"frame{i}": np.real(
-                self.eit_model.get_meas_voltages(
+                self.eit_mdl.get_meas_voltages(
                     self.dataset.get_meas_voltage(i, idx_freq)
                 )[0]
             )
@@ -438,7 +441,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
 
     def open_pyvista(self, checked) -> None:
         self.w = eit_model.pyvista_plot.PyVistaPlotWidget(self)
-        self.w.set_eitmodel(self.eit_model)
+        # self.w.set_eitmodel(self.eit_mdl)
 
     ############################################################################
     #### Reconstruction, computation
@@ -456,7 +459,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         rec_type = self.ui.tabW_reconstruction.currentIndex()
         solver = self._rec_solver(rec_type)
         params = self._rec_params(rec_type)
-        self.computing.init_solver(solver, self.eit_model, params)
+        self.computing.init_solver(solver, self.eit_mdl, params)
 
     def _rec_solver(self, rec_type: int = 0) -> None:
         """Return the reconstruction solver"""
@@ -475,7 +478,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 background=self.ui.sBd_pyeit_bckgrnd.value(),
             )
         }
-        self.eit_model.set_refinement(self.ui.sBd_eit_model_fem_refinement.value())
+        self.eit_mdl.set_refinement(self.ui.sBd_eit_model_fem_refinement.value())
         return params[rec_type]
 
     ############################################################################
@@ -494,10 +497,10 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.chB_eit_imaging_trans_abs.toggled.connect(self._imaging_changed)
 
         # eit model catalog
-        self.ui.cB_eit_mdl_ctlg.activated.connect(self._set_eit_mdl_ctlg)
+        self.ui.cB_eit_mdl_ctlg.activated.connect(self._load_eit_mdl)
         self.ui.pB_eit_mdl_refresh_ctlg.clicked.connect(self._update_eit_mdl_ctlg)
         # chip design catalog
-        self.ui.cB_chip_ctlg.currentTextChanged.connect(self._set_chip_ctlg)
+        self.ui.cB_chip_ctlg.currentTextChanged.connect(self._load_chip)
         self.ui.pB_chip_refresh_ctlg.clicked.connect(self._update_chip_ctlg)
 
     def _imaging_changed(self) -> None:
@@ -505,7 +508,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         transform = self.ui.cB_eit_imaging_trans.currentText()
         show_abs = self.ui.chB_eit_imaging_trans_abs.isChecked()
         self.computing.set_imaging_mode(imaging_type, transform, show_abs)
-        self.computing.set_eit_model(self.eit_model)
+        self.computing.set_eit_model(self.eit_mdl)
         self._set_actual_indexesforcomputation(imaging_type)
 
     def _set_actual_indexesforcomputation(self, imaging_type: str):
@@ -535,43 +538,45 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
     #### Eit model
     ############################################################################
 
-    def _init_eit_model(self):
+    def _init_eit_mdl(self):
+        """Load the default eit_mdl define in the `eit_model`-package"""
         # set pattern
-        self.eit_model.load_defaultmatfile()
+        self.eit_mdl.load_defaultmatfile()
         self.update_setup_from_eit_mdl()
 
     def _update_eit_mdl_ctlg(self):
-        """Update catalog and if changed"""
+        """Update catalog of eit_mdl"""
         files = search_for_file_with_ext(get_dir(AppStdDir.eit_model), FileExt.mat)
         set_comboBox_items(self.ui.cB_eit_mdl_ctlg, files)
 
-    def _set_eit_mdl_ctlg(self):
-        """Update catalog and if changed"""
+    def _load_eit_mdl(self):
+        """Load eit_mdl"""
         path = os.path.join(
             get_dir(AppStdDir.eit_model), self.ui.cB_eit_mdl_ctlg.currentText()
         )
-        self.eit_model.load_matfile(path)
+        self.eit_mdl.load_matfile(path)
         self.update_setup_from_eit_mdl()
 
     def _update_chip_ctlg(self):
-        """Update catalog and if changed"""
+        """Update catalog"""
         files = search_for_file_with_ext(get_dir(AppStdDir.chips), FileExt.txt)
         set_comboBox_items(self.ui.cB_chip_ctlg, files)
 
-    def _set_chip_ctlg(self):
-        """Update catalog and if changed"""
+    def _load_chip(self):
+        """Update catalog"""
         path = os.path.join(
             get_dir(AppStdDir.chips), self.ui.cB_chip_ctlg.currentText()
         )
-        self.eit_model.load_chip_trans(path)
+        self.eit_mdl.load_chip_trans(path)
         self.update_setup_from_eit_mdl()
 
     def update_setup_from_eit_mdl(self):
-        exc_mat = self.eit_model.excitation_mat().tolist()
+        exc_mat = self.eit_mdl.excitation_mat().tolist()
         self.device.setup.set_exc_pattern_mdl(exc_mat)
-        exc_mat = self.eit_model.excitation_mat_chip().tolist()
+        exc_mat = self.eit_mdl.excitation_mat_chip().tolist()
         self.device.setup.set_exc_pattern(exc_mat)
         self.update_gui(EvtDataSciospecDevSetup(self.device.setup))
+        self.update_gui(EvtEitModelLoaded(self.eit_mdl.name))
 
     # def kill_workers(self) -> None:
     #     """Kill alls the running threads workers"""

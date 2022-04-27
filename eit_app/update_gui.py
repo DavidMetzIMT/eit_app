@@ -723,6 +723,47 @@ class EvtDataCaptureImageChanged(EventDataClass):
     func: str = update_captured_image.__name__
 
 
+# -------------------------------------------------------------------------------
+## Update eit model loaded (during acquisition and replay)
+# -------------------------------------------------------------------------------
+
+
+def update_eit_model_loaded(ui: Ui_MainWindow, name: str = "") -> None:
+
+    ui.lE_eit_model_name.setText(name)
+
+
+register_func_in_catalog(update_eit_model_loaded)
+
+
+@dataclass
+class EvtEitModelLoaded(EventDataClass):
+    name: str = ""
+    func: str = update_eit_model_loaded.__name__
+
+
+# -------------------------------------------------------------------------------
+## Update global directories
+# -------------------------------------------------------------------------------
+
+
+def update_global_directories(ui: Ui_MainWindow) -> None:
+
+    ui.lE_measdataset_gdir.setText(get_dir(AppStdDir.meas_set))
+    ui.lE_snapshot_gdir.setText(get_dir(AppStdDir.snapshot))
+    ui.lE_export_gdir.setText(get_dir(AppStdDir.export))
+    ui.lE_eit_mdl_ctlg_gdir.setText(get_dir(AppStdDir.eit_model))
+    ui.lE_chip_ctlg_gdir.setText(get_dir(AppStdDir.chips))
+
+
+register_func_in_catalog(update_global_directories)
+
+
+@dataclass
+class EvtGlobalDirectoriesSet(EventDataClass):
+    func: str = update_global_directories.__name__
+
+
 if __name__ == "__main__":
     """"""
     a = EvtDataSciospecDevices("")
