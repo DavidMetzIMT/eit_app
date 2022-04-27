@@ -4,6 +4,7 @@
 Thank you for the interest in `eit_app`!
 
 `eit_app` is **a python-based, open-source framework for Electrical Impedance Tomography (EIT) reconstruction.**
+Available https://github.com/DavidMetzIMT/eit_app
 
 using a Sciospec EIT32-device from the compagny Sciospec
 
@@ -11,19 +12,17 @@ using a Sciospec EIT32-device from the compagny Sciospec
 
 ### 1.1 Dependencies
 
-reconstruction is based on `pyEIT` 
+| Packages        | Optional   | Note                                     | Links |
+| --------------  | ---------- | ---------------------------------------- |-------|
+| **numpy**       |            | tested with `numpy-1.21.2`               | |
+| **dataclasses** |            | tested with `dataclasses-0.8`            | |
+| **matplotlib**  |            | tested with `matplotlib-3.3.2`           | |
+| **PyQt5**       |            | tested with `PyQt5-5.15.6`               | |
+| **pyserial**    |            | tested with `pyserial-3.5`               | |
+| **eit_model**   |            | tested with `eit_model` >> `pyEIT`, `eit_ai`            | [eit_model](https://github.com/DavidMetzIMT/eit_model), [pyEIT](https://github.com/liubenyuan/pyEIT), [eit_ai](https://github.com/DavidMetzIMT/eit_ai)|
+| **eit_ai**      |            | tested with `eit_ai`  >> `keras`, `pytorch` |[eit_ai](https://github.com/DavidMetzIMT/eit_ai) |
+| **glob_utils**  |            | tested with `glob_utils`               | [glob_utils](https://github.com/DavidMetzIMT/glob_utils)|
 
-NOT DONE YET!!!
-
-| Packages       | Optional   | Note                                     |
-| -------------- | ---------- | ---------------------------------------- |
-| **numpy**      |            | tested with `numpy-1.19.1`               |
-| **scipy**      |            | tested with `scipy-1.5.0`                |
-| **matplotlib** |            | tested with `matplotlib-3.3.2`           |
-| **pandas**     | *Optional* | tested with `pandas-1.1.3`               |
-| **vispy**      | *Optional* | failed with `vispy` in python 3.8        |
-| **xarray**     | *Optional* | for large data analysis                  |
-| **distmesh**   | *Optional* | A build-in module is provided in `pyEIT` |
 
 ### 1.2 Features
  - [x] Serial communication with `Sciospec EIT32-device`
@@ -43,20 +42,8 @@ NOT DONE YET!!!
 `eit_app` is purely python based, it can be installed and run without any difficulty. NOT TESTED YET!!!
 
 ### 2.1 Install global
-
-NOT TESTED YET!!!
-
-$ python setup.py build
-$ python setup.py install
-
-
 ### 2.2 Install 
-
 ## 3. Run the app
-
-
-
-**Note:** the following images may be outdated due to that the parameters of a EIT algorithm may be changed in different versions of `pyEIT`. And it is there in the code, so just run the demo.
 
 ### 3.1 examples of apps
 
