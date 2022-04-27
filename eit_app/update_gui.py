@@ -682,7 +682,7 @@ class EvtDataReplayFrameChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage):
+def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage, image_path:str):
     """update the path of the loaded dataset and init the combosboxes and slider
     for the nb of loaded frames"""
     if not isinstance(image, QtGui.QImage):
@@ -693,6 +693,8 @@ def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage):
     # resize the group box to fit image size 
     w= max(image.width()+ 20, ui.groupBox_video.minimumWidth())
     ui.groupBox_video.setMaximumWidth(w)
+    ui.lE_path_video_frame.setText(image_path)
+
     
 
 
@@ -702,6 +704,7 @@ register_func_in_catalog(update_captured_image)
 @dataclass
 class EvtDataCaptureImageChanged(EventDataClass):
     image: QtGui.QImage
+    image_path:str=''
     func: str = update_captured_image.__name__
 
 
