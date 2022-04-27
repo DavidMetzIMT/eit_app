@@ -16,6 +16,7 @@ import logging
 import threading
 from typing import Any, Callable, List
 from PyQt5 import QtGui, QtWidgets
+from eit_app.default.set_default_dir import AppStdDir, get_dir
 
 from eit_app.gui import Ui_MainWindow
 from eit_app.gui_utils import (
@@ -40,7 +41,7 @@ from glob_utils.flags.status import BaseStatus
 logger = logging.getLogger(__name__)
 
 
-def is_dataclass_instance(obj):
+def is_dataclass_instance(obj) -> bool:
     return is_dataclass(obj) and not isinstance(obj, type)
 
 
@@ -75,7 +76,7 @@ class UpdateAgent:
         self._events_ctlg = events_ctlg
 
     @catch_error
-    def post(self, data: EventDataClass):
+    def post(self, data: EventDataClass) -> None:
         """Run the update event correspoding to the event data
 
         Args:
@@ -113,7 +114,7 @@ class UpdateAgent:
 UPDATE_EVENTS: dict[str, Callable] = {}
 
 
-def register_func_in_catalog(func: Callable):
+def register_func_in_catalog(func: Callable) -> None:
     """Add the function to the UPDATE_EVENTS catalog"""
     name = func.__name__
     UPDATE_EVENTS[func.__name__] = func
@@ -129,7 +130,7 @@ def register_func_in_catalog(func: Callable):
 # ## Update somthing
 # # ------------------------------------------------------------------------------
 
-# def update_something(ui: Ui_MainWindow, data: Any):
+# def update_something(ui: Ui_MainWindow, data: Any)->None:
 #     """code for updating somteh from app"""
 
 # register_func_in_catalog(update_something)
@@ -155,7 +156,7 @@ orange_light = "#ffd062"
 bck_gnd_buttons = "#00aaff"
 
 
-def initial_formatting_of_ui(ui: Ui_MainWindow):
+def initial_formatting_of_ui(ui: Ui_MainWindow) -> None:
     """Run some initial custom formating on gui object"""
     # set background of all buttons
     bck_gnd = "* { background-color: " + f"{bck_gnd_buttons}" + " }"
@@ -178,7 +179,7 @@ class EvtInitFormatUI(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_available_devices(ui: Ui_MainWindow, device: dict):
+def update_available_devices(ui: Ui_MainWindow, device: dict) -> None:
     """Refesh the list of devices in the comboBox"""
     items = list(device) or ["None device"]
     set_comboBox_items(ui.cB_ports, items)
@@ -200,7 +201,7 @@ class EvtDataSciospecDevices(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_available_capture_devices(ui: Ui_MainWindow, device: dict):
+def update_available_capture_devices(ui: Ui_MainWindow, device: dict) -> None:
     """Refesh the list of devices in the comboBox"""
     items = list(device) or ["None device"]
     set_comboBox_items(ui.cB_capture_devices, items)
@@ -222,7 +223,9 @@ class EvtDataCaptureDevices(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_device_status(ui: Ui_MainWindow, connected: bool, connect_prompt: str):
+def update_device_status(
+    ui: Ui_MainWindow, connected: bool, connect_prompt: str
+) -> None:
     """Actualize the status of the device"""
     ui.lab_device_status.setText(connect_prompt)
     ui.lab_device_status.adjustSize
@@ -255,7 +258,7 @@ def update_device_setup(
     setup: SciospecSetup,
     set_freq_max_enable: bool = True,
     error: bool = False,
-):
+) -> None:
     """Actualize the inputs fields for the setup of the device coresponding to it"""
     ui.lE_sn.setText(setup.get_sn())
     ## Update EthernetConfig
@@ -305,7 +308,7 @@ class EvtDataSciospecDevSetup(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_freqs_list(ui: Ui_MainWindow, freqs: List[Any]):
+def update_freqs_list(ui: Ui_MainWindow, freqs: List[Any]) -> None:
     set_comboBox_items(ui.cB_eit_imaging_ref_freq, list(freqs))
     set_comboBox_items(ui.cB_eit_imaging_meas_freq, list(freqs))
 
@@ -344,7 +347,7 @@ class MeasuringStatus(BaseStatus):
     )
 
 
-def update_meas_status(ui: Ui_MainWindow, meas_status: MeasuringStatus):
+def update_meas_status(ui: Ui_MainWindow, meas_status: MeasuringStatus) -> None:
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
     v: MeasuringStatusUpdateData = meas_status.value
@@ -424,7 +427,7 @@ class CaptureStatus(BaseStatus):
     )
 
 
-def update_capture_status(ui: Ui_MainWindow, capture_mode: CaptureStatus):
+def update_capture_status(ui: Ui_MainWindow, capture_mode: CaptureStatus) -> None:
     """Update the live measurements status label and the mesurements
     start/pause/resume button"""
     v: CaptureStatusUpdateData = capture_mode.value
@@ -474,7 +477,7 @@ class ReplayStatus(BaseStatus):
     )
 
 
-def update_replay_status(ui: Ui_MainWindow, status: ReplayStatus):
+def update_replay_status(ui: Ui_MainWindow, status: ReplayStatus) -> None:
     """Update the status label"""
     v: ReplayStatusUpdateData = status.value
     ui.lab_replay_status.setText(v.lab_txt)
@@ -498,7 +501,7 @@ class EvtDataReplayStatusChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_imaging_inputs_fields(ui: Ui_MainWindow, imaging: Imaging):
+def update_imaging_inputs_fields(ui: Ui_MainWindow, imaging: Imaging) -> None:
     """Activate deactive the input fileddepending on the imaging type"""
 
     meas_0 = {"show": False, "lab_text": "Ref. Frequency"}
@@ -539,7 +542,7 @@ class EvtDataImagingInputsChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_EITData_plots_options(ui: Ui_MainWindow):
+def update_EITData_plots_options(ui: Ui_MainWindow) -> None:
     """Activate/deactivate checkbox for EITData plots"""
     # ui.rB_UPlot.setEnabled(ui.chB_eit_data_monitoring.isChecked())
     # ui.rB_Uch.setEnabled(ui.chB_eit_data_monitoring.isChecked())
@@ -562,8 +565,10 @@ class EvtDataEITDataPlotOptionsChanged(EventDataClass):
 
 def update_progress_acquired_frame(
     ui: Ui_MainWindow, idx_frame: int = 0, progression: int = 0
-):
-    """Update the progression bar and the idx of the aquired frame"""
+) -> None:
+    """
+    Update the progression bar and the idx of the aquired frame
+    """
     logger.debug("update_progress_acquired_frame-in")
     if idx_frame is not None:
         ui.sB_actual_frame_cnt.setValue(idx_frame)
@@ -588,7 +593,7 @@ class EvtDataNewFrameProgress(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_frame_info(ui: Ui_MainWindow, info: str = ""):
+def update_frame_info(ui: Ui_MainWindow, info: str = "") -> None:
     if info is not None:
         ui.tE_frame_info.setText("\r\n".join(info))
 
@@ -609,7 +614,7 @@ class EvtDataNewFrameInfo(EventDataClass):
 
 def update_autosave_options(
     ui: Ui_MainWindow, autosave: bool, save_img: bool, load_after_meas: bool
-):
+) -> None:
     """Activate/deactivate saving options"""
     ui.lE_meas_dataset_dir.setEnabled(ui.chB_dataset_autosave.isChecked())
     ui.chB_dataset_save_img.setEnabled(ui.chB_dataset_autosave.isChecked())
@@ -638,13 +643,16 @@ class EvtDataAutosaveOptionsChanged(EventDataClass):
 
 
 # -------------------------------------------------------------------------------
-## Update replay measurements state (after loading a measurement dataset)
+## Update dataset loaded
 # -------------------------------------------------------------------------------
 
 
-def update_dataset_loaded(ui: Ui_MainWindow, dataset_dir: str, nb_loaded_frame: int):
-    """update the path of the loaded dataset and init the combosboxes and slider
-    for the nb of loaded frames"""
+def update_dataset_loaded(
+    ui: Ui_MainWindow, dataset_dir: str, nb_loaded_frame: int
+) -> None:
+    """
+    Update infos afer dataset has been loaded, dataset directory,init comboBox
+    and slider for frame selection"""
     ui.tE_load_dataset_dir.setText(dataset_dir)
     set_comboBox_items(ui.cB_replay_frame_idx, list(range(nb_loaded_frame)))
     set_comboBox_items(ui.cB_eit_imaging_ref_frame, list(range(nb_loaded_frame)))
@@ -662,13 +670,14 @@ class EvtDataMeasDatasetLoaded(EventDataClass):
 
 
 # -------------------------------------------------------------------------------
-## Update replay idx (after loading a measurement dataset)
+## Update replay frame changed
 # -------------------------------------------------------------------------------
 
 
-def update_replay_frame_changed(ui: Ui_MainWindow, idx: int):
-    """update the path of the loaded dataset and init the combosboxes and slider
-    for the nb of loaded frames"""
+def update_replay_frame_changed(ui: Ui_MainWindow, idx: int) -> None:
+    """
+    Update the index of the actula frame in combo box and in silder
+    """
     set_comboBox_index(ui.cB_replay_frame_idx, index=idx)
     set_QSlider_position(ui.slider_replay, pos=idx)
 
@@ -683,13 +692,16 @@ class EvtDataReplayFrameChanged(EventDataClass):
 
 
 # -------------------------------------------------------------------------------
-## Update replay idx (after loading a measurement dataset)
+## Update captured image
 # -------------------------------------------------------------------------------
 
 
-def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage, image_path: str):
-    """update the path of the loaded dataset and init the combosboxes and slider
-    for the nb of loaded frames"""
+def update_captured_image(
+    ui: Ui_MainWindow, image: QtGui.QImage, image_path: str
+) -> None:
+    """
+    Update the displayed image and corresponding loading/saving path field
+    """
     if not isinstance(image, QtGui.QImage):
         logger.warning(f"{image=} is not an QtGui.QImage")
         return
