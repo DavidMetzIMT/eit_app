@@ -154,7 +154,7 @@ class CanvasLayout(object):
         
     
     def _init_layout(self, **kwargs):
-
+        """"""
         dpi=kwargs.pop('dpi', 100)
         self._figure= matplotlib.pyplot.figure(dpi=dpi)
         self._canvas = FigureCanvasQTAgg(self._figure)
@@ -165,7 +165,9 @@ class CanvasLayout(object):
 
     
     def set_options(self, **kwargs):
-        """"""
+        """Set some plotting options
+        valid kwargs:
+        dpi= val """
         if (dpi:=kwargs.pop('dpi', None)):
             self._layout.removeWidget(self._toolbar)
             self._layout.removeWidget(self._canvas)
