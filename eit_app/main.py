@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QApplication
 
 from eit_app.backend import UiBackEnd
@@ -15,6 +15,8 @@ def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+    # TODO test icon dipslay on win
+    app.setWindowIcon(QtGui.QIcon(':/icons/icons/EIT.png'))
     ui = UiBackEnd()
     ui.show()
     exit(app.exec_())

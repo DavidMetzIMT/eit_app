@@ -78,6 +78,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             CaptureStatus.NOT_CONNECTED: self._process_replay,
             CaptureStatus.CONNECTED: self._process_replay,
             CaptureStatus.REPLAY_AUTO: self._process_replay,
+            CaptureStatus.REPLAY_MAN: self._process_replay,
             CaptureStatus.MEASURING: self._process_meas,
             CaptureStatus.LIVE: self._process_live,
         }
