@@ -43,7 +43,7 @@ from glob import glob
 import logging
 import sys
 from time import sleep
-from typing import Union,Any
+from typing import Union, Any
 
 from serial import (
     Serial,
@@ -283,7 +283,6 @@ class SciospecSerialInterface(Interface):
                 actual_ports.append(port)
                 ser.close()
         self.ports_available = actual_ports
-
 
         msg = f"Available serial ports : {self.ports_available}"
         logger.debug(msg)

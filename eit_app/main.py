@@ -13,10 +13,10 @@ def main():
     """Run the eit_app"""
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     app = QApplication(sys.argv)
-    app.setStyle('Fusion')
+    app.setStyle("Fusion")
     app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     # TODO test icon dipslay on win
-    app.setWindowIcon(QtGui.QIcon(':/icons/icons/EIT.png'))
+    app.setWindowIcon(QtGui.QIcon(":/icons/icons/EIT.png"))
     ui = UiBackEnd()
     ui.show()
     exit(app.exec_())

@@ -63,14 +63,12 @@ class DeviceInfos(SetupBase):
         self.reinit()
 
     def reinit(self) -> None:
-        """Reinitialize the serial number
-        """
+        """Reinitialize the serial number"""
         self.sn_formated = "00-0000-0000-0000"
         self.sn = [0, 0, 0, 0, 0, 0, 0]
 
     def is_sn_sciopec(self):
-        """Asset if the device is a sciospec device
-        """
+        """Asset if the device is a sciospec device"""
         # logger.debug(f"{self.sn}")
         return self.sn != [0, 0, 0, 0, 0, 0, 0]
 
@@ -89,7 +87,9 @@ class DeviceInfos(SetupBase):
     # Setter
     # ---------------------------------------------------------------------------
 
-    def set_sn(self, rx_frame: Union[list[bytes], float], in_bytes: bool = True) ->None:
+    def set_sn(
+        self, rx_frame: Union[list[bytes], float], in_bytes: bool = True
+    ) -> None:
         """Set value of mac adress:
         - out of Bytes from the device (rx_frame)
         - (error)
@@ -102,7 +102,7 @@ class DeviceInfos(SetupBase):
         self.build_sn_formated()
         # logger.debug(f"SN:{self.sn}, {self.sn_formated}")
 
-    def build_sn_formated(self) ->None:
+    def build_sn_formated(self) -> None:
         ID = mkListOfHex(self.sn)
         self.sn_formated = f"{ID[0]}-{ID[1]}{ID[2]}-{ID[3]}{ID[4]}-{ID[5]}{ID[6]}"
 
@@ -225,7 +225,7 @@ class EthernetConfig(SetupBase):
 
     def get_mac(self, in_bytes: bool = False) -> Union[list[bytes], str]:
         """Return mac adress:
-        - in Bytes for sending to the device 
+        - in Bytes for sending to the device
         (NOT USED, MAC ADRESS can't be changed..)
         - in str for simple get"""
         return self.mac if in_bytes else self.mac_formated
@@ -352,12 +352,12 @@ class FrequencyConfig(SetupBase):
         """
         if in_bytes:
             data = value[DATA_START_INDX:-1]
-            
+
             freq_max_enable, error = self._set_data(
                 freq_min=convert4Bytes2Float(data[:4]),
                 freq_max=convert4Bytes2Float(data[4:8]),
                 freq_steps=convertBytes2Int(data[8:10]),
-                freq_scale=FREQ_SCALE[data[10]]
+                freq_scale=FREQ_SCALE[data[10]],
             )
 
         else:
@@ -391,28 +391,28 @@ class FrequencyConfig(SetupBase):
             if freq_scale in [OP_LINEAR.name, OP_LOG.name]
             else OP_LINEAR.name
         )
-        self.freq_steps = freq_steps or 1 # atleast 1 step 
+        self.freq_steps = freq_steps or 1  # atleast 1 step
         set_freq_max_enable = True
-        error_freq_max = False 
+        error_freq_max = False
         # Set minF and maxF
         if self.freq_steps == 1:
             self.freq_max = self.freq_min
-            set_freq_max_enable = False # disable the freq_max field
+            set_freq_max_enable = False  # disable the freq_max field
         # for freq_steps > 1 then freq max should be > freq_min
         elif self.freq_max <= self.freq_min:
             self.freq_max = self.freq_min
-            error_freq_max = True # error freq max value
+            error_freq_max = True  # error freq max value
         return set_freq_max_enable, error_freq_max
 
 
 # ===============================================================================
 #     Sciospec Setup Class
 # ===============================================================================
-#TODO SignalReciever ?
+# TODO SignalReciever ?
 class SciospecSetup(SetupBase):
     """Class regrouping all info (serial number, Ethernet config, etc.),
     meas. parameters (excitation pattern, amplitude, etc.), etc. of the device.
-    
+
     see documentation of Sciospec EIT device"""
 
     exc_amp: float
@@ -426,7 +426,7 @@ class SciospecSetup(SetupBase):
     ethernet_config: EthernetConfig
     freq_config: FrequencyConfig
 
-    def __init__(self, n_channel: int)->None:
+    def __init__(self, n_channel: int) -> None:
         self.device_infos = DeviceInfos(n_channel)
         self.output_config = OutputConfig()
         self.ethernet_config = EthernetConfig()
@@ -434,9 +434,8 @@ class SciospecSetup(SetupBase):
         self.reinit()
         self.define_data_access()
 
-    def reinit(self)->None:
-        """Reinit the values of the setup and ist objectss
-        """
+    def reinit(self) -> None:
+        """Reinit the values of the setup and ist objectss"""
         self.exc_amp = 10.0
         self.exc_pattern = [[1, 2], [2, 3]]
         self.exc_pattern_mdl = [[1, 2], [2, 3]]
@@ -449,20 +448,18 @@ class SciospecSetup(SetupBase):
         self.freq_config.reinit()
         logger.debug("Reinitialisation of SciospecSetup - DONE")
 
-    def is_sciospec(self)->bool:
-        """Asset if actual setup is from a sciospec device
-        """
+    def is_sciospec(self) -> bool:
+        """Asset if actual setup is from a sciospec device"""
         return self.device_infos.is_sn_sciopec()
 
-    def build_sciospec_device_name(self, port)->str:
-        """Create a generic sciopsec device name
-        """
+    def build_sciospec_device_name(self, port) -> str:
+        """Create a generic sciopsec device name"""
         return (
             f'Device (SN: {self.get_sn()}) on "{port}"' if self.is_sciospec() else None
         )
 
-    def define_data_access(self)->None:
-        """ Set corresponding callbacks for setting and getting data of setup to
+    def define_data_access(self) -> None:
+        """Set corresponding callbacks for setting and getting data of setup to
         command and option tags using during communication with sciospec device
 
         see documentation of Sciospec EIT device
@@ -515,9 +512,7 @@ class SciospecSetup(SetupBase):
             # CMD_GET_EXPORT_MODULE.tag:{:},
             # CMD_GET_BATTERY_CONTROL.tag:{:},
             # CMD_GET_LED_CONTROL.tag:{:},
-            CMD_GET_DEVICE_INFOS.tag: {
-                OP_NULL.tag: self.device_infos.set_sn
-            },
+            CMD_GET_DEVICE_INFOS.tag: {OP_NULL.tag: self.device_infos.set_sn},
             # CMD_GET_CURRENT_SETTING.tag:{:}
         }
 
@@ -541,8 +536,7 @@ class SciospecSetup(SetupBase):
             return [0x00]
 
     def set_data(self, rx_setup_stream: list[bytes], **kwargs) -> None:
-        """Set the values in the setup out of the rx_frame
-        """
+        """Set the values in the setup out of the rx_frame"""
         cmd_tag = rx_setup_stream[CMD_BYTE_INDX]
         if (
             OP_NULL.tag in self._set_data_access[cmd_tag]
@@ -563,9 +557,9 @@ class SciospecSetup(SetupBase):
 
     def save(self, dir: str = None) -> Union[str, None]:
         """Save the setup a json-file in a diretory.
-        
+
         Args:
-            dir (str, optional): directory path .If `None` the user will be ask to 
+            dir (str, optional): directory path .If `None` the user will be ask to
             select a diretory via a dialog. Defaults to `None`.
 
         Returns:
@@ -585,11 +579,11 @@ class SciospecSetup(SetupBase):
         logger.info(f"Setup: {self.__dict__} \n saved in file : {dir} ")
         return path
 
-    def load(self, dir: str = None, **kwargs)->Union[str, None]:
+    def load(self, dir: str = None, **kwargs) -> Union[str, None]:
         """Search and load a setup json-file out of directory.
-        
+
         Args:
-            dir (str, optional): directory path .If `None` the user will be ask to 
+            dir (str, optional): directory path .If `None` the user will be ask to
             select a diretory via a dialog. Defaults to `None`.
 
         Returns:
@@ -626,7 +620,7 @@ class SciospecSetup(SetupBase):
 
     @property
     def max_frame_rate(self) -> float:
-        """Compute the maximum frame rate corresponding to the actual 
+        """Compute the maximum frame rate corresponding to the actual
         frequencies sweep
 
         see documentation of Sciospec EIT device
@@ -652,8 +646,7 @@ class SciospecSetup(SetupBase):
     # ---------------------------------------------------------------------------
 
     def get_channel(self):
-        """Return the number of channnel used in the device
-        """
+        """Return the number of channnel used in the device"""
         return self.device_infos.channel
 
     def get_exc_amp_d(self, in_bytes: bool = False) -> Union[list[bytes], float]:
@@ -685,35 +678,31 @@ class SciospecSetup(SetupBase):
         return convertFloat2Bytes(self.frame_rate) if in_bytes else self.frame_rate
 
     def get_max_frame_rate(self) -> float:
-        """Return max frame rate computed from the used frequence config
-        """
+        """Return max frame rate computed from the used frequence config"""
         return self.max_frame_rate
 
     def get_freq_min(self) -> float:
-        """Return the min frequency used to build the frequencies list
-        """
+        """Return the min frequency used to build the frequencies list"""
         return self.freq_config.freq_min
 
     def get_freq_max(self) -> float:
-        """Return the max frequency used to build the frequencies list
-        """
+        """Return the max frequency used to build the frequencies list"""
         return self.freq_config.freq_max
 
     def get_freq_scale(self) -> str:
-        """Return the scale used between min and max frequencies to build the 
+        """Return the scale used between min and max frequencies to build the
         frequencies list
         """
         return self.freq_config.freq_scale
 
     def get_freq_steps(self) -> int:
-        """Return the number of steps used between min and max frequencies to 
+        """Return the number of steps used between min and max frequencies to
         build the frequencies list
         """
         return self.freq_config.freq_steps
 
     def get_freqs_list(self) -> list[float]:
-        """Make the frequencies list and return it
-        """
+        """Make the frequencies list and return it"""
         return self.freq_config.freqs_list
 
     def get_exc_pattern(
@@ -730,9 +719,8 @@ class SciospecSetup(SetupBase):
         )
 
     def get_exc_pattern_mdl(self):
-        """Return excitation pattern from model:
-        """
-        return  self.exc_pattern_mdl
+        """Return excitation pattern from model:"""
+        return self.exc_pattern_mdl
 
     def get_sn(self, in_bytes: bool = False) -> Union[list[bytes], str]:
         """Return serial number
@@ -745,8 +733,7 @@ class SciospecSetup(SetupBase):
     # ---------------------------------------------------------------------------
 
     def set_sn(self, sn: list[bytes]) -> str:
-        """Set directly the serial number
-        """
+        """Set directly the serial number"""
         self.device_infos.set_sn_direct(sn)
 
     def set_exc_amp_d(self, value: Union[list[bytes], float], in_bytes: bool = False):
@@ -789,7 +776,7 @@ class SciospecSetup(SetupBase):
         self._check_frame_rate()
 
     def _check_frame_rate(self):
-        """Check if frame rate is < than max_frame_rate, if not the 
+        """Check if frame rate is < than max_frame_rate, if not the
         frame rate is set to max_frame_rate
         """
         self.frame_rate = (
@@ -813,9 +800,11 @@ class SciospecSetup(SetupBase):
         else:
             self.exc_pattern = value
 
-    def set_exc_pattern_mdl(self, value: list[list[int]], ):
-        """Set excitation pattern model:
-        """
+    def set_exc_pattern_mdl(
+        self,
+        value: list[list[int]],
+    ):
+        """Set excitation pattern model:"""
         self.exc_pattern_mdl = value
 
     def set_exc_pattern_idx(self, idx: int):

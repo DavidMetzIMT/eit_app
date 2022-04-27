@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
@@ -314,9 +313,9 @@ cmds = [
 
 FREQ_SCALE = {OP_LINEAR.tag: OP_LINEAR.name, OP_LOG.tag: OP_LOG.name}
 
-def frequency_scales()->list[str]:
-    return list(FREQ_SCALE.values())
 
+def frequency_scales() -> list[str]:
+    return list(FREQ_SCALE.values())
 
 
 def is_start_meas(cmd: SciospecCmd, op: SciospecOption):

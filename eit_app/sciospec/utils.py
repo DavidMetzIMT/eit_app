@@ -6,6 +6,7 @@ import numpy as np
 ##  Functions for Sciopec Device ###############################################
 ################################################################################
 
+
 def mkListOfHex(rx_data: list[bytes]) -> list[str]:
     """Return a list of str of the Hex-representation of the list of int8
 

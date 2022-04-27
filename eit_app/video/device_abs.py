@@ -62,10 +62,14 @@ def handle_capture_device_error(func):
             return func(self, *args, **kwargs)
         except NoCaptureDeviceSelected as e:
             logger.warning(f"No Capture Device Selected; ({e})")
-            glob_utils.dialog.Qt_dialogs.errorMsgBox(title="No Capture Device Selected", message=f"{e}")
+            glob_utils.dialog.Qt_dialogs.errorMsgBox(
+                title="No Capture Device Selected", message=f"{e}"
+            )
         except CaptureFrameError as e:
             logger.error(f"Capture frame failed; ({e})")
-            glob_utils.dialog.Qt_dialogs.errorMsgBox(title="Capture frame failed", message=f"{e}")
+            glob_utils.dialog.Qt_dialogs.errorMsgBox(
+                title="Capture frame failed", message=f"{e}"
+            )
 
     return wrapper
 
@@ -99,7 +103,7 @@ class CaptureDevices(ABC):
         """
 
         def wrap(self, *args, **kwargs):
-            ""
+            """"""
             if not self._initializated.is_set():  # raise error if no device selected
                 raise NoCaptureDeviceSelected()
             func(self, *args, **kwargs)
@@ -107,15 +111,17 @@ class CaptureDevices(ABC):
         return wrap
 
     def set_name(self, name: str) -> None:
-        """Set the name of the device. """
+        """Set the name of the device."""
         if self._name == name:
             return
 
         if self.is_connected():
-            logger.warning("Capture Device already connected - please disconnect first capture device")
+            logger.warning(
+                "Capture Device already connected - please disconnect first capture device"
+            )
             glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 title="Capture Device already connected",
-                message="please disconnect first capture device"
+                message="please disconnect first capture device",
             )
             return
         self._name = name

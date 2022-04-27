@@ -177,11 +177,15 @@ class SciospecEITDevice(
         """Manage the error from the interface"""
         if isinstance(error, PortNotOpenError):
             logger.warning(f"None devices available\n{error.__str__()}")
-            glob_utils.dialog.Qt_dialogs.warningMsgBox("None devices available", f"{error.__str__()}")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
+                "None devices available", f"{error.__str__()}"
+            )
 
         elif isinstance(error, SerialException):
             logger.warning(f"Device not detected\n{error.__str__()}")
-            glob_utils.dialog.Qt_dialogs.warningMsgBox("Device not detected", f"{error.__str__()}")
+            glob_utils.dialog.Qt_dialogs.warningMsgBox(
+                "Device not detected", f"{error.__str__()}"
+            )
             self.disconnect_device()
             self.get_devices()
 
@@ -193,7 +197,9 @@ class SciospecEITDevice(
     @property
     def connect_prompt(self) -> bool:
         """buils the connection prompt of the device"""
-        return f"{self.device_name} - CONNECTED"  if self.is_connected else self.device_name
+        return (
+            f"{self.device_name} - CONNECTED" if self.is_connected else self.device_name
+        )
 
     ## =========================================================================
     ##  Methods on Comunicator
@@ -257,9 +263,13 @@ class SciospecEITDevice(
                     msg = "Please stop measurements first"
                 if msg:  # show msg only if msg is not empty/None
                     logger.info(f'"Measurements still running!, {msg}')
-                    glob_utils.dialog.Qt_dialogs.infoMsgBox("Measurements still running!", msg)
+                    glob_utils.dialog.Qt_dialogs.infoMsgBox(
+                        "Measurements still running!", msg
+                    )
                 return func(self, *args, **kwargs) if run_func else None
+
             return wrap
+
         return _check_not_measuring
 
     ## =========================================================================
@@ -387,8 +397,7 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def _begin_meas(self) -> bool:  # sourcery skip: class-extract-method
-        """Begin measurements 
-        """
+        """Begin measurements"""
         if success := self._start_meas():
             self.set_status(MeasuringStatus.MEASURING)
             self.to_gui.emit(EvtDataNewFrameInfo(""))
@@ -397,16 +406,14 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def _resume_meas(self) -> bool:
-        """Resume measurements
-        """
+        """Resume measurements"""
         if success := self._start_meas():
             self.set_status(MeasuringStatus.MEASURING)
         logger.info(f"Resume Measurements - {SUCCESS[success]}")
         return success
 
     def _pause_meas(self) -> None:
-        """Pause measurements
-        """
+        """Pause measurements"""
         if success := self._stop_meas():
             self.set_status(MeasuringStatus.PAUSED)
             self.to_dataset.emit(DataReInit4Pause())
@@ -437,8 +444,7 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def get_device_infos(self, *args, **kwargs) -> None:
-        """Ask for the serial nummer of the Device
-        """
+        """Ask for the serial nummer of the Device"""
         self.send_cmd(CMD_GET_DEVICE_INFOS, OP_NULL)
         self.communicator.wait_not_busy()
         self.to_gui.emit(EvtDataSciospecDevSetup(self.setup))
@@ -446,8 +452,7 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def set_setup(self, *args, **kwargs) -> None:
-        """Send the setup to the device
-        """
+        """Send the setup to the device"""
         logger.info("Setting device setup - start...")
         self.send_cmd(CMD_SET_OUTPUT_CONFIG, OP_EXC_STAMP)
         self.send_cmd(CMD_SET_OUTPUT_CONFIG, OP_CURRENT_STAMP)
@@ -467,8 +472,7 @@ class SciospecEITDevice(
 
     @check_not_measuring()
     def get_setup(self, *args, **kwargs) -> None:
-        """Get the setup of the device
-        """
+        """Get the setup of the device"""
         logger.info("Getting device setup - start...")
         self.send_cmd(CMD_GET_MEAS_SETUP, OP_EXC_AMPLITUDE)
         self.send_cmd(CMD_GET_MEAS_SETUP, OP_BURST_COUNT)

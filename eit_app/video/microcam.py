@@ -41,10 +41,14 @@ class MicroUSBCamera(CaptureDevices):
 
         self._device = self._connect_to_device(self._devices_available[self._name])
         self._check_device()
-    
-    def _connect_to_device(self, index:int):
+
+    def _connect_to_device(self, index: int):
         # MAC OS do not need option CAP_SHOW
-        return cv2.VideoCapture(index) if sys.platform.startswith("darwin") else cv2.VideoCapture(index, cv2.CAP_DSHOW)
+        return (
+            cv2.VideoCapture(index)
+            if sys.platform.startswith("darwin")
+            else cv2.VideoCapture(index, cv2.CAP_DSHOW)
+        )
 
     def disconnect_device(self) -> None:
         self._device = None
@@ -52,7 +56,7 @@ class MicroUSBCamera(CaptureDevices):
     def get_devices_available(self) -> dict[str, Any]:
         self._devices_available = {}
         for index, _ in enumerate(range(10)):
-            
+
             cap = self._connect_to_device(index)
             # cap = cv2.VideoCapture(index)
             if cap.read()[0]:
@@ -119,7 +123,8 @@ class MicroUSBCamera(CaptureDevices):
         """Check if the device works, here we read frame and verify that it is
         succesful
         """
-        self._initializated.set(val= self.is_connected)
+        self._initializated.set(val=self.is_connected)
+
 
 if __name__ == "__main__":
     """"""

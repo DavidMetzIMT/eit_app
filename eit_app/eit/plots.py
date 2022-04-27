@@ -8,7 +8,13 @@ from PyQt5.QtWidgets import QVBoxLayout
 from glob_utils.thread_process.threads_worker import Poller
 from matplotlib.figure import Figure
 from eit_model.data import EITData, EITImage, EITMeasMonitoring
-from eit_model.plot import EITCustomPlots,EITImage2DPlot, EITUPlot, EITUPlotDiff, MeasErrorPlot
+from eit_model.plot import (
+    EITCustomPlots,
+    EITImage2DPlot,
+    EITUPlot,
+    EITUPlotDiff,
+    MeasErrorPlot,
+)
 from eit_app.com_channels import Data2Plot, SignalReciever
 
 logger = logging.getLogger(__name__)
@@ -39,7 +45,7 @@ class Plotter(ABC):
             fig (matplotlib.pyplot.Figure): figure were to plot
             data (Data2Plot): data to plot
         """
-        
+
         if not isinstance(fig, Figure):
             return
 
@@ -47,7 +53,6 @@ class Plotter(ABC):
             return
 
         fig.clear()  # clear figure
-        
 
         self._build(fig, data.data, data.labels)
 
@@ -57,8 +62,8 @@ class Plotter(ABC):
 
 
 class PlotterEITImage2D(Plotter):
-    """Plot a 2D EIT image
-    """
+    """Plot a 2D EIT image"""
+
     def _post_init_(self):
         self._allowed_data_type = EITImage
         self._plotting_func = EITImage2DPlot()
@@ -69,11 +74,13 @@ class PlotterEITImage2D(Plotter):
         fig, ax = self._plotting_func.plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
+
 class PlotterEITData(Plotter):
     """Plots the EIT reconstruction data.
     - Uplot
     - and Diffplot
     """
+
     def _post_init_(self):
         self._allowed_data_type = EITData
         self._plotting_func = [EITUPlot(), EITUPlotDiff()]
@@ -88,9 +95,10 @@ class PlotterEITData(Plotter):
         ax[0].set_xlabel("")
         fig.set_tight_layout(True)
 
+
 class PlotterEITChannelVoltage(Plotter):
-    """Plot the voltages in a Uplot graph
-    """
+    """Plot the voltages in a Uplot graph"""
+
     def _post_init_(self):
         self._allowed_data_type = EITData
         self._plotting_func = [EITUPlot()]
@@ -103,8 +111,8 @@ class PlotterEITChannelVoltage(Plotter):
 
 
 class PlotterChannelVoltageMonitoring(Plotter):
-    """_summary_
-    """
+    """_summary_"""
+
     def _post_init_(self):
         self._allowed_data_type = EITMeasMonitoring
         self._plotting_func = [MeasErrorPlot()]
@@ -112,7 +120,7 @@ class PlotterChannelVoltageMonitoring(Plotter):
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
         lab = labels.get(self._plotting_func[0].type)
-        #fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
+        # fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
 
@@ -123,16 +131,16 @@ class CanvasLayout(object):
     _toolbar = None
     _plotter: Plotter = None
     _visible: bool = True
-    _gui=None
-    _last_data:Data2Plot=None
+    _gui = None
+    _last_data: Data2Plot = None
 
     def __init__(self, gui, layout: QVBoxLayout, plotter: Plotter) -> None:
-        """Create a CanvasLayout object with predefined plotter, 
+        """Create a CanvasLayout object with predefined plotter,
         which build a prefdined gaph layout
 
         Args:
             gui (_type_): obj in whcoh the layout is defined
-            layout (QVBoxLayout): layout where the plotter 
+            layout (QVBoxLayout): layout where the plotter
             should plot
             plotter(Plotter): predefined layout plotter
 
@@ -147,28 +155,26 @@ class CanvasLayout(object):
         if not issubclass(plotter, Plotter):
             raise TypeError(f"wrong plot type {plotter}")
 
-        self._gui=gui
-        self._layout= layout
+        self._gui = gui
+        self._layout = layout
         self._plotter = plotter()
         self._init_layout()
-        
-    
+
     def _init_layout(self, **kwargs):
         """"""
-        dpi=kwargs.pop('dpi', 100)
-        self._figure= matplotlib.pyplot.figure(dpi=dpi)
+        dpi = kwargs.pop("dpi", 100)
+        self._figure = matplotlib.pyplot.figure(dpi=dpi)
         self._canvas = FigureCanvasQTAgg(self._figure)
         self._toolbar = NavigationToolbar2QT(self._canvas, self._gui)
         self._layout.addWidget(self._toolbar)
         self._layout.addWidget(self._canvas)
         self.clear_canvas()
 
-    
     def set_options(self, **kwargs):
         """Set some plotting options
         valid kwargs:
-        dpi= val """
-        if (dpi:=kwargs.pop('dpi', None)):
+        dpi= val"""
+        if dpi := kwargs.pop("dpi", None):
             self._layout.removeWidget(self._toolbar)
             self._layout.removeWidget(self._canvas)
             self._init_layout(dpi=dpi)
@@ -193,7 +199,7 @@ class CanvasLayout(object):
             self.clear_canvas()
             return
         self._plotter.build(self._figure, data)
-        self._last_data= data
+        self._last_data = data
         self._canvas.draw()
 
 
@@ -201,12 +207,12 @@ class PlottingAgent(SignalReciever):
 
     _canvaslayout: list[CanvasLayout]
 
-    def __init__(self)->None:
+    def __init__(self) -> None:
         """The PlottingAgent is responsible of actualizating plots in the gui
 
-        It can manage multiple canvas (CanvasLayout) present on the gui. 
+        It can manage multiple canvas (CanvasLayout) present on the gui.
 
-        The data are put in an input buffer, 
+        The data are put in an input buffer,
         - as soon as some Data2Plot are send to it via a signal
 
             >> obj.to_plot.connect(plotting_agent.to_reciever)
@@ -216,11 +222,11 @@ class PlottingAgent(SignalReciever):
         - or directly
 
             >> plotting_agent.add_data2plot(Data2Plot(...))
-        
-        
-        They are then retrieved one by one by a Thread and plot in their 
+
+
+        They are then retrieved one by one by a Thread and plot in their
         corrresponding Canvas layout destination
-        
+
         """
         super().__init__()
         self.init_reciever(data_callbacks={Data2Plot: self.add_data2plot})
@@ -232,22 +238,22 @@ class PlottingAgent(SignalReciever):
         self._worker.start_polling()
         self._canvaslayout = []
 
-    def add_canvas(self, canvaslayout: CanvasLayout)->None:
+    def add_canvas(self, canvaslayout: CanvasLayout) -> None:
         """Add a CanvasLayout fro uptatding via this plotting agent"""
         self._canvaslayout.append(canvaslayout)
 
-    def add_data2plot(self, data:Data2Plot, **kwargs)->None:
+    def add_data2plot(self, data: Data2Plot, **kwargs) -> None:
         """Add data to plot in input buffer"""
         self._input_buf.put(data)
 
-    def _poll_input_buffer(self)->None:
+    def _poll_input_buffer(self) -> None:
         """Retrieve the data to plot one by one"""
         if self._input_buf.empty():
             return
         data = self._input_buf.get(block=True)
         self._process(data)
 
-    def _process(self, data:Data2Plot)->None:
+    def _process(self, data: Data2Plot) -> None:
         """Plot the data in their corrresponding Canvas layout destination"""
         if not isinstance(data, Data2Plot):
             return

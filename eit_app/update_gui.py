@@ -51,7 +51,8 @@ def is_dataclass_instance(obj):
 
 class EventDataClass(ABC):
     """Abstract class of the dataclass defined for each update events"""
-    func:str
+
+    func: str
 
 
 ################################################################################
@@ -61,18 +62,17 @@ class EventDataClass(ABC):
 
 class UpdateAgent:
     def __init__(self, ui, events_ctlg) -> None:
-        """This agent runs updating funntion of the Gui (app) 
+        """This agent runs updating funntion of the Gui (app)
         depending on the data posted
 
         Args:
             app (_type_): GUI, Ui_MainWindow
-            events (_type_): event catalog, a registed of all updating 
+            events (_type_): event catalog, a registed of all updating
             function callbacks
         """
         self._subscribers = {}
         self._ui = ui
         self._events_ctlg = events_ctlg
-
 
     @catch_error
     def post(self, data: EventDataClass):
@@ -85,13 +85,13 @@ class UpdateAgent:
             logger.error("data are not compatible for update")
             return
 
-        #logger.debug(f"thread update_event {threading.get_ident()}")
+        # logger.debug(f"thread update_event {threading.get_ident()}")
         data = self._mk_dict(data)
         func = data.pop("func")
-        #logger.debug(f"updating {func=} with {data=}")
+        # logger.debug(f"updating {func=} with {data=}")
         self._events_ctlg[func](**data)
 
-    def _mk_dict(self, data: EventDataClass)->dict:
+    def _mk_dict(self, data: EventDataClass) -> dict:
         """Transform the event data in dict and add the "app" key
 
         Args:
@@ -103,6 +103,7 @@ class UpdateAgent:
         d = data.__dict__
         d["ui"] = self._ui
         return d
+
 
 ################################################################################
 # Update events Catalog
@@ -116,6 +117,7 @@ def register_func_in_catalog(func: Callable):
     """Add the function to the UPDATE_EVENTS catalog"""
     name = func.__name__
     UPDATE_EVENTS[func.__name__] = func
+
 
 ################################################################################
 # Update fucntions and assiociated EventDataClass
@@ -144,20 +146,22 @@ def register_func_in_catalog(func: Callable):
 # -------------------------------------------------------------------------------
 
 # Colors for status
-blue_light= '#bce6ff'
-red_light= '#ff9f9c'
-green_light= '#74a26b'
-orange_light= '#ffd062'
+blue_light = "#bce6ff"
+red_light = "#ff9f9c"
+green_light = "#74a26b"
+orange_light = "#ffd062"
 
-#colors for buttons
-bck_gnd_buttons= '#00aaff'
+# colors for buttons
+bck_gnd_buttons = "#00aaff"
+
 
 def initial_formatting_of_ui(ui: Ui_MainWindow):
     """Run some initial custom formating on gui object"""
     # set background of all buttons
-    bck_gnd= "* { background-color: " + f"{bck_gnd_buttons}"+ " }"
+    bck_gnd = "* { background-color: " + f"{bck_gnd_buttons}" + " }"
     for button in ui.centralwidget.findChildren(QtWidgets.QPushButton):
-        button.setStyleSheet(bck_gnd) # blue
+        button.setStyleSheet(bck_gnd)  # blue
+
 
 register_func_in_catalog(initial_formatting_of_ui)
 
@@ -165,7 +169,9 @@ register_func_in_catalog(initial_formatting_of_ui)
 @dataclass
 class EvtInitFormatUI(EventDataClass):
     """Event data to update the list of detected sciospec device"""
+
     func: str = initial_formatting_of_ui.__name__
+
 
 # -------------------------------------------------------------------------------
 ## Update available EIT devices
@@ -184,6 +190,7 @@ register_func_in_catalog(update_available_devices)
 @dataclass
 class EvtDataSciospecDevices(EventDataClass):
     """Event data to update the list of detected sciospec device"""
+
     device: dict
     func: str = update_available_devices.__name__
 
@@ -263,13 +270,9 @@ def update_device_setup(
 
     # Update Measurement Setups
     block_signals(ui.sBd_frame_rate.setValue, setup.get_frame_rate())
-    block_signals(
-        ui.sBd_max_frame_rate.setValue, setup.get_max_frame_rate()
-    )
+    block_signals(ui.sBd_max_frame_rate.setValue, setup.get_max_frame_rate())
     block_signals(ui.sB_burst.setValue, setup.get_burst())
-    block_signals(
-        ui.sBd_exc_amp.setValue, setup.get_exc_amp() * 1000
-    )  # from A -> mA
+    block_signals(ui.sBd_exc_amp.setValue, setup.get_exc_amp() * 1000)  # from A -> mA
     block_signals(ui.sBd_freq_min.setValue, setup.get_freq_min())
     block_signals(ui.sBd_freq_max.setValue, setup.get_freq_max())
     block_signals(ui.sB_freq_steps.setValue, setup.get_freq_steps())
@@ -406,7 +409,7 @@ class CaptureStatus(BaseStatus):
         pB_status_tip="",
         pB_enable=False,
     )
-    
+
     MEASURING = CaptureStatusUpdateData(
         lab_txt="MEASURING",
         lab_style=f"background-color: {green_light}; color :black",
@@ -430,7 +433,7 @@ def update_capture_status(ui: Ui_MainWindow, capture_mode: CaptureStatus):
     ui.pB_capture_start_stop.setText(v.pB_txt)
     ui.pB_capture_start_stop.setStatusTip(v.pB_status_tip)
     ui.pB_capture_start_stop.setEnabled(v.pB_enable)
-    if 'CONN' in v.lab_txt:
+    if "CONN" in v.lab_txt:
         ui.pB_capture_connect.setText(v.pB_con_txt)
 
 
@@ -604,7 +607,9 @@ class EvtDataNewFrameInfo(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_autosave_options(ui: Ui_MainWindow, autosave:bool, save_img:bool, load_after_meas:bool):
+def update_autosave_options(
+    ui: Ui_MainWindow, autosave: bool, save_img: bool, load_after_meas: bool
+):
     """Activate/deactivate saving options"""
     ui.lE_meas_dataset_dir.setEnabled(ui.chB_dataset_autosave.isChecked())
     ui.chB_dataset_save_img.setEnabled(ui.chB_dataset_autosave.isChecked())
@@ -626,9 +631,9 @@ register_func_in_catalog(update_autosave_options)
 
 @dataclass
 class EvtDataAutosaveOptionsChanged(EventDataClass):
-    autosave:bool
-    save_img:bool
-    load_after_meas:bool
+    autosave: bool
+    save_img: bool
+    load_after_meas: bool
     func: str = update_autosave_options.__name__
 
 
@@ -682,7 +687,7 @@ class EvtDataReplayFrameChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage, image_path:str):
+def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage, image_path: str):
     """update the path of the loaded dataset and init the combosboxes and slider
     for the nb of loaded frames"""
     if not isinstance(image, QtGui.QImage):
@@ -690,12 +695,10 @@ def update_captured_image(ui: Ui_MainWindow, image: QtGui.QImage, image_path:str
         return
 
     ui.video_frame.setPixmap(QtGui.QPixmap.fromImage(image))
-    # resize the group box to fit image size 
-    w= max(image.width()+ 20, ui.groupBox_video.minimumWidth())
+    # resize the group box to fit image size
+    w = max(image.width() + 20, ui.groupBox_video.minimumWidth())
     ui.groupBox_video.setMaximumWidth(w)
     ui.lE_path_video_frame.setText(image_path)
-
-    
 
 
 register_func_in_catalog(update_captured_image)
@@ -704,7 +707,7 @@ register_func_in_catalog(update_captured_image)
 @dataclass
 class EvtDataCaptureImageChanged(EventDataClass):
     image: QtGui.QImage
-    image_path:str=''
+    image_path: str = ""
     func: str = update_captured_image.__name__
 
 

@@ -73,7 +73,7 @@ class ExtractIndexes:
         ref_freq= meas_freq
         meas_idx
         meas_freq
-    
+
     for FD
         ref_idx= meas_idx   >> the same frame is used but a different frequency
         ref_freq
@@ -81,6 +81,7 @@ class ExtractIndexes:
         meas_freq
 
     """
+
     ref_idx: int
     ref_freq: int
     meas_idx: int
@@ -96,7 +97,7 @@ class ExtractIndexes:
             self.set_TD_mode()
         elif "Frequence" in self.imaging:
             self.set_FD_mode()
-    
+
     def set_ref_idx(self, idx: int):
         if self.ref_idx is not None:
             self.ref_idx = idx
@@ -119,6 +120,7 @@ class RXMeasStreamData:
 
     see documentation of Sciospec EIT device
     """
+
     ch_group: int
     exc_indx: int
     freq_indx: int
@@ -178,8 +180,7 @@ class VoltageMeas(object):
         self.set_from_dict(**kwargs)
 
     def set_freq(self, freq_val: float) -> None:
-        """set the frequency value for the actual measurements
-        """
+        """set the frequency value for the actual measurements"""
         self.frequency = freq_val
 
     def add_rx_stream_data(self, stream: RXMeasStreamData) -> None:
@@ -196,8 +197,7 @@ class VoltageMeas(object):
         self.voltage[stream.exc_indx, start_idx:end_idx] = stream.voltage
 
     def get_voltage(self) -> np.ndarray:
-        """Return the measured voltage
-        """
+        """Return the measured voltage"""
         # logger.debug('VOLTAGES', self.voltage)
         return self.voltage
 
@@ -207,8 +207,7 @@ class VoltageMeas(object):
 
     @property
     def __dict__(self):
-        """Redefinition for saving of the complex values as json
-        """
+        """Redefinition for saving of the complex values as json"""
         return {
             "voltage": {
                 "array_real": np.real(self.voltage),
@@ -249,7 +248,7 @@ class MeasurementFrame(object):
     e.g. Meas[2] the measured voltages on each channel (VS a commmon GROUND) for the frequency_nb 2
             for the frequency = frequency_val
     """
-    
+
     idx: int
     dataset_name: str
     time_stamp: str
@@ -417,8 +416,7 @@ class MeasurementFrame(object):
         visualise(d)
 
     def load(self, path: str) -> bool:
-        """Load measurement frame
-        """
+        """Load measurement frame"""
         frame_as_dict = read_json(path)
         if frame_as_dict is None:
             return False
@@ -435,6 +433,7 @@ class MeasurementFrame(object):
 ##  Class for the DataSet obtained from the EIT Device
 ## =============================================================================
 
+
 class MeasurementDataset(
     SignalReciever,
     AddToGuiSignal,
@@ -443,20 +442,22 @@ class MeasurementDataset(
     AddToCaptureSignal,
     AddToReplaySignal,
 ):
-    """Class EITMeasSet: regroups infos and manage the frames of measurements
-    """
+    """Class EITMeasSet: regroups infos and manage the frames of measurements"""
 
     time_stamps: str
     name: str
     output_dir: str
     dev_setup: SciospecSetup
     frame_cnt: int
-    meas_frame: list[MeasurementFrame] # meas. frame list used during acquisition and loading
-    _rx_meas_frame: MeasurementFrame # meas. frame used during acquisition
-    _ref_frame: MeasurementFrame # meas. frame used tio save acztual TD ref frame
+    meas_frame: list[
+        MeasurementFrame
+    ]  # meas. frame list used during acquisition and loading
+    _rx_meas_frame: MeasurementFrame  # meas. frame used during acquisition
+    _ref_frame: MeasurementFrame  # meas. frame used tio save acztual TD ref frame
     _autosave: CustomFlag
     _save_img: CustomFlag
     _load_after_meas: CustomFlag
+
     def __init__(self):
         super().__init__()
 
@@ -466,7 +467,7 @@ class MeasurementDataset(
                 DataReInit4Pause: self.reinit_4_pause,
                 DataAddRxMeasStream: self.add_data,
                 DataEmitFrame4Computation: self.emit_frame_4_computatiom,
-                DataLoadLastDataset: self.load_last_dataset
+                DataLoadLastDataset: self.load_last_dataset,
             }
         )
 
@@ -515,20 +516,17 @@ class MeasurementDataset(
         self._rx_meas_frame = self.get_new_frame_for_acquisition()
 
     def add_data(self, data: DataAddRxMeasStream):
-        """Add the data recieved from device (called by a signal)
-        """
+        """Add the data recieved from device (called by a signal)"""
         self.add_to_dataset(data.rx_meas_stream)
 
     def emit_frame_4_computatiom(self, data: DataEmitFrame4Computation):
-        """Send frame to computation (called by a signal)
-        """
+        """Send frame to computation (called by a signal)"""
         self.emit_meas_frame(data.idx)
-    
-    def load_last_dataset(self,  data:DataLoadLastDataset):
-        
+
+    def load_last_dataset(self, data: DataLoadLastDataset):
+
         if self._load_after_meas.is_set():
             self.load_auto(self.output_dir)
-
 
     def set_name(self, name: str = None, *args, **kwargs) -> None:
         """set new name of the dataset (Called by the gui)
@@ -583,8 +581,7 @@ class MeasurementDataset(
         )
 
     def set_ref_frame(self, idx: int = 0, path: str = None):
-        """Latch meas_frame[idx] as reference for time difference mode
-        """
+        """Latch meas_frame[idx] as reference for time difference mode"""
         if path is None:
             if len(self.meas_frame) > idx:
                 self._ref_frame = self.meas_frame[idx]
@@ -620,10 +617,14 @@ class MeasurementDataset(
 
         logger.debug(f"Emit Frame for computation {vmeas.labels=} {vref.labels=}")
 
-        self.to_gui.emit(EvtDataNewFrameInfo(self.get_meas_info(self.extract_idx.meas_idx)))
+        self.to_gui.emit(
+            EvtDataNewFrameInfo(self.get_meas_info(self.extract_idx.meas_idx))
+        )
         self.to_device.emit(DataCheckBurst(self.get_frame_cnt()))
         self.to_computation.emit(Data2Compute(vref, vmeas))
-        self.to_capture.emit(DataSaveLoadImage(self.get_meas_path(self.extract_idx.meas_idx)))
+        self.to_capture.emit(
+            DataSaveLoadImage(self.get_meas_path(self.extract_idx.meas_idx))
+        )
 
     def emit_progression(self) -> None:
         """Send signal to update Frame aquisition progress bar"""
@@ -634,38 +635,34 @@ class MeasurementDataset(
             EvtDataNewFrameProgress(self.get_frame_cnt(), self.get_filling())
         )
 
-    def _get_vref(self)->EITVoltage:
+    def _get_vref(self) -> EITVoltage:
         ref_idx = self.extract_idx.ref_idx
         ref_freq = self.extract_idx.ref_freq
 
         if ref_idx is None:
             v_ref = self.get_ref_voltage(ref_freq)
             l_ref = self.get_ref_labels(ref_freq)
-            ref_idx= self.get_ref_idx()
+            ref_idx = self.get_ref_idx()
         else:
             v_ref = self.get_meas_voltage(ref_idx, ref_freq)
             l_ref = self.get_meas_labels(ref_idx, ref_freq)
-            ref_idx= self.get_meas_idx(self.extract_idx.meas_idx)
+            ref_idx = self.get_meas_idx(self.extract_idx.meas_idx)
 
-        return (
-            EITVoltage(
-                volt=v_ref, 
-                labels= EITVoltageLabels(ref_idx,ref_freq,*l_ref)
-            )
+        return EITVoltage(
+            volt=v_ref, labels=EITVoltageLabels(ref_idx, ref_freq, *l_ref)
         )
-    def _get_vmeas(self)-> EITVoltage:
+
+    def _get_vmeas(self) -> EITVoltage:
 
         meas_idx = self.extract_idx.meas_idx
         meas_freq = self.extract_idx.meas_freq
         v_meas = self.get_meas_voltage(meas_idx, meas_freq)
         l_meas = self.get_meas_labels(meas_idx, meas_freq)
-        meas_idx= self.get_meas_idx(meas_idx)
-        return (
-            EITVoltage(
-                volt=v_meas, 
-                labels= EITVoltageLabels(meas_idx, meas_freq,*l_meas)
-            )
+        meas_idx = self.get_meas_idx(meas_idx)
+        return EITVoltage(
+            volt=v_meas, labels=EITVoltageLabels(meas_idx, meas_freq, *l_meas)
         )
+
     ## =========================================================================
     ##  Save load
     ## =========================================================================
@@ -702,8 +699,7 @@ class MeasurementDataset(
         self.load_auto()
 
     def load_auto(self, dir_path: str = None) -> None:
-        """Load measurement files contained in measurement dataset directory
-        """
+        """Load measurement files contained in measurement dataset directory"""
         if not self._load_json(dir_path):
             return
         # Update GUI
@@ -717,7 +713,7 @@ class MeasurementDataset(
     def _load_json(self, dir_path: str = None) -> bool:
         """Load a measurement files contained in measurement dataset directory
         , only JSON-files
-        
+
         Args:
             dir_path (str, optional): . Defaults to None. If None the user will
             be asked to select a dir via a dialog
@@ -731,8 +727,8 @@ class MeasurementDataset(
 
         if (filenames := self._get_all_frame_file(dir_path, ext=FileExt.json)) is None:
             return False
-        filenames.sort()# MacOS do not sort filenames...
-        
+        filenames.sort()  # MacOS do not sort filenames...
+
         # load the setup present in the directory
         self.dev_setup = SciospecSetup(32)
         if self.dev_setup.load(dir_path) is None:
@@ -763,7 +759,9 @@ class MeasurementDataset(
         if not dir_path:
             title = "Select a measurement dataset directory"
             initialdir = APP_DIRS.get(AppStdDir.meas_set)
-            dir_path = glob_utils.dialog.Qt_dialogs.openDirDialog(directory=initialdir, title=title )
+            dir_path = glob_utils.dialog.Qt_dialogs.openDirDialog(
+                directory=initialdir, title=title
+            )
         return dir_path
 
     def _get_all_frame_file(
@@ -785,7 +783,9 @@ class MeasurementDataset(
                 filenames.remove(filename)
 
         if not filenames:
-            logger.warning(f"Files Not Found, No Frames-files in directory: {dir_path}!")
+            logger.warning(
+                f"Files Not Found, No Frames-files in directory: {dir_path}!"
+            )
             glob_utils.dialog.Qt_dialogs.warningMsgBox(
                 "Files Not Found", f"No Frames-files in directory: {dir_path}!"
             )
@@ -802,8 +802,7 @@ class MeasurementDataset(
         return self._rx_meas_frame.filling
 
     def get_meas_voltage(self, idx_frame: int = 0, idx_freq: int = 0) -> np.ndarray:
-        """Return the measured voltage for the given frequency index
-        """
+        """Return the measured voltage for the given frequency index"""
         return self.meas_frame[idx_frame].get_voltages(idx_freq)
 
     def get_meas_labels(self, idx_frame: int = 0, idx_freq: int = 0) -> list[str]:
@@ -822,7 +821,7 @@ class MeasurementDataset(
         return self._ref_frame.get_voltages(idx_freq)
 
     def get_meas_idx(self, idx_frame: int = 0) -> int:
-        """Return the index of the meas frame, during acquisition idx_frame 
+        """Return the index of the meas frame, during acquisition idx_frame
         is only 0 and the idx is contained in the frame itself
         """
         if self.meas_frame[idx_frame] is None:
@@ -860,7 +859,7 @@ class MeasurementDataset(
         """
         return self.meas_frame[idx].info
 
-    def get_frame_cnt(self)->int:
+    def get_frame_cnt(self) -> int:
         return self.frame_cnt
 
     def _update_gui_autosave(self):
@@ -868,11 +867,11 @@ class MeasurementDataset(
             EvtDataAutosaveOptionsChanged(
                 self._autosave.is_set(),
                 self._save_img.is_set(),
-                self._load_after_meas.is_set()
+                self._load_after_meas.is_set(),
             )
         )
 
-    def set_autosave(self, val:bool= None, *kwargs):
+    def set_autosave(self, val: bool = None, *kwargs):
         if val is None:
             return
         self._autosave.set(val)
@@ -881,13 +880,13 @@ class MeasurementDataset(
             self._load_after_meas.set(False)
         self._update_gui_autosave()
 
-    def set_save_img(self, val:bool= None, *kwargs):
+    def set_save_img(self, val: bool = None, *kwargs):
         if val is None:
             return
         self._save_img.set(val)
         self._update_gui_autosave()
-    
-    def set_load_after_meas(self, val:bool= None, *kwargs):
+
+    def set_load_after_meas(self, val: bool = None, *kwargs):
         if val is None:
             return
         self._load_after_meas.set(val)
@@ -895,16 +894,16 @@ class MeasurementDataset(
 
 
 def convert_meas_data(meas_data):
-    """return float voltages values () corresponding to meas data 
+    """return float voltages values () corresponding to meas data
     (bytes single float)
     """
     n_bytes_real_imag = 4  # we got 4Bytes per value
     # reshape the meas data in block of 4 bytes
-    meas_data = np.reshape( np.array(meas_data), (-1, n_bytes_real_imag))  
+    meas_data = np.reshape(np.array(meas_data), (-1, n_bytes_real_imag))
     meas_data = meas_data.tolist()  # back to list for conversion
     meas_f = [convert4Bytes2Float(m) for m in meas_data]  # conversion of each 4 bytes
     # get a matrix with real and imag values in each column
-    meas_r_i = np.reshape(np.array(meas_f), (-1, 2))  
+    meas_r_i = np.reshape(np.array(meas_f), (-1, 2))
     return meas_r_i[:, 0] + 1j * meas_r_i[:, 1]
 
 

@@ -19,7 +19,7 @@ def set_comboBox_items(
 
     Args:
         comboBox (QComboBox):comboBox to set
-        items (list[Any], optional): new items list to set if reste_box is 
+        items (list[Any], optional): new items list to set if reste_box is
         `True`, otherwsie the list will be append to the existing one.
         Defaults to None.
         reset_box (bool, optional): clear the list of items before adding new items. Defaults to True.
@@ -66,7 +66,9 @@ def set_comboBox_index(comboBox: QComboBox, index: int = 0, block: bool = True) 
     comboBox.blockSignals(False)
 
 
-def set_QTableWidget(table: QTableWidget, mat: list[list[float]], decimal:int=4) -> None:
+def set_QTableWidget(
+    table: QTableWidget, mat: list[list[float]], decimal: int = 4
+) -> None:
     """Set a table with float values
 
     Args:
@@ -153,7 +155,7 @@ def set_QSlider_position(slider: QSlider, pos: int = 0):
 
 
 def block_signals(method: Callable, *args, **kwargs):
-    """Allow block signals emitted by an QtObject during execution of one 
+    """Allow block signals emitted by an QtObject during execution of one
     of its method
 
     Args:

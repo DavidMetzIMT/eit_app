@@ -24,7 +24,6 @@ from PyQt5 import QtCore
 logger = logging.getLogger(__name__)
 
 
-
 def check_is_on(func):
     """Decorator: which check if the device is not measuring
 
@@ -40,6 +39,7 @@ def check_is_on(func):
         force_stop (bool, optional): set to `True` to force the device to
         run the function after stoping the measurements. Defaults to `False`.
     """
+
     def wrap(self, *args, **kwargs) -> Union[Any, None]:
         if self.is_off:
             logger.warning("No Measurement loaded!, Please load measurements first!")
@@ -55,10 +55,10 @@ def check_is_on(func):
 
 class RepeatTimer(Timer):
     """Thread Timer which start all over again"""
+
     def run(self):
         while not self.finished.wait(self.interval):
             self.function(*self.args, **self.kwargs)
-
 
 
 class ReplayMeasurementsAgent(
@@ -74,11 +74,11 @@ class ReplayMeasurementsAgent(
         self.actual_frame_idx = 0
         self.timeout = 1.0
         self.set_timer()
-    
+
     ## =========================================================================
     ##  Status
     ## =========================================================================
-    
+
     def start(self, data: DataReplayStart, **kwargs) -> None:
         """Start the replay of a loaded dataset
         (called from dataset signal after loading )
@@ -91,13 +91,12 @@ class ReplayMeasurementsAgent(
         self.begin()
 
     def set_actual_frame(self, idx: int, **kwargs) -> None:
-        """Set actual frame and compute it (called from GUI)
-        """
+        """Set actual frame and compute it (called from GUI)"""
         self._set_actual_frame(idx)
         self.compute_actual_frame()
 
     def set_timeout(self, sec: float, *args, **kwargs) -> None:
-        """Set timeout of the timer, if the timer is running, it will be 
+        """Set timeout of the timer, if the timer is running, it will be
         stopped and restarted with new value (called from GUI)
         """
         logger.info(f"new Timeout in sec:{sec}")
@@ -123,7 +122,7 @@ class ReplayMeasurementsAgent(
         replay_status = self.is_playing  # or self.is_idle
         self.to_capture.emit(DataSetStatusWReplay(replay_status))
         logger.debug(f"ReplayMeasurements Status set to : {status.value}")
-    
+
     @property
     def is_idle(self) -> bool:
         return self.is_status(ReplayStatus.LOADED)
@@ -149,11 +148,11 @@ class ReplayMeasurementsAgent(
 
         if meas_status_dev:
             self.set_status(ReplayStatus.OFF)
-    
+
     ## =========================================================================
     ##  Timer
     ## =========================================================================
-        
+
     def set_timer(self):
         """Set timer with self.timeout, the timer call the method next"""
         self.timer = RepeatTimer(self.timeout, self.next)
@@ -178,14 +177,12 @@ class ReplayMeasurementsAgent(
         self.to_dataset.emit(DataEmitFrame4Computation(idx))
         self.to_gui.emit(EvtDataReplayFrameChanged(idx))
 
-
     ## =========================================================================
     ## Automatic replay
     ## =========================================================================
 
-    def play_pause(self,*args, **kwargs) -> None:
-        """Play/Pause the dataset replay
-        """
+    def play_pause(self, *args, **kwargs) -> None:
+        """Play/Pause the dataset replay"""
         if self.is_off:
             logger.warning("No Measurement loaded!, Please load measurements first!")
             glob_utils.dialog.Qt_dialogs.warningMsgBox(
@@ -199,40 +196,35 @@ class ReplayMeasurementsAgent(
             self.set_status(ReplayStatus.LOADED)
 
     def begin(self, *args, **kwargs) -> None:
-        """Back to first frame
-        """
+        """Back to first frame"""
         self._set_actual_frame(0)
         self.compute_actual_frame()
 
-    def end(self,*args, **kwargs) -> None:
-        """Goto last frame
-        """
+    def end(self, *args, **kwargs) -> None:
+        """Goto last frame"""
         self._set_actual_frame(self.nb_frame_loaded - 1)
         self.compute_actual_frame()
 
     def next(self, *args, **kwargs) -> None:
-        """Next frame
-        """
+        """Next frame"""
         self._inc_frame_idx(forward=True)
         self.compute_actual_frame()
 
     def back(self, *args, **kwargs) -> None:
-        """Previous frame
-        """
+        """Previous frame"""
         self._inc_frame_idx(forward=False)
         self.compute_actual_frame()
 
     def stop(self, *args, **kwargs) -> None:
-        """Stop the automatic replay
-        """
+        """Stop the automatic replay"""
         self.set_status(ReplayStatus.LOADED)
-    
+
     ## =========================================================================
     ## Intenal methods
     ## =========================================================================
 
     def _inc_frame_idx(self, forward: bool = True):
-        """Increment the frame index 
+        """Increment the frame index
 
         Args:
             forward (bool, optional): the increment direction
@@ -244,4 +236,3 @@ class ReplayMeasurementsAgent(
 
     def _set_actual_frame(self, idx: int) -> None:
         self.actual_frame_idx = idx
-

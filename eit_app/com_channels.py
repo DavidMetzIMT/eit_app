@@ -1,4 +1,3 @@
-
 """ For the communication between Objects(gui inclusive) Signal and 
 SignalDataClasses are defined to pass data for specific tasks 
 (update, action to do,...)
@@ -55,6 +54,7 @@ from eit_app.sciospec.setup import SciospecSetup
 from eit_app.update_gui import UPDATE_EVENTS, EventDataClass, UpdateAgent
 from eit_model.data import EITVoltage
 
+
 class SignalDataClass(ABC):
     """Abstract class of the dataclass defined for each update events"""
 
@@ -63,11 +63,13 @@ class SignalDataClass(ABC):
 # To plot Signal
 ################################################################################
 
+
 @dataclass
 class Data2Plot:
     data: Any = None
     labels: dict = field(default_factory=lambda: {})
     destination: Any = None
+
 
 class AddToPlotSignal(object):
     to_plot: Signal
@@ -76,104 +78,125 @@ class AddToPlotSignal(object):
         super().__init__()
         self.to_plot = Signal(self)
 
+
 ################################################################################
 # To plot Signal
 ################################################################################
+
 
 @dataclass
 class DataReplayStart:
     nb_frame: int
 
+
 class AddToReplaySignal(object):
-    to_replay: Signal 
+    to_replay: Signal
 
     def __init__(self):
         super().__init__()
         self.to_replay = Signal(self)
 
+
 ################################################################################
 # To Computation Signal
 ################################################################################
 
+
 @dataclass
 class Data2Compute:
-    v_ref: EITVoltage #np.ndarray = None
-    v_meas: EITVoltage #np.ndarray = None
+    v_ref: EITVoltage  # np.ndarray = None
+    v_meas: EITVoltage  # np.ndarray = None
     # labels: list = None
 
 
 class AddToComputationSignal(object):
-    to_computation: Signal 
+    to_computation: Signal
 
     def __init__(self):
         super().__init__()
         self.to_computation = Signal(self)
 
+
 ################################################################################
 # To Dataset Channel
 ################################################################################
+
 
 @dataclass
 class DataInit4Start:
     dev_setup: SciospecSetup
 
+
 @dataclass
 class DataReInit4Pause:
     """"""
+
 
 @dataclass
 class DataAddRxMeasStream:
     rx_meas_stream: list[bytes]
 
+
 @dataclass
 class DataEmitFrame4Computation:
     idx: int
+
 
 @dataclass
 class DataLoadLastDataset:
     """"""
 
+
 class AddToDatasetSignal(object):
-    to_dataset: Signal 
+    to_dataset: Signal
 
     def __init__(self):
         super().__init__()
         self.to_dataset = Signal(self)
 
+
 ################################################################################
 # To Capture Channel
 ################################################################################
+
 
 @dataclass
 class DataSaveLoadImage:
     frame_path: str
 
+
 @dataclass
 class DataSetStatusWMeas:
     meas_status_dev: bool
+
 
 @dataclass
 class DataSetStatusWReplay:
     replay_status: bool
 
+
 class AddToCaptureSignal(object):
-    to_capture: Signal  
+    to_capture: Signal
 
     def __init__(self):
         super().__init__()
         self.to_capture = Signal(self)
 
+
 ################################################################################
 # To Device Channel
 ################################################################################
+
 
 @dataclass
 class DataLoadSetup:
     dir: str
 
+
 @dataclass
 class DataCheckBurst:
     nb_frame_measured: str
+
 
 class AddToDeviceSignal(object):
     to_device: Signal
@@ -182,20 +205,24 @@ class AddToDeviceSignal(object):
         super().__init__()
         self.to_device = Signal(self)
 
+
 ################################################################################
 # To gui channel
 ################################################################################
 
+
 class AddToGuiSignal(object):
-    to_gui : Signal
+    to_gui: Signal
 
     def __init__(self):
         super().__init__()
         self.to_gui = Signal(self)
 
+
 ################################################################################
 # To gui channel
 ################################################################################
+
 
 class SignalRecieverNotInitializated(BaseException):
     """"""
@@ -206,16 +233,16 @@ class SignalReciever(object):
     _data_callbacks = list
 
     def __init__(self) -> None:
-        """Add a Signal reciever functionality which automatically 
-        threat the data recieved. via the definition of callbakc for each data type 
+        """Add a Signal reciever functionality which automatically
+        threat the data recieved. via the definition of callbakc for each data type
         """
         super().__init__()
         self._data_callbacks = None
 
     def init_reciever(self, data_callbacks: dict[type, Callable]) -> None:
-        """Define for each recieved data type an assiociated callback func 
-    
-        e.g.:        
+        """Define for each recieved data type an assiociated callback func
+
+        e.g.:
         class Obj2Class(SignalReciever)
             ...
             def __init__(self):
@@ -252,9 +279,9 @@ class SignalReciever(object):
         which will proccess this data
 
         Args:
-            data (Any): Data recieved 
+            data (Any): Data recieved
         """
-        
+
         if not self._callback_exist(data):
             return
         for cls, func in self._data_callbacks.items():
@@ -262,7 +289,7 @@ class SignalReciever(object):
                 func(data)
 
     def _callback_exist(self, data: Any) -> bool:
-        """Asset if for the recieved data type a callback has been 
+        """Asset if for the recieved data type a callback has been
         defined in _data_callbacks dict.
 
         Args:
@@ -291,22 +318,17 @@ class SignalReciever(object):
 
 
 class AddUpdateAgent(SignalReciever):
-
     def __init__(self) -> None:
         """Special SignalReciever for QT-based GUI update purpose.
-        
-        It accepts only data of type "EventDataClass" used for the 
-        update of a the gui. 
-        
-        The data are first safe in a buffer. An internal QThread retrieve the 
+
+        It accepts only data of type "EventDataClass" used for the
+        update of a the gui.
+
+        The data are first safe in a buffer. An internal QThread retrieve the
         data out of the buffer and post them in un update agent responsible of
         updating the gui"""
         super().__init__()
-        self.init_reciever(
-            data_callbacks={
-                EventDataClass: self.update_gui
-            }
-        )
+        self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
         self._data_buffer = Queue(maxsize=256)  # TODO maybe
         self._update_agent = UpdateAgent(self, UPDATE_EVENTS)
         self._worker = CustomWorker(name="update_gui", sleeptime=0.05)
@@ -324,7 +346,7 @@ class AddUpdateAgent(SignalReciever):
             self._data_buffer.put(data)
 
     def _process_data_for_update(self) -> None:
-        """Retrieve EventDataClass out of the input buffer and post them via 
+        """Retrieve EventDataClass out of the input buffer and post them via
         UpdateAgent.
         """
         # self.handle_meas_status_change() # here for the momenet but optimal
@@ -334,30 +356,26 @@ class AddUpdateAgent(SignalReciever):
         # logger.debug(f'_process_data_for_update Update {data}')
         self._update_agent.post(data)
 
-class AddUpdateUiAgent(SignalReciever):
 
+class AddUpdateUiAgent(SignalReciever):
     def __init__(self) -> None:
         """Special SignalReciever for QT-based GUI update purpose.
-        
-        It accepts only data of type "EventDataClass" used for the 
-        update of a the gui. 
-        
-        The data are first safe in a buffer. An internal QThread retrieve the 
+
+        It accepts only data of type "EventDataClass" used for the
+        update of a the gui.
+
+        The data are first safe in a buffer. An internal QThread retrieve the
         data out of the buffer and post them in un update agent responsible of
         updating the gui"""
         super().__init__()
-        self.init_reciever(
-            data_callbacks={
-                EventDataClass: self.update_gui
-            }
-        )
+        self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
         self._data_buffer = Queue(maxsize=256)  # TODO maybe
         self._update_agent = None
         self._worker = CustomWorker(name="update_gui", sleeptime=0.05)
         self._worker.progress.connect(self._process_data_for_update)
         self._worker.start()
         self._worker.start_polling()
-        
+
     def init_update_ui_agent(self, ui):
         self._update_agent = UpdateAgent(ui, UPDATE_EVENTS)
 
@@ -371,7 +389,7 @@ class AddUpdateUiAgent(SignalReciever):
             self._data_buffer.put(data)
 
     def _process_data_for_update(self) -> None:
-        """Retrieve EventDataClass out of the input buffer and post them via 
+        """Retrieve EventDataClass out of the input buffer and post them via
         UpdateAgent.
         """
         # self.handle_meas_status_change() # here for the momenet but optimal
@@ -380,7 +398,3 @@ class AddUpdateUiAgent(SignalReciever):
         data = self._data_buffer.get(block=True)
         # logger.debug(f'_process_data_for_update Update {data}')
         self._update_agent.post(data)
-
-    
-
-

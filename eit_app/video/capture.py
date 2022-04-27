@@ -40,15 +40,16 @@ IMAGE_FILE_FORMAT = {
     "PNG": ".png",
     # "JPEG": ".jpg"
 }
-EMPTY_FRAME= np.array([[]])
+EMPTY_FRAME = np.array([[]])
 
 ################################################################################
 ## Class Video Capture Module
 ################################################################################
 
+
 class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
     def __init__(self, capture_dev: CaptureDevices, snapshot_dir: str) -> None:
-        """Handle a capture device 
+        """Handle a capture device
 
         Args:
             capture_dev (CaptureDevices): capture device
@@ -71,8 +72,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
 
         self.capture_device = capture_dev
         self.snapshot_dir = snapshot_dir
-        self.image_path= ''
-        self._last_frame=EMPTY_FRAME
+        self.image_path = ""
+        self._last_frame = EMPTY_FRAME
 
         self.image_size = IMAGE_SIZES[list(IMAGE_SIZES.keys())[0]]
         self.image_file_ext = IMAGE_FILE_FORMAT[list(IMAGE_FILE_FORMAT.keys())[0]]
@@ -91,21 +92,23 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             return
         image = self.capture_device.get_Qimage(frame)
         # logger.debug("video image emitted")
-        self.to_gui.emit(EvtDataCaptureImageChanged(
-            image=image.scaled(self.image_size[0], self.image_size[1]),
-            image_path=self.image_path))
-        self._last_frame= frame # memory
-    
-
+        self.to_gui.emit(
+            EvtDataCaptureImageChanged(
+                image=image.scaled(self.image_size[0], self.image_size[1]),
+                image_path=self.image_path,
+            )
+        )
+        self._last_frame = frame  # memory
 
     # @abstractmethod - AddStatus
     def status_has_changed(self, status: Enum, was_status: Enum) -> None:
         self.to_gui.emit(EvtDataCaptureStatusChanged(status))
         logger.debug(f"Capture module mode set to : {status.value}")
         # reset image
-        if self.is_status(CaptureStatus.NOT_CONNECTED) or self.is_status(CaptureStatus.CONNECTED):
-            self.emit_new_Qtimage(EMPTY_FRAME) 
-
+        if self.is_status(CaptureStatus.NOT_CONNECTED) or self.is_status(
+            CaptureStatus.CONNECTED
+        ):
+            self.emit_new_Qtimage(EMPTY_FRAME)
 
     def set_status_w_meas(self, data: DataSetStatusWMeas):
         """Set internal mode depending on the measuring status of
@@ -175,7 +178,9 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         else:
             self.capture_device.connect_device()
             self.set_status(CaptureStatus.CONNECTED)
-            logger.info(f"Video capture device: {self.capture_device._name} - CONNECTED")
+            logger.info(
+                f"Video capture device: {self.capture_device._name} - CONNECTED"
+            )
 
     @handle_capture_device_error
     def set_image_size(self, size: str, **kwargs) -> None:
@@ -196,7 +201,9 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.emit_new_Qtimage(self._last_frame)
         # self.capture_device.set_settings(size=self.image_size)
 
-    def set_image_file_format(self, file_ext: str=list(IMAGE_FILE_FORMAT.keys())[0], **kwargs) -> None:
+    def set_image_file_format(
+        self, file_ext: str = list(IMAGE_FILE_FORMAT.keys())[0], **kwargs
+    ) -> None:
         """Set the file format for image saving
 
         Args:
@@ -289,7 +296,6 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.save_image(frame, path)
         self.emit_new_Qtimage(frame)
 
-
     @handle_capture_device_error
     def _shoot_image(self) -> np.ndarray:
         """Shoot an image and send the image for display
@@ -319,12 +325,12 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         if filepath is None:
             return None, None
         frame = self.capture_device.load_frame(filepath)
-        self.image_path= filepath
+        self.image_path = filepath
         logger.debug(f'\nImage "{path}" - Loaded')
         return frame
 
     def save_image(self, frame: np.ndarray, filepath: str):
-        """Save an image frame 
+        """Save an image frame
 
         Args:
             frame (np.ndarray): image frame to save
@@ -335,12 +341,12 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         logger.debug(f"Image saved in {filepath}")
         filepath = append_extension(filepath, self.image_file_ext)
         self.capture_device.save_frame(frame, filepath)
-        self.image_path=filepath
-    
-    def used_img_exts(self)->list[str]:
+        self.image_path = filepath
+
+    def used_img_exts(self) -> list[str]:
         return list(IMAGE_FILE_FORMAT.keys())
 
-    def used_img_sizes(self)->list[str]:
+    def used_img_sizes(self) -> list[str]:
         return list(IMAGE_SIZES.keys())
 
 

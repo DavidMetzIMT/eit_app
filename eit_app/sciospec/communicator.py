@@ -86,7 +86,7 @@ class StatusCommunicator(Enum):
     WAIT_FOR_DEVICE = "WAIT_FOR_DEVICE"
 
 
-class SciospecCommunicator:#TODO >> AddStatus 
+class SciospecCommunicator:  # TODO >> AddStatus
     """IOInterface Class provides
     - a sending method of cmd_frame and
     - a processing of the rx_frame
@@ -102,7 +102,7 @@ class SciospecCommunicator:#TODO >> AddStatus
         )
         self.processor.start()
         self.processor.start_polling()
-        self.timer_busy = CustomTimer(5.0, 1)  # max 5s timeout! #TODO >> Timer?? 
+        self.timer_busy = CustomTimer(5.0, 1)  # max 5s timeout! #TODO >> Timer??
 
         self.cmd_op_hist = BufferList()
         self.resp_hist = BufferList()
