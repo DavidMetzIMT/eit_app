@@ -34,6 +34,7 @@ from eit_model.imaging import (
     TimeDifferenceImaging,
     FrequenceDifferenceImaging,
 )
+from eit_model.solver_pyeit import PyEitRecParams
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.flags.status import BaseStatus
 
@@ -762,6 +763,53 @@ register_func_in_catalog(update_global_directories)
 @dataclass
 class EvtGlobalDirectoriesSet(EventDataClass):
     func: str = update_global_directories.__name__
+
+
+
+# -------------------------------------------------------------------------------
+## Update reconstruction parameters 
+# -------------------------------------------------------------------------------
+
+
+def update_reconstruction_parameters(ui: Ui_MainWindow, preset: PyEitRecParams) -> None:
+
+
+    _set_cB_rec_params(ui.cB_pyeit_reg_method, preset.method)
+    _set_sBd_rec_params(ui.sBd_pyeit_p, preset.p)
+    _set_sBd_rec_params(ui.sBd_pyeit_lamda, preset.lamb)
+    _set_sBd_rec_params(ui.sBd_pyeit_greit_n, preset.n)
+    _set_sBd_rec_params(ui.sBd_pyeit_bckgrnd, preset.background)
+    _set_cB_rec_params(ui.cB_pyeit_bp_weight_method, preset.weight)
+
+    
+def _set_cB_rec_params(cB:QtWidgets.QComboBox, val:Any):
+
+    if val is not None and isinstance(val, list):
+        set_comboBox_items(cB, val)
+        cB.setEnabled(len(val)!=1)
+    else:
+        set_comboBox_items(cB, [""])
+        cB.setEnabled(False)
+
+def _set_sBd_rec_params(sBd:QtWidgets.QDoubleSpinBox, val:Any):
+    
+    if isinstance(val, int):
+        val=float(val)
+
+    if val is not None and isinstance(val, float):
+        sBd.setValue(val)
+        sBd.setEnabled(True)
+    else:
+        sBd.setEnabled(False)
+
+
+register_func_in_catalog(update_reconstruction_parameters)
+
+
+@dataclass
+class EvtRecSolverChanged(EventDataClass):
+    preset: PyEitRecParams
+    func: str = update_reconstruction_parameters.__name__
 
 
 if __name__ == "__main__":

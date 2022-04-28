@@ -42,6 +42,7 @@ from eit_app.update_gui import (
     EvtEitModelLoaded,
     EvtGlobalDirectoriesSet,
     EvtInitFormatUI,
+    EvtRecSolverChanged,
 )
 
 # Ensure using PyQt5 backend
@@ -188,6 +189,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         set_comboBox_items(
             self.ui.cB_pyeit_solver, eit_model.solver_pyeit.used_solver()
         )
+        self._update_rec_params(solver=self.ui.cB_pyeit_solver.currentText())
         set_comboBox_items(
             self.ui.cB_eit_imaging_type, eit_model.imaging.eit_imaging_types()
         )
@@ -450,6 +452,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         # EIT reconstruction
         self.ui.pB_set_reconstruction.clicked.connect(self._init_rec)
         self.ui.pB_compute.clicked.connect(self.replay_agent.compute_actual_frame)
+        self.ui.cB_pyeit_solver.activated[str].connect(self._update_rec_params)
 
         # self.ui.chB_eit_mdl_normalize.toggled.connect(self._get_solvers_params)
         # self.ui.sBd_eit_model_fem_refinement.valueChanged.connect(self._get_solvers_params)
@@ -476,10 +479,19 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 n=self.ui.sBd_pyeit_greit_n.value(),
                 normalize=self.ui.chB_eit_mdl_normalize.isChecked(),
                 background=self.ui.sBd_pyeit_bckgrnd.value(),
+                method=self.ui.cB_pyeit_reg_method.currentText(),
+                weight=self.ui.cB_pyeit_bp_weight_method.currentText(),
             )
         }
         self.eit_mdl.set_refinement(self.ui.sBd_eit_model_fem_refinement.value())
         return params[rec_type]
+    
+    def _update_rec_params(self, solver:str):
+        self.update_gui(
+            EvtRecSolverChanged(
+                preset=eit_model.solver_pyeit.get_rec_params_preset(solver)
+            )
+        )
 
     ############################################################################
     #### Imaging,

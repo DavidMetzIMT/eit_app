@@ -15,44 +15,30 @@ class Ui_MainWindow(object):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setWindowModality(QtCore.Qt.NonModal)
         MainWindow.resize(1516, 846)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
-        icon.addPixmap(
-            QtGui.QPixmap(":/icons/icons/EIT.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off
-        )
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/EIT.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         MainWindow.setIconSize(QtCore.QSize(20, 20))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.centralwidget.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.centralwidget.sizePolicy().hasHeightForWidth())
         self.centralwidget.setSizePolicy(sizePolicy)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout_13 = QtWidgets.QHBoxLayout(self.centralwidget)
-        self.horizontalLayout_13.setSizeConstraint(
-            QtWidgets.QLayout.SetDefaultConstraint
-        )
+        self.horizontalLayout_13.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.horizontalLayout_13.setObjectName("horizontalLayout_13")
         self.tabW_settings = QtWidgets.QTabWidget(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.tabW_settings.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.tabW_settings.sizePolicy().hasHeightForWidth())
         self.tabW_settings.setSizePolicy(sizePolicy)
         self.tabW_settings.setMinimumSize(QtCore.QSize(0, 0))
         self.tabW_settings.setMaximumSize(QtCore.QSize(430, 16777215))
@@ -63,9 +49,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox_3 = QtWidgets.QGroupBox(self.tab_device)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_3.sizePolicy().hasHeightForWidth())
@@ -109,14 +93,10 @@ class Ui_MainWindow(object):
         self.cB_ports.setObjectName("cB_ports")
         self.verticalLayout_13.addWidget(self.cB_ports)
         self.lab_device_status = QtWidgets.QLabel(self.groupBox_3)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.lab_device_status.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.lab_device_status.sizePolicy().hasHeightForWidth())
         self.lab_device_status.setSizePolicy(sizePolicy)
         self.lab_device_status.setMinimumSize(QtCore.QSize(0, 23))
         self.lab_device_status.setMaximumSize(QtCore.QSize(16777215, 23))
@@ -128,9 +108,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addLayout(self.verticalLayout_13)
         self.verticalLayout.addWidget(self.groupBox_3)
         self.toolBox_4 = QtWidgets.QToolBox(self.tab_device)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.toolBox_4.sizePolicy().hasHeightForWidth())
@@ -146,9 +124,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
         self.pB_set_setup = QtWidgets.QPushButton(self.toolBox_4Page1)
         self.pB_set_setup.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pB_set_setup.sizePolicy().hasHeightForWidth())
@@ -157,9 +133,7 @@ class Ui_MainWindow(object):
         self.pB_set_setup.setObjectName("pB_set_setup")
         self.horizontalLayout_10.addWidget(self.pB_set_setup)
         self.pB_get_setup = QtWidgets.QPushButton(self.toolBox_4Page1)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pB_get_setup.sizePolicy().hasHeightForWidth())
@@ -168,9 +142,7 @@ class Ui_MainWindow(object):
         self.pB_get_setup.setObjectName("pB_get_setup")
         self.horizontalLayout_10.addWidget(self.pB_get_setup)
         self.pB_reset = QtWidgets.QPushButton(self.toolBox_4Page1)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pB_reset.sizePolicy().hasHeightForWidth())
@@ -182,114 +154,80 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.LayoutParameters = QtWidgets.QFormLayout()
-        self.LayoutParameters.setFieldGrowthPolicy(
-            QtWidgets.QFormLayout.AllNonFixedFieldsGrow
-        )
+        self.LayoutParameters.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
         self.LayoutParameters.setHorizontalSpacing(6)
         self.LayoutParameters.setObjectName("LayoutParameters")
         self.lab_exc_amp = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_exc_amp.setMinimumSize(QtCore.QSize(0, 20))
         self.lab_exc_amp.setMaximumSize(QtCore.QSize(16777215, 20))
         self.lab_exc_amp.setObjectName("lab_exc_amp")
-        self.LayoutParameters.setWidget(
-            0, QtWidgets.QFormLayout.LabelRole, self.lab_exc_amp
-        )
+        self.LayoutParameters.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.lab_exc_amp)
         self.sBd_exc_amp = QtWidgets.QDoubleSpinBox(self.toolBox_4Page1)
         self.sBd_exc_amp.setDecimals(4)
         self.sBd_exc_amp.setMinimum(0.0001)
         self.sBd_exc_amp.setMaximum(10.0)
         self.sBd_exc_amp.setSingleStep(0.1)
         self.sBd_exc_amp.setObjectName("sBd_exc_amp")
-        self.LayoutParameters.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.sBd_exc_amp
-        )
+        self.LayoutParameters.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.sBd_exc_amp)
         self.lab_burst = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_burst.setObjectName("lab_burst")
-        self.LayoutParameters.setWidget(
-            1, QtWidgets.QFormLayout.LabelRole, self.lab_burst
-        )
+        self.LayoutParameters.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.lab_burst)
         self.sB_burst = QtWidgets.QSpinBox(self.toolBox_4Page1)
         self.sB_burst.setMaximum(255)
         self.sB_burst.setObjectName("sB_burst")
-        self.LayoutParameters.setWidget(
-            1, QtWidgets.QFormLayout.FieldRole, self.sB_burst
-        )
+        self.LayoutParameters.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sB_burst)
         self.lab_minF = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_minF.setObjectName("lab_minF")
-        self.LayoutParameters.setWidget(
-            2, QtWidgets.QFormLayout.LabelRole, self.lab_minF
-        )
+        self.LayoutParameters.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.lab_minF)
         self.sBd_freq_min = QtWidgets.QDoubleSpinBox(self.toolBox_4Page1)
         self.sBd_freq_min.setMinimum(100.0)
         self.sBd_freq_min.setMaximum(1000000.0)
         self.sBd_freq_min.setObjectName("sBd_freq_min")
-        self.LayoutParameters.setWidget(
-            2, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_min
-        )
+        self.LayoutParameters.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_min)
         self.lab_maxF = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_maxF.setObjectName("lab_maxF")
-        self.LayoutParameters.setWidget(
-            3, QtWidgets.QFormLayout.LabelRole, self.lab_maxF
-        )
+        self.LayoutParameters.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.lab_maxF)
         self.sBd_freq_max = QtWidgets.QDoubleSpinBox(self.toolBox_4Page1)
         self.sBd_freq_max.setAutoFillBackground(False)
         self.sBd_freq_max.setMinimum(100.0)
         self.sBd_freq_max.setMaximum(1000000.0)
         self.sBd_freq_max.setObjectName("sBd_freq_max")
-        self.LayoutParameters.setWidget(
-            3, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_max
-        )
+        self.LayoutParameters.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.sBd_freq_max)
         self.lab_steps = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_steps.setObjectName("lab_steps")
-        self.LayoutParameters.setWidget(
-            4, QtWidgets.QFormLayout.LabelRole, self.lab_steps
-        )
+        self.LayoutParameters.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.lab_steps)
         self.sB_freq_steps = QtWidgets.QSpinBox(self.toolBox_4Page1)
         self.sB_freq_steps.setMinimum(1)
         self.sB_freq_steps.setMaximum(255)
         self.sB_freq_steps.setObjectName("sB_freq_steps")
-        self.LayoutParameters.setWidget(
-            4, QtWidgets.QFormLayout.FieldRole, self.sB_freq_steps
-        )
+        self.LayoutParameters.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.sB_freq_steps)
         self.lab_scale = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_scale.setObjectName("lab_scale")
-        self.LayoutParameters.setWidget(
-            5, QtWidgets.QFormLayout.LabelRole, self.lab_scale
-        )
+        self.LayoutParameters.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.lab_scale)
         self.cB_scale = QtWidgets.QComboBox(self.toolBox_4Page1)
         self.cB_scale.setEditable(False)
         self.cB_scale.setMaxVisibleItems(2)
         self.cB_scale.setObjectName("cB_scale")
-        self.LayoutParameters.setWidget(
-            5, QtWidgets.QFormLayout.FieldRole, self.cB_scale
-        )
+        self.LayoutParameters.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.cB_scale)
         self.lab_frame_rate = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_frame_rate.setObjectName("lab_frame_rate")
-        self.LayoutParameters.setWidget(
-            6, QtWidgets.QFormLayout.LabelRole, self.lab_frame_rate
-        )
+        self.LayoutParameters.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.lab_frame_rate)
         self.sBd_frame_rate = QtWidgets.QDoubleSpinBox(self.toolBox_4Page1)
         self.sBd_frame_rate.setDecimals(3)
         self.sBd_frame_rate.setMaximum(100.0)
         self.sBd_frame_rate.setSingleStep(0.001)
         self.sBd_frame_rate.setObjectName("sBd_frame_rate")
-        self.LayoutParameters.setWidget(
-            6, QtWidgets.QFormLayout.FieldRole, self.sBd_frame_rate
-        )
+        self.LayoutParameters.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.sBd_frame_rate)
         self.lab_max_frame_rate = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_max_frame_rate.setObjectName("lab_max_frame_rate")
-        self.LayoutParameters.setWidget(
-            7, QtWidgets.QFormLayout.LabelRole, self.lab_max_frame_rate
-        )
+        self.LayoutParameters.setWidget(7, QtWidgets.QFormLayout.LabelRole, self.lab_max_frame_rate)
         self.sBd_max_frame_rate = QtWidgets.QDoubleSpinBox(self.toolBox_4Page1)
         self.sBd_max_frame_rate.setEnabled(False)
         self.sBd_max_frame_rate.setDecimals(3)
         self.sBd_max_frame_rate.setMaximum(100.0)
         self.sBd_max_frame_rate.setSingleStep(0.001)
         self.sBd_max_frame_rate.setObjectName("sBd_max_frame_rate")
-        self.LayoutParameters.setWidget(
-            7, QtWidgets.QFormLayout.FieldRole, self.sBd_max_frame_rate
-        )
+        self.LayoutParameters.setWidget(7, QtWidgets.QFormLayout.FieldRole, self.sBd_max_frame_rate)
         self.lab_sn = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_sn.setObjectName("lab_sn")
         self.LayoutParameters.setWidget(8, QtWidgets.QFormLayout.LabelRole, self.lab_sn)
@@ -305,9 +243,7 @@ class Ui_MainWindow(object):
         self.lab_ip.setObjectName("lab_ip")
         self.LayoutParameters.setWidget(9, QtWidgets.QFormLayout.LabelRole, self.lab_ip)
         self.lE_ip = QtWidgets.QLineEdit(self.toolBox_4Page1)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.lE_ip.sizePolicy().hasHeightForWidth())
@@ -320,64 +256,46 @@ class Ui_MainWindow(object):
         self.LayoutParameters.setWidget(9, QtWidgets.QFormLayout.FieldRole, self.lE_ip)
         self.lab_mac = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_mac.setObjectName("lab_mac")
-        self.LayoutParameters.setWidget(
-            10, QtWidgets.QFormLayout.LabelRole, self.lab_mac
-        )
+        self.LayoutParameters.setWidget(10, QtWidgets.QFormLayout.LabelRole, self.lab_mac)
         self.lE_mac = QtWidgets.QLineEdit(self.toolBox_4Page1)
         self.lE_mac.setEnabled(False)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.lE_mac.sizePolicy().hasHeightForWidth())
         self.lE_mac.setSizePolicy(sizePolicy)
         self.lE_mac.setObjectName("lE_mac")
-        self.LayoutParameters.setWidget(
-            10, QtWidgets.QFormLayout.FieldRole, self.lE_mac
-        )
+        self.LayoutParameters.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.lE_mac)
         self.chB_dhcp = QtWidgets.QCheckBox(self.toolBox_4Page1)
         self.chB_dhcp.setEnabled(False)
         self.chB_dhcp.setChecked(False)
         self.chB_dhcp.setObjectName("chB_dhcp")
-        self.LayoutParameters.setWidget(
-            11, QtWidgets.QFormLayout.FieldRole, self.chB_dhcp
-        )
+        self.LayoutParameters.setWidget(11, QtWidgets.QFormLayout.FieldRole, self.chB_dhcp)
         self.lab_output_config = QtWidgets.QLabel(self.toolBox_4Page1)
         self.lab_output_config.setObjectName("lab_output_config")
-        self.LayoutParameters.setWidget(
-            12, QtWidgets.QFormLayout.LabelRole, self.lab_output_config
-        )
+        self.LayoutParameters.setWidget(12, QtWidgets.QFormLayout.LabelRole, self.lab_output_config)
         self.chB_exc_stamp = QtWidgets.QCheckBox(self.toolBox_4Page1)
         self.chB_exc_stamp.setEnabled(False)
         self.chB_exc_stamp.setChecked(True)
         self.chB_exc_stamp.setObjectName("chB_exc_stamp")
-        self.LayoutParameters.setWidget(
-            12, QtWidgets.QFormLayout.FieldRole, self.chB_exc_stamp
-        )
+        self.LayoutParameters.setWidget(12, QtWidgets.QFormLayout.FieldRole, self.chB_exc_stamp)
         self.chB_current_stamp = QtWidgets.QCheckBox(self.toolBox_4Page1)
         self.chB_current_stamp.setEnabled(False)
         self.chB_current_stamp.setChecked(True)
         self.chB_current_stamp.setObjectName("chB_current_stamp")
-        self.LayoutParameters.setWidget(
-            13, QtWidgets.QFormLayout.FieldRole, self.chB_current_stamp
-        )
+        self.LayoutParameters.setWidget(13, QtWidgets.QFormLayout.FieldRole, self.chB_current_stamp)
         self.chB_time_stamp = QtWidgets.QCheckBox(self.toolBox_4Page1)
         self.chB_time_stamp.setEnabled(False)
         self.chB_time_stamp.setChecked(True)
         self.chB_time_stamp.setObjectName("chB_time_stamp")
-        self.LayoutParameters.setWidget(
-            14, QtWidgets.QFormLayout.FieldRole, self.chB_time_stamp
-        )
+        self.LayoutParameters.setWidget(14, QtWidgets.QFormLayout.FieldRole, self.chB_time_stamp)
         self.horizontalLayout_7.addLayout(self.LayoutParameters)
         self.groupBox = QtWidgets.QGroupBox(self.toolBox_4Page1)
         self.groupBox.setObjectName("groupBox")
         self.verticalLayout_20 = QtWidgets.QVBoxLayout(self.groupBox)
         self.verticalLayout_20.setObjectName("verticalLayout_20")
         self.tabWidget = QtWidgets.QTabWidget(self.groupBox)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
@@ -388,14 +306,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_18 = QtWidgets.QVBoxLayout(self.tab_exc_model)
         self.verticalLayout_18.setObjectName("verticalLayout_18")
         self.tw_exc_mat_model = QtWidgets.QTableWidget(self.tab_exc_model)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.tw_exc_mat_model.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.tw_exc_mat_model.sizePolicy().hasHeightForWidth())
         self.tw_exc_mat_model.setSizePolicy(sizePolicy)
         self.tw_exc_mat_model.setObjectName("tw_exc_mat_model")
         self.tw_exc_mat_model.setColumnCount(2)
@@ -412,14 +326,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_19 = QtWidgets.QVBoxLayout(self.tab_exc_chip)
         self.verticalLayout_19.setObjectName("verticalLayout_19")
         self.tw_exc_mat_chip = QtWidgets.QTableWidget(self.tab_exc_chip)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.tw_exc_mat_chip.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.tw_exc_mat_chip.sizePolicy().hasHeightForWidth())
         self.tw_exc_mat_chip.setSizePolicy(sizePolicy)
         self.tw_exc_mat_chip.setObjectName("tw_exc_mat_chip")
         self.tw_exc_mat_chip.setColumnCount(2)
@@ -445,14 +355,10 @@ class Ui_MainWindow(object):
         self.cB_chip_ctlg.setObjectName("cB_chip_ctlg")
         self.horizontalLayout_8.addWidget(self.cB_chip_ctlg)
         self.pB_chip_refresh_ctlg = QtWidgets.QPushButton(self.toolBox_4Page1)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pB_chip_refresh_ctlg.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.pB_chip_refresh_ctlg.sizePolicy().hasHeightForWidth())
         self.pB_chip_refresh_ctlg.setSizePolicy(sizePolicy)
         self.pB_chip_refresh_ctlg.setAutoFillBackground(False)
         self.pB_chip_refresh_ctlg.setObjectName("pB_chip_refresh_ctlg")
@@ -464,28 +370,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
         self.pB_load_setup = QtWidgets.QPushButton(self.toolBox_4Page1)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pB_load_setup.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.pB_load_setup.sizePolicy().hasHeightForWidth())
         self.pB_load_setup.setSizePolicy(sizePolicy)
         self.pB_load_setup.setMinimumSize(QtCore.QSize(0, 23))
         self.pB_load_setup.setAutoFillBackground(False)
         self.pB_load_setup.setObjectName("pB_load_setup")
         self.horizontalLayout_9.addWidget(self.pB_load_setup)
         self.pB_save_setup = QtWidgets.QPushButton(self.toolBox_4Page1)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pB_save_setup.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.pB_save_setup.sizePolicy().hasHeightForWidth())
         self.pB_save_setup.setSizePolicy(sizePolicy)
         self.pB_save_setup.setMinimumSize(QtCore.QSize(0, 23))
         self.pB_save_setup.setAutoFillBackground(False)
@@ -494,9 +392,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_12.addLayout(self.horizontalLayout_9)
         self.toolBox_4.addItem(self.toolBox_4Page1, "")
         self.verticalLayout.addWidget(self.toolBox_4)
-        spacerItem = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.verticalLayout.setStretch(1, 1)
         self.tabW_settings.addTab(self.tab_device, "")
@@ -522,14 +418,10 @@ class Ui_MainWindow(object):
         self.pB_stop_meas.setObjectName("pB_stop_meas")
         self.horizontalLayout_4.addWidget(self.pB_stop_meas)
         self.lab_live_meas_status = QtWidgets.QLabel(self.Acquisition)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.lab_live_meas_status.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.lab_live_meas_status.sizePolicy().hasHeightForWidth())
         self.lab_live_meas_status.setSizePolicy(sizePolicy)
         self.lab_live_meas_status.setMinimumSize(QtCore.QSize(0, 23))
         self.lab_live_meas_status.setAutoFillBackground(True)
@@ -538,14 +430,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.addWidget(self.lab_live_meas_status)
         self.verticalLayout_4.addLayout(self.horizontalLayout_4)
         self.lE_meas_dataset_dir = QtWidgets.QLineEdit(self.Acquisition)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.lE_meas_dataset_dir.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.lE_meas_dataset_dir.sizePolicy().hasHeightForWidth())
         self.lE_meas_dataset_dir.setSizePolicy(sizePolicy)
         self.lE_meas_dataset_dir.setObjectName("lE_meas_dataset_dir")
         self.verticalLayout_4.addWidget(self.lE_meas_dataset_dir)
@@ -572,9 +460,7 @@ class Ui_MainWindow(object):
         self.sB_actual_frame_cnt = QtWidgets.QSpinBox(self.Acquisition)
         self.sB_actual_frame_cnt.setEnabled(True)
         self.sB_actual_frame_cnt.setFrame(True)
-        self.sB_actual_frame_cnt.setAlignment(
-            QtCore.Qt.AlignLeading | QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter
-        )
+        self.sB_actual_frame_cnt.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.sB_actual_frame_cnt.setMaximum(999)
         self.sB_actual_frame_cnt.setObjectName("sB_actual_frame_cnt")
         self.horizontalLayout_5.addWidget(self.sB_actual_frame_cnt)
@@ -604,14 +490,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_11.addLayout(self.horizontalLayout_2)
         self.tE_load_dataset_dir = QtWidgets.QTextEdit(self.Replay)
         self.tE_load_dataset_dir.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.tE_load_dataset_dir.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.tE_load_dataset_dir.sizePolicy().hasHeightForWidth())
         self.tE_load_dataset_dir.setSizePolicy(sizePolicy)
         self.tE_load_dataset_dir.setMaximumSize(QtCore.QSize(16777215, 116))
         self.tE_load_dataset_dir.setObjectName("tE_load_dataset_dir")
@@ -623,11 +505,7 @@ class Ui_MainWindow(object):
         self.pB_replay_begin.setAutoFillBackground(False)
         self.pB_replay_begin.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(
-            QtGui.QPixmap(":/icons/icons/icon_begin.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon1.addPixmap(QtGui.QPixmap(":/icons/icons/icon_begin.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_replay_begin.setIcon(icon1)
         self.pB_replay_begin.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_begin.setCheckable(False)
@@ -639,11 +517,7 @@ class Ui_MainWindow(object):
         self.pB_replay_back.setAutoFillBackground(False)
         self.pB_replay_back.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(
-            QtGui.QPixmap(":/icons/icons/icon_back.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon2.addPixmap(QtGui.QPixmap(":/icons/icons/icon_back.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_replay_back.setIcon(icon2)
         self.pB_replay_back.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_back.setCheckable(False)
@@ -654,11 +528,7 @@ class Ui_MainWindow(object):
         self.pB_replay_play.setAutoFillBackground(False)
         self.pB_replay_play.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(
-            QtGui.QPixmap(":/icons/icons/icon_play.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon3.addPixmap(QtGui.QPixmap(":/icons/icons/icon_play.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_replay_play.setIcon(icon3)
         self.pB_replay_play.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_play.setCheckable(False)
@@ -669,11 +539,7 @@ class Ui_MainWindow(object):
         self.pB_replay_next.setAutoFillBackground(False)
         self.pB_replay_next.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(
-            QtGui.QPixmap(":/icons/icons/icon_next.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon4.addPixmap(QtGui.QPixmap(":/icons/icons/icon_next.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_replay_next.setIcon(icon4)
         self.pB_replay_next.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_next.setCheckable(False)
@@ -684,11 +550,7 @@ class Ui_MainWindow(object):
         self.pB_replay_end.setAutoFillBackground(False)
         self.pB_replay_end.setText("")
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(
-            QtGui.QPixmap(":/icons/icons/icon_end.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon5.addPixmap(QtGui.QPixmap(":/icons/icons/icon_end.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_replay_end.setIcon(icon5)
         self.pB_replay_end.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_end.setAutoDefault(False)
@@ -698,11 +560,7 @@ class Ui_MainWindow(object):
         self.pB_replay_stop.setAutoFillBackground(False)
         self.pB_replay_stop.setText("")
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(
-            QtGui.QPixmap(":/icons/icons/icon_stop.png"),
-            QtGui.QIcon.Normal,
-            QtGui.QIcon.Off,
-        )
+        icon6.addPixmap(QtGui.QPixmap(":/icons/icons/icon_stop.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.pB_replay_stop.setIcon(icon6)
         self.pB_replay_stop.setIconSize(QtCore.QSize(32, 16))
         self.pB_replay_stop.setAutoDefault(False)
@@ -753,14 +611,10 @@ class Ui_MainWindow(object):
         self.gridLayout_16 = QtWidgets.QGridLayout(self.groupBox_2)
         self.gridLayout_16.setObjectName("gridLayout_16")
         self.tE_frame_info = QtWidgets.QTextEdit(self.groupBox_2)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.tE_frame_info.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.tE_frame_info.sizePolicy().hasHeightForWidth())
         self.tE_frame_info.setSizePolicy(sizePolicy)
         self.tE_frame_info.setObjectName("tE_frame_info")
         self.gridLayout_16.addWidget(self.tE_frame_info, 0, 0, 1, 1)
@@ -768,9 +622,7 @@ class Ui_MainWindow(object):
         self.gridLayout_14 = QtWidgets.QGridLayout()
         self.gridLayout_14.setObjectName("gridLayout_14")
         self.sB_eidors_factor = QtWidgets.QDoubleSpinBox(self.tab_measurements)
-        self.sB_eidors_factor.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter
-        )
+        self.sB_eidors_factor.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.sB_eidors_factor.setSuffix("")
         self.sB_eidors_factor.setDecimals(3)
         self.sB_eidors_factor.setMinimum(-1000000.0)
@@ -779,22 +631,16 @@ class Ui_MainWindow(object):
         self.sB_eidors_factor.setProperty("value", 1.0)
         self.sB_eidors_factor.setObjectName("sB_eidors_factor")
         self.gridLayout_14.addWidget(self.sB_eidors_factor, 0, 1, 1, 1)
-        self.pB_export_data_meas_vs_eidors = QtWidgets.QPushButton(
-            self.tab_measurements
-        )
+        self.pB_export_data_meas_vs_eidors = QtWidgets.QPushButton(self.tab_measurements)
         self.pB_export_data_meas_vs_eidors.setAutoFillBackground(False)
-        self.pB_export_data_meas_vs_eidors.setObjectName(
-            "pB_export_data_meas_vs_eidors"
-        )
+        self.pB_export_data_meas_vs_eidors.setObjectName("pB_export_data_meas_vs_eidors")
         self.gridLayout_14.addWidget(self.pB_export_data_meas_vs_eidors, 1, 0, 1, 1)
         self.pB_load_eidors_fwd_solution = QtWidgets.QPushButton(self.tab_measurements)
         self.pB_load_eidors_fwd_solution.setAutoFillBackground(False)
         self.pB_load_eidors_fwd_solution.setObjectName("pB_load_eidors_fwd_solution")
         self.gridLayout_14.addWidget(self.pB_load_eidors_fwd_solution, 0, 0, 1, 1)
         self.verticalLayout_2.addLayout(self.gridLayout_14)
-        spacerItem1 = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_2.addItem(spacerItem1)
         self.tabW_settings.addTab(self.tab_measurements, "")
         self.tab_eit = QtWidgets.QWidget()
@@ -830,9 +676,7 @@ class Ui_MainWindow(object):
         self.formLayout_2.setObjectName("formLayout_2")
         self.label_FEMRefinement = QtWidgets.QLabel(self.groupBox_9)
         self.label_FEMRefinement.setObjectName("label_FEMRefinement")
-        self.formLayout_2.setWidget(
-            1, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement
-        )
+        self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement)
         self.sBd_eit_model_fem_refinement = QtWidgets.QDoubleSpinBox(self.groupBox_9)
         self.sBd_eit_model_fem_refinement.setDecimals(4)
         self.sBd_eit_model_fem_refinement.setMinimum(0.0)
@@ -840,29 +684,16 @@ class Ui_MainWindow(object):
         self.sBd_eit_model_fem_refinement.setSingleStep(0.001)
         self.sBd_eit_model_fem_refinement.setProperty("value", 0.5)
         self.sBd_eit_model_fem_refinement.setObjectName("sBd_eit_model_fem_refinement")
-        self.formLayout_2.setWidget(
-            1, QtWidgets.QFormLayout.FieldRole, self.sBd_eit_model_fem_refinement
-        )
+        self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sBd_eit_model_fem_refinement)
         self.lE_eit_model_name = QtWidgets.QLineEdit(self.groupBox_9)
         self.lE_eit_model_name.setEnabled(True)
         self.lE_eit_model_name.setFrame(True)
         self.lE_eit_model_name.setReadOnly(True)
         self.lE_eit_model_name.setObjectName("lE_eit_model_name")
-        self.formLayout_2.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.lE_eit_model_name
-        )
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.lE_eit_model_name)
         self.label_eit_model_name = QtWidgets.QLabel(self.groupBox_9)
         self.label_eit_model_name.setObjectName("label_eit_model_name")
-        self.formLayout_2.setWidget(
-            0, QtWidgets.QFormLayout.LabelRole, self.label_eit_model_name
-        )
-        self.chB_eit_mdl_normalize = QtWidgets.QCheckBox(self.groupBox_9)
-        self.chB_eit_mdl_normalize.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.chB_eit_mdl_normalize.setInputMethodHints(QtCore.Qt.ImhSensitiveData)
-        self.chB_eit_mdl_normalize.setObjectName("chB_eit_mdl_normalize")
-        self.formLayout_2.setWidget(
-            2, QtWidgets.QFormLayout.FieldRole, self.chB_eit_mdl_normalize
-        )
+        self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_eit_model_name)
         self.verticalLayout_8.addLayout(self.formLayout_2)
         self.verticalLayout_10.addWidget(self.groupBox_9)
         self.groupBox_8 = QtWidgets.QGroupBox(self.tab_eit)
@@ -883,6 +714,11 @@ class Ui_MainWindow(object):
         self.groupBox_6.setObjectName("groupBox_6")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.groupBox_6)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
+        self.chB_eit_mdl_normalize = QtWidgets.QCheckBox(self.groupBox_6)
+        self.chB_eit_mdl_normalize.setLayoutDirection(QtCore.Qt.LeftToRight)
+        self.chB_eit_mdl_normalize.setInputMethodHints(QtCore.Qt.ImhSensitiveData)
+        self.chB_eit_mdl_normalize.setObjectName("chB_eit_mdl_normalize")
+        self.verticalLayout_6.addWidget(self.chB_eit_mdl_normalize)
         self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setObjectName("formLayout")
         self.lab_solver = QtWidgets.QLabel(self.groupBox_6)
@@ -890,57 +726,59 @@ class Ui_MainWindow(object):
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.lab_solver)
         self.cB_pyeit_solver = QtWidgets.QComboBox(self.groupBox_6)
         self.cB_pyeit_solver.setObjectName("cB_pyeit_solver")
-        self.formLayout.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.cB_pyeit_solver
-        )
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.cB_pyeit_solver)
         self.label_vmax_7 = QtWidgets.QLabel(self.groupBox_6)
         self.label_vmax_7.setObjectName("label_vmax_7")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_vmax_7)
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_vmax_7)
         self.sBd_pyeit_p = QtWidgets.QDoubleSpinBox(self.groupBox_6)
         self.sBd_pyeit_p.setDecimals(1)
         self.sBd_pyeit_p.setMinimum(-1000000000000000.0)
         self.sBd_pyeit_p.setMaximum(1000000000000000.0)
         self.sBd_pyeit_p.setProperty("value", 0.5)
         self.sBd_pyeit_p.setObjectName("sBd_pyeit_p")
-        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_p)
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_p)
         self.label_vmax_8 = QtWidgets.QLabel(self.groupBox_6)
         self.label_vmax_8.setObjectName("label_vmax_8")
-        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_vmax_8)
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.label_vmax_8)
         self.sBd_pyeit_lamda = QtWidgets.QDoubleSpinBox(self.groupBox_6)
         self.sBd_pyeit_lamda.setDecimals(4)
         self.sBd_pyeit_lamda.setMinimum(-1000000000000000.0)
         self.sBd_pyeit_lamda.setMaximum(1000000000000000.0)
         self.sBd_pyeit_lamda.setProperty("value", 0.01)
         self.sBd_pyeit_lamda.setObjectName("sBd_pyeit_lamda")
-        self.formLayout.setWidget(
-            2, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_lamda
-        )
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_lamda)
         self.label_vmax_9 = QtWidgets.QLabel(self.groupBox_6)
         self.label_vmax_9.setObjectName("label_vmax_9")
-        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.label_vmax_9)
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_vmax_9)
         self.sBd_pyeit_greit_n = QtWidgets.QDoubleSpinBox(self.groupBox_6)
         self.sBd_pyeit_greit_n.setDecimals(0)
         self.sBd_pyeit_greit_n.setMinimum(-1000000000000000.0)
         self.sBd_pyeit_greit_n.setMaximum(1000000000000000.0)
         self.sBd_pyeit_greit_n.setProperty("value", 64.0)
         self.sBd_pyeit_greit_n.setObjectName("sBd_pyeit_greit_n")
-        self.formLayout.setWidget(
-            3, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_greit_n
-        )
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_greit_n)
         self.label_FEMRefinement_2 = QtWidgets.QLabel(self.groupBox_6)
         self.label_FEMRefinement_2.setObjectName("label_FEMRefinement_2")
-        self.formLayout.setWidget(
-            4, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement_2
-        )
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.LabelRole, self.label_FEMRefinement_2)
         self.sBd_pyeit_bckgrnd = QtWidgets.QDoubleSpinBox(self.groupBox_6)
         self.sBd_pyeit_bckgrnd.setDecimals(4)
         self.sBd_pyeit_bckgrnd.setMaximum(1000.0)
         self.sBd_pyeit_bckgrnd.setSingleStep(0.001)
         self.sBd_pyeit_bckgrnd.setProperty("value", 0.1)
         self.sBd_pyeit_bckgrnd.setObjectName("sBd_pyeit_bckgrnd")
-        self.formLayout.setWidget(
-            4, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_bckgrnd
-        )
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.sBd_pyeit_bckgrnd)
+        self.cB_pyeit_reg_method = QtWidgets.QComboBox(self.groupBox_6)
+        self.cB_pyeit_reg_method.setObjectName("cB_pyeit_reg_method")
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.cB_pyeit_reg_method)
+        self.label_2 = QtWidgets.QLabel(self.groupBox_6)
+        self.label_2.setObjectName("label_2")
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_2)
+        self.cB_pyeit_bp_weight_method = QtWidgets.QComboBox(self.groupBox_6)
+        self.cB_pyeit_bp_weight_method.setObjectName("cB_pyeit_bp_weight_method")
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.FieldRole, self.cB_pyeit_bp_weight_method)
+        self.label_3 = QtWidgets.QLabel(self.groupBox_6)
+        self.label_3.setObjectName("label_3")
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.LabelRole, self.label_3)
         self.verticalLayout_6.addLayout(self.formLayout)
         self.gridLayout_9.addWidget(self.groupBox_6, 0, 0, 1, 1)
         self.tabW_reconstruction.addTab(self.tab_pyeit, "")
@@ -967,40 +805,28 @@ class Ui_MainWindow(object):
         self.cB_eit_imaging_type.setObjectName("cB_eit_imaging_type")
         self.gridLayout.addWidget(self.cB_eit_imaging_type, 0, 0, 1, 5)
         self.cB_eit_imaging_meas_freq = QtWidgets.QComboBox(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.cB_eit_imaging_meas_freq.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.cB_eit_imaging_meas_freq.sizePolicy().hasHeightForWidth())
         self.cB_eit_imaging_meas_freq.setSizePolicy(sizePolicy)
         self.cB_eit_imaging_meas_freq.setMinimumSize(QtCore.QSize(78, 0))
         self.cB_eit_imaging_meas_freq.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.cB_eit_imaging_meas_freq.setObjectName("cB_eit_imaging_meas_freq")
         self.gridLayout.addWidget(self.cB_eit_imaging_meas_freq, 2, 2, 1, 2)
         self.lab_ref_frame_idx = QtWidgets.QLabel(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.lab_ref_frame_idx.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.lab_ref_frame_idx.sizePolicy().hasHeightForWidth())
         self.lab_ref_frame_idx.setSizePolicy(sizePolicy)
         self.lab_ref_frame_idx.setObjectName("lab_ref_frame_idx")
         self.gridLayout.addWidget(self.lab_ref_frame_idx, 1, 4, 1, 1)
         self.cB_eit_imaging_ref_frame = QtWidgets.QComboBox(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.cB_eit_imaging_ref_frame.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.cB_eit_imaging_ref_frame.sizePolicy().hasHeightForWidth())
         self.cB_eit_imaging_ref_frame.setSizePolicy(sizePolicy)
         self.cB_eit_imaging_ref_frame.setMinimumSize(QtCore.QSize(78, 0))
         self.cB_eit_imaging_ref_frame.setMaximumSize(QtCore.QSize(16777215, 16777215))
@@ -1010,26 +836,18 @@ class Ui_MainWindow(object):
         self.lab_freq_meas_0.setObjectName("lab_freq_meas_0")
         self.gridLayout.addWidget(self.lab_freq_meas_0, 1, 0, 1, 2)
         self.lab_freq_meas_1 = QtWidgets.QLabel(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.lab_freq_meas_1.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.lab_freq_meas_1.sizePolicy().hasHeightForWidth())
         self.lab_freq_meas_1.setSizePolicy(sizePolicy)
         self.lab_freq_meas_1.setObjectName("lab_freq_meas_1")
         self.gridLayout.addWidget(self.lab_freq_meas_1, 1, 2, 1, 2)
         self.cB_eit_imaging_ref_freq = QtWidgets.QComboBox(self.groupBox_5)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.cB_eit_imaging_ref_freq.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.cB_eit_imaging_ref_freq.sizePolicy().hasHeightForWidth())
         self.cB_eit_imaging_ref_freq.setSizePolicy(sizePolicy)
         self.cB_eit_imaging_ref_freq.setCurrentText("")
         self.cB_eit_imaging_ref_freq.setObjectName("cB_eit_imaging_ref_freq")
@@ -1046,9 +864,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_15.addWidget(self.chB_eit_imaging_trans_abs)
         self.verticalLayout_5.addLayout(self.verticalLayout_15)
         self.verticalLayout_10.addWidget(self.groupBox_5)
-        spacerItem2 = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_10.addItem(spacerItem2)
         self.tabW_settings.addTab(self.tab_eit, "")
         self.tab_3 = QtWidgets.QWidget()
@@ -1073,9 +889,7 @@ class Ui_MainWindow(object):
         self.scalePlot_vmin.setMinimum(-1000000000000000.0)
         self.scalePlot_vmin.setMaximum(1000000000000000.0)
         self.scalePlot_vmin.setObjectName("scalePlot_vmin")
-        self.formLayout_5.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.scalePlot_vmin
-        )
+        self.formLayout_5.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.scalePlot_vmin)
         self.label_vmax = QtWidgets.QLabel(self.groupBox_4)
         self.label_vmax.setObjectName("label_vmax")
         self.formLayout_5.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_vmax)
@@ -1084,9 +898,7 @@ class Ui_MainWindow(object):
         self.scalePlot_vmax.setMinimum(-1000000000000000.0)
         self.scalePlot_vmax.setMaximum(1000000000000000.0)
         self.scalePlot_vmax.setObjectName("scalePlot_vmax")
-        self.formLayout_5.setWidget(
-            1, QtWidgets.QFormLayout.FieldRole, self.scalePlot_vmax
-        )
+        self.formLayout_5.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.scalePlot_vmax)
         self.dsB_dpi_rec = QtWidgets.QDoubleSpinBox(self.groupBox_4)
         self.dsB_dpi_rec.setDecimals(1)
         self.dsB_dpi_rec.setMinimum(0.1)
@@ -1094,14 +906,10 @@ class Ui_MainWindow(object):
         self.dsB_dpi_rec.setSingleStep(0.1)
         self.dsB_dpi_rec.setProperty("value", 100.0)
         self.dsB_dpi_rec.setObjectName("dsB_dpi_rec")
-        self.formLayout_5.setWidget(
-            2, QtWidgets.QFormLayout.FieldRole, self.dsB_dpi_rec
-        )
+        self.formLayout_5.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.dsB_dpi_rec)
         self.lab_dpi_rec = QtWidgets.QLabel(self.groupBox_4)
         self.lab_dpi_rec.setObjectName("lab_dpi_rec")
-        self.formLayout_5.setWidget(
-            2, QtWidgets.QFormLayout.LabelRole, self.lab_dpi_rec
-        )
+        self.formLayout_5.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.lab_dpi_rec)
         self.pB_set_dpi = QtWidgets.QPushButton(self.groupBox_4)
         self.pB_set_dpi.setObjectName("pB_set_dpi")
         self.formLayout_5.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.pB_set_dpi)
@@ -1132,79 +940,57 @@ class Ui_MainWindow(object):
         self.formLayout_4.setObjectName("formLayout_4")
         self.lab_measdataset_gdir = QtWidgets.QLabel(self.groupBox_10)
         self.lab_measdataset_gdir.setObjectName("lab_measdataset_gdir")
-        self.formLayout_4.setWidget(
-            0, QtWidgets.QFormLayout.LabelRole, self.lab_measdataset_gdir
-        )
+        self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.lab_measdataset_gdir)
         self.lE_measdataset_gdir = QtWidgets.QLineEdit(self.groupBox_10)
         self.lE_measdataset_gdir.setEnabled(True)
         self.lE_measdataset_gdir.setText("")
         self.lE_measdataset_gdir.setFrame(True)
         self.lE_measdataset_gdir.setReadOnly(True)
         self.lE_measdataset_gdir.setObjectName("lE_measdataset_gdir")
-        self.formLayout_4.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.lE_measdataset_gdir
-        )
+        self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.lE_measdataset_gdir)
         self.lab_snapshot_gdir = QtWidgets.QLabel(self.groupBox_10)
         self.lab_snapshot_gdir.setObjectName("lab_snapshot_gdir")
-        self.formLayout_4.setWidget(
-            1, QtWidgets.QFormLayout.LabelRole, self.lab_snapshot_gdir
-        )
+        self.formLayout_4.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.lab_snapshot_gdir)
         self.lE_snapshot_gdir = QtWidgets.QLineEdit(self.groupBox_10)
         self.lE_snapshot_gdir.setEnabled(True)
         self.lE_snapshot_gdir.setText("")
         self.lE_snapshot_gdir.setFrame(True)
         self.lE_snapshot_gdir.setReadOnly(True)
         self.lE_snapshot_gdir.setObjectName("lE_snapshot_gdir")
-        self.formLayout_4.setWidget(
-            1, QtWidgets.QFormLayout.FieldRole, self.lE_snapshot_gdir
-        )
+        self.formLayout_4.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lE_snapshot_gdir)
         self.lab_export_gdir = QtWidgets.QLabel(self.groupBox_10)
         self.lab_export_gdir.setObjectName("lab_export_gdir")
-        self.formLayout_4.setWidget(
-            2, QtWidgets.QFormLayout.LabelRole, self.lab_export_gdir
-        )
+        self.formLayout_4.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.lab_export_gdir)
         self.lE_export_gdir = QtWidgets.QLineEdit(self.groupBox_10)
         self.lE_export_gdir.setEnabled(True)
         self.lE_export_gdir.setText("")
         self.lE_export_gdir.setFrame(True)
         self.lE_export_gdir.setReadOnly(True)
         self.lE_export_gdir.setObjectName("lE_export_gdir")
-        self.formLayout_4.setWidget(
-            2, QtWidgets.QFormLayout.FieldRole, self.lE_export_gdir
-        )
+        self.formLayout_4.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.lE_export_gdir)
         self.lab_eit_mdl_ctlg_gdir = QtWidgets.QLabel(self.groupBox_10)
         self.lab_eit_mdl_ctlg_gdir.setObjectName("lab_eit_mdl_ctlg_gdir")
-        self.formLayout_4.setWidget(
-            3, QtWidgets.QFormLayout.LabelRole, self.lab_eit_mdl_ctlg_gdir
-        )
+        self.formLayout_4.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.lab_eit_mdl_ctlg_gdir)
         self.lE_eit_mdl_ctlg_gdir = QtWidgets.QLineEdit(self.groupBox_10)
         self.lE_eit_mdl_ctlg_gdir.setEnabled(True)
         self.lE_eit_mdl_ctlg_gdir.setText("")
         self.lE_eit_mdl_ctlg_gdir.setFrame(True)
         self.lE_eit_mdl_ctlg_gdir.setReadOnly(True)
         self.lE_eit_mdl_ctlg_gdir.setObjectName("lE_eit_mdl_ctlg_gdir")
-        self.formLayout_4.setWidget(
-            3, QtWidgets.QFormLayout.FieldRole, self.lE_eit_mdl_ctlg_gdir
-        )
+        self.formLayout_4.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.lE_eit_mdl_ctlg_gdir)
         self.lab_chip_ctlg_gdir = QtWidgets.QLabel(self.groupBox_10)
         self.lab_chip_ctlg_gdir.setObjectName("lab_chip_ctlg_gdir")
-        self.formLayout_4.setWidget(
-            4, QtWidgets.QFormLayout.LabelRole, self.lab_chip_ctlg_gdir
-        )
+        self.formLayout_4.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.lab_chip_ctlg_gdir)
         self.lE_chip_ctlg_gdir = QtWidgets.QLineEdit(self.groupBox_10)
         self.lE_chip_ctlg_gdir.setEnabled(True)
         self.lE_chip_ctlg_gdir.setText("")
         self.lE_chip_ctlg_gdir.setFrame(True)
         self.lE_chip_ctlg_gdir.setReadOnly(True)
         self.lE_chip_ctlg_gdir.setObjectName("lE_chip_ctlg_gdir")
-        self.formLayout_4.setWidget(
-            4, QtWidgets.QFormLayout.FieldRole, self.lE_chip_ctlg_gdir
-        )
+        self.formLayout_4.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.lE_chip_ctlg_gdir)
         self.gridLayout_8.addLayout(self.formLayout_4, 0, 0, 1, 1)
         self.verticalLayout_14.addWidget(self.groupBox_10)
-        spacerItem3 = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_14.addItem(spacerItem3)
         self.tabW_settings.addTab(self.tab_6, "")
         self.horizontalLayout_13.addWidget(self.tabW_settings)
@@ -1216,14 +1002,10 @@ class Ui_MainWindow(object):
         self.label.setObjectName("label")
         self.horizontalLayout_16.addWidget(self.label)
         self.chB_eit_image_plot = QtWidgets.QCheckBox(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.chB_eit_image_plot.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.chB_eit_image_plot.sizePolicy().hasHeightForWidth())
         self.chB_eit_image_plot.setSizePolicy(sizePolicy)
         self.chB_eit_image_plot.setChecked(True)
         self.chB_eit_image_plot.setObjectName("chB_eit_image_plot")
@@ -1272,22 +1054,16 @@ class Ui_MainWindow(object):
         self.gridLayout_5.addLayout(self.layout_error, 0, 0, 1, 1)
         self.tabW_monitoring.addTab(self.tab_4, "")
         self.verticalLayout_22.addWidget(self.tabW_monitoring)
-        spacerItem4 = QtWidgets.QSpacerItem(
-            20, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem4 = QtWidgets.QSpacerItem(20, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_22.addItem(spacerItem4)
         self.verticalLayout_22.setStretch(1, 1)
         self.verticalLayout_22.setStretch(2, 1)
         self.horizontalLayout_13.addLayout(self.verticalLayout_22)
         self.groupBox_video = QtWidgets.QGroupBox(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.groupBox_video.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.groupBox_video.sizePolicy().hasHeightForWidth())
         self.groupBox_video.setSizePolicy(sizePolicy)
         self.groupBox_video.setMinimumSize(QtCore.QSize(230, 0))
         self.groupBox_video.setMaximumSize(QtCore.QSize(16777215, 16777215))
@@ -1295,14 +1071,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.groupBox_video)
         self.verticalLayout_9.setObjectName("verticalLayout_9")
         self.cB_capture_devices = QtWidgets.QComboBox(self.groupBox_video)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.cB_capture_devices.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.cB_capture_devices.sizePolicy().hasHeightForWidth())
         self.cB_capture_devices.setSizePolicy(sizePolicy)
         self.cB_capture_devices.setMinimumSize(QtCore.QSize(125, 23))
         self.cB_capture_devices.setToolTip("")
@@ -1310,14 +1082,10 @@ class Ui_MainWindow(object):
         self.cB_capture_devices.setObjectName("cB_capture_devices")
         self.verticalLayout_9.addWidget(self.cB_capture_devices)
         self.lab_capture_status = QtWidgets.QLabel(self.groupBox_video)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.lab_capture_status.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.lab_capture_status.sizePolicy().hasHeightForWidth())
         self.lab_capture_status.setSizePolicy(sizePolicy)
         self.lab_capture_status.setMinimumSize(QtCore.QSize(0, 23))
         self.lab_capture_status.setAutoFillBackground(True)
@@ -1329,14 +1097,10 @@ class Ui_MainWindow(object):
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.pB_capture_connect = QtWidgets.QPushButton(self.groupBox_video)
         self.pB_capture_connect.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pB_capture_connect.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.pB_capture_connect.sizePolicy().hasHeightForWidth())
         self.pB_capture_connect.setSizePolicy(sizePolicy)
         self.pB_capture_connect.setMinimumSize(QtCore.QSize(125, 23))
         self.pB_capture_connect.setAutoFillBackground(False)
@@ -1344,14 +1108,10 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addWidget(self.pB_capture_connect, 0, 1, 1, 1)
         self.pB_capture_start_stop = QtWidgets.QPushButton(self.groupBox_video)
         self.pB_capture_start_stop.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pB_capture_start_stop.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.pB_capture_start_stop.sizePolicy().hasHeightForWidth())
         self.pB_capture_start_stop.setSizePolicy(sizePolicy)
         self.pB_capture_start_stop.setMinimumSize(QtCore.QSize(0, 23))
         self.pB_capture_start_stop.setAutoFillBackground(False)
@@ -1362,14 +1122,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_14.setObjectName("horizontalLayout_14")
         self.pB_capture_refresh = QtWidgets.QPushButton(self.groupBox_video)
         self.pB_capture_refresh.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pB_capture_refresh.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.pB_capture_refresh.sizePolicy().hasHeightForWidth())
         self.pB_capture_refresh.setSizePolicy(sizePolicy)
         self.pB_capture_refresh.setMinimumSize(QtCore.QSize(100, 23))
         self.pB_capture_refresh.setAutoFillBackground(False)
@@ -1377,14 +1133,10 @@ class Ui_MainWindow(object):
         self.horizontalLayout_14.addWidget(self.pB_capture_refresh)
         self.pB_capture_snapshot = QtWidgets.QPushButton(self.groupBox_video)
         self.pB_capture_snapshot.setEnabled(True)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pB_capture_snapshot.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.pB_capture_snapshot.sizePolicy().hasHeightForWidth())
         self.pB_capture_snapshot.setSizePolicy(sizePolicy)
         self.pB_capture_snapshot.setMinimumSize(QtCore.QSize(100, 23))
         self.pB_capture_snapshot.setAutoFillBackground(False)
@@ -1394,9 +1146,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_16 = QtWidgets.QVBoxLayout()
         self.verticalLayout_16.setObjectName("verticalLayout_16")
         self.video_frame = QtWidgets.QLabel(self.groupBox_video)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.video_frame.sizePolicy().hasHeightForWidth())
@@ -1411,14 +1161,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_16.addWidget(self.video_frame)
         self.verticalLayout_9.addLayout(self.verticalLayout_16)
         self.lE_path_video_frame = QtWidgets.QLineEdit(self.groupBox_video)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.lE_path_video_frame.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.lE_path_video_frame.sizePolicy().hasHeightForWidth())
         self.lE_path_video_frame.setSizePolicy(sizePolicy)
         self.lE_path_video_frame.setMinimumSize(QtCore.QSize(0, 23))
         self.lE_path_video_frame.setMaximumSize(QtCore.QSize(16777215, 46))
@@ -1430,37 +1176,27 @@ class Ui_MainWindow(object):
         self.horizontalLayout_15 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_15.setObjectName("horizontalLayout_15")
         self.cB_capture_img_size = QtWidgets.QComboBox(self.groupBox_video)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.cB_capture_img_size.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.cB_capture_img_size.sizePolicy().hasHeightForWidth())
         self.cB_capture_img_size.setSizePolicy(sizePolicy)
         self.cB_capture_img_size.setMinimumSize(QtCore.QSize(0, 23))
         self.cB_capture_img_size.setCurrentText("")
         self.cB_capture_img_size.setObjectName("cB_capture_img_size")
         self.horizontalLayout_15.addWidget(self.cB_capture_img_size)
         self.cB_capture_img_file_ext = QtWidgets.QComboBox(self.groupBox_video)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.cB_capture_img_file_ext.sizePolicy().hasHeightForWidth()
-        )
+        sizePolicy.setHeightForWidth(self.cB_capture_img_file_ext.sizePolicy().hasHeightForWidth())
         self.cB_capture_img_file_ext.setSizePolicy(sizePolicy)
         self.cB_capture_img_file_ext.setMinimumSize(QtCore.QSize(0, 23))
         self.cB_capture_img_file_ext.setCurrentText("")
         self.cB_capture_img_file_ext.setObjectName("cB_capture_img_file_ext")
         self.horizontalLayout_15.addWidget(self.cB_capture_img_file_ext)
         self.verticalLayout_9.addLayout(self.horizontalLayout_15)
-        spacerItem5 = QtWidgets.QSpacerItem(
-            20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
-        )
+        spacerItem5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_9.addItem(spacerItem5)
         self.formLayout_3 = QtWidgets.QFormLayout()
         self.formLayout_3.setObjectName("formLayout_3")
@@ -1468,14 +1204,10 @@ class Ui_MainWindow(object):
         self.cB_log_level.setMinimumSize(QtCore.QSize(0, 23))
         self.cB_log_level.setToolTip("")
         self.cB_log_level.setObjectName("cB_log_level")
-        self.formLayout_3.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.cB_log_level
-        )
+        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.cB_log_level)
         self.lab_log_level = QtWidgets.QLabel(self.groupBox_video)
         self.lab_log_level.setObjectName("lab_log_level")
-        self.formLayout_3.setWidget(
-            0, QtWidgets.QFormLayout.LabelRole, self.lab_log_level
-        )
+        self.formLayout_3.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.lab_log_level)
         self.verticalLayout_9.addLayout(self.formLayout_3)
         self.horizontalLayout_13.addWidget(self.groupBox_video)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -1494,7 +1226,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuFile.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabW_settings.setCurrentIndex(4)
+        self.tabW_settings.setCurrentIndex(2)
         self.tabWidget.setCurrentIndex(1)
         self.toolBox.setCurrentIndex(0)
         self.tabW_reconstruction.setCurrentIndex(0)
@@ -1506,49 +1238,24 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.groupBox_3.setTitle(_translate("MainWindow", "EIT device"))
-        self.pB_refresh.setStatusTip(
-            _translate(
-                "MainWindow", "Refresh the available serial port list (Ctrl + R)"
-            )
-        )
+        self.pB_refresh.setStatusTip(_translate("MainWindow", "Refresh the available serial port list (Ctrl + R)"))
         self.pB_refresh.setText(_translate("MainWindow", "Refresh"))
         self.pB_refresh.setShortcut(_translate("MainWindow", "Ctrl+R"))
-        self.pB_connect.setStatusTip(
-            _translate("MainWindow", "Connect to the selected serial port (Shift +C)")
-        )
+        self.pB_connect.setStatusTip(_translate("MainWindow", "Connect to the selected serial port (Shift +C)"))
         self.pB_connect.setText(_translate("MainWindow", "Connect"))
         self.pB_connect.setShortcut(_translate("MainWindow", "Shift+C"))
-        self.pB_disconnect.setStatusTip(
-            _translate("MainWindow", "Disconnect the serial port (Shift + D)")
-        )
+        self.pB_disconnect.setStatusTip(_translate("MainWindow", "Disconnect the serial port (Shift + D)"))
         self.pB_disconnect.setText(_translate("MainWindow", "Disconnect"))
         self.pB_disconnect.setShortcut(_translate("MainWindow", "Shift+D"))
-        self.cB_ports.setStatusTip(
-            _translate("MainWindow", "Available serial port list")
-        )
+        self.cB_ports.setStatusTip(_translate("MainWindow", "Available serial port list"))
         self.lab_device_status.setText(_translate("MainWindow", "Not Connected"))
-        self.pB_set_setup.setStatusTip(
-            _translate(
-                "MainWindow",
-                "Send measurements parameters to connected device (Shift +S)",
-            )
-        )
+        self.pB_set_setup.setStatusTip(_translate("MainWindow", "Send measurements parameters to connected device (Shift +S)"))
         self.pB_set_setup.setText(_translate("MainWindow", "Set setup"))
         self.pB_set_setup.setShortcut(_translate("MainWindow", "Shift+S"))
-        self.pB_get_setup.setStatusTip(
-            _translate(
-                "MainWindow",
-                "Ask measurements parameters from connected device (Shift +G)",
-            )
-        )
+        self.pB_get_setup.setStatusTip(_translate("MainWindow", "Ask measurements parameters from connected device (Shift +G)"))
         self.pB_get_setup.setText(_translate("MainWindow", "Get setup"))
         self.pB_get_setup.setShortcut(_translate("MainWindow", "Shift+G"))
-        self.pB_reset.setStatusTip(
-            _translate(
-                "MainWindow",
-                "Software reset of the device (reconnection needed after 10-15 sec) (Ctrl + Shift +C)",
-            )
-        )
+        self.pB_reset.setStatusTip(_translate("MainWindow", "Software reset of the device (reconnection needed after 10-15 sec) (Ctrl + Shift +C)"))
         self.pB_reset.setText(_translate("MainWindow", "Reset"))
         self.pB_reset.setShortcut(_translate("MainWindow", "Ctrl+Shift+R"))
         self.lab_exc_amp.setText(_translate("MainWindow", "Current Amplitude [mA]"))
@@ -1558,9 +1265,7 @@ class Ui_MainWindow(object):
         self.lab_steps.setText(_translate("MainWindow", "Steps number"))
         self.lab_scale.setText(_translate("MainWindow", "Scale"))
         self.lab_frame_rate.setText(_translate("MainWindow", "Frame rate [fps]"))
-        self.lab_max_frame_rate.setText(
-            _translate("MainWindow", "Max Frame rate [fps]")
-        )
+        self.lab_max_frame_rate.setText(_translate("MainWindow", "Max Frame rate [fps]"))
         self.lab_sn.setText(_translate("MainWindow", "S/N"))
         self.lab_ip.setText(_translate("MainWindow", "IP Adress"))
         self.lab_mac.setText(_translate("MainWindow", "MAC Adress"))
@@ -1574,178 +1279,101 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "Inj+ "))
         item = self.tw_exc_mat_model.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Inj-"))
-        self.tabWidget.setTabText(
-            self.tabWidget.indexOf(self.tab_exc_model),
-            _translate("MainWindow", "Model"),
-        )
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_exc_model), _translate("MainWindow", "Model"))
         item = self.tw_exc_mat_chip.horizontalHeaderItem(0)
         item.setText(_translate("MainWindow", "Inj+ "))
         item = self.tw_exc_mat_chip.horizontalHeaderItem(1)
         item.setText(_translate("MainWindow", "Inj-"))
-        self.tabWidget.setTabText(
-            self.tabWidget.indexOf(self.tab_exc_chip), _translate("MainWindow", "Chip")
-        )
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_exc_chip), _translate("MainWindow", "Chip"))
         self.lab_chip.setText(_translate("MainWindow", "Chip type"))
-        self.pB_chip_refresh_ctlg.setStatusTip(
-            _translate("MainWindow", "reload the catalog ")
-        )
+        self.pB_chip_refresh_ctlg.setStatusTip(_translate("MainWindow", "reload the catalog "))
         self.pB_chip_refresh_ctlg.setText(_translate("MainWindow", "Upddate"))
-        self.pB_load_setup.setStatusTip(
-            _translate("MainWindow", "Load parameters from file (*.xlsx)")
-        )
+        self.pB_load_setup.setStatusTip(_translate("MainWindow", "Load parameters from file (*.xlsx)"))
         self.pB_load_setup.setText(_translate("MainWindow", "Load_Setup"))
-        self.pB_save_setup.setStatusTip(
-            _translate("MainWindow", "Save parameters to files (*.xlsx)")
-        )
+        self.pB_save_setup.setStatusTip(_translate("MainWindow", "Save parameters to files (*.xlsx)"))
         self.pB_save_setup.setText(_translate("MainWindow", "Save_Setup"))
-        self.tabW_settings.setTabText(
-            self.tabW_settings.indexOf(self.tab_device),
-            _translate("MainWindow", "Device"),
-        )
-        self.pB_start_meas.setStatusTip(
-            _translate("MainWindow", "Start measurement (Ctrl + Shift +Space)")
-        )
+        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_device), _translate("MainWindow", "Device"))
+        self.pB_start_meas.setStatusTip(_translate("MainWindow", "Start measurement (Ctrl + Shift +Space)"))
         self.pB_start_meas.setText(_translate("MainWindow", "Start"))
         self.pB_start_meas.setShortcut(_translate("MainWindow", "Ctrl+Shift+Space"))
-        self.pB_stop_meas.setStatusTip(
-            _translate("MainWindow", "Stop measurement (Esc)")
-        )
+        self.pB_stop_meas.setStatusTip(_translate("MainWindow", "Stop measurement (Esc)"))
         self.pB_stop_meas.setText(_translate("MainWindow", "Stop"))
         self.pB_stop_meas.setShortcut(_translate("MainWindow", "Esc"))
         self.lab_live_meas_status.setText(_translate("MainWindow", "Meas status"))
-        self.lE_meas_dataset_dir.setText(
-            _translate("MainWindow", "default_autosave_dir")
-        )
+        self.lE_meas_dataset_dir.setText(_translate("MainWindow", "default_autosave_dir"))
         self.chB_dataset_autosave.setText(_translate("MainWindow", "autosave"))
         self.chB_dataset_save_img.setText(_translate("MainWindow", "save img"))
         self.chB_load_after_meas.setText(_translate("MainWindow", "load after meas"))
-        self.lab_actual_frame_cnt.setText(
-            _translate("MainWindow", "Acquisition progress of frame")
-        )
+        self.lab_actual_frame_cnt.setText(_translate("MainWindow", "Acquisition progress of frame"))
         self.sB_actual_frame_cnt.setPrefix(_translate("MainWindow", "#"))
-        self.toolBox.setItemText(
-            self.toolBox.indexOf(self.Acquisition),
-            _translate("MainWindow", "Acquisition"),
-        )
-        self.pB_meas_dataset_load.setStatusTip(
-            _translate("MainWindow", "Load measurements from a selected directory")
-        )
+        self.toolBox.setItemText(self.toolBox.indexOf(self.Acquisition), _translate("MainWindow", "Acquisition"))
+        self.pB_meas_dataset_load.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
         self.pB_meas_dataset_load.setText(_translate("MainWindow", "Load measurements"))
         self.lab_replay_status.setText(_translate("MainWindow", "Replay status"))
-        self.tE_load_dataset_dir.setHtml(
-            _translate(
-                "MainWindow",
-                '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">\n'
-                '<html><head><meta name="qrichtext" content="1" /><style type="text/css">\n'
-                "p, li { white-space: pre-wrap; }\n"
-                "</style></head><body style=\" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">default_</p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">loading_</p>\n'
-                '<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">dirpath</p></body></html>',
-            )
-        )
-        self.pB_replay_begin.setStatusTip(
-            _translate("MainWindow", "First frame (Pos1)")
-        )
+        self.tE_load_dataset_dir.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">default_</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">loading_</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">dirpath</p></body></html>"))
+        self.pB_replay_begin.setStatusTip(_translate("MainWindow", "First frame (Pos1)"))
         self.pB_replay_begin.setShortcut(_translate("MainWindow", "Home"))
         self.pB_replay_back.setStatusTip(_translate("MainWindow", "Previous frame"))
         self.pB_replay_back.setShortcut(_translate("MainWindow", "Ctrl+Space"))
-        self.pB_replay_play.setStatusTip(
-            _translate("MainWindow", "Start Replay of measurements (Ctrl +Space)")
-        )
+        self.pB_replay_play.setStatusTip(_translate("MainWindow", "Start Replay of measurements (Ctrl +Space)"))
         self.pB_replay_play.setShortcut(_translate("MainWindow", "Ctrl+Space"))
         self.pB_replay_next.setStatusTip(_translate("MainWindow", "Next frame"))
         self.pB_replay_next.setShortcut(_translate("MainWindow", "Ctrl+Space"))
         self.pB_replay_end.setStatusTip(_translate("MainWindow", "Last frame (End)"))
         self.pB_replay_end.setShortcut(_translate("MainWindow", "End"))
-        self.pB_replay_stop.setStatusTip(
-            _translate("MainWindow", "Display last meas. frame (End)")
-        )
+        self.pB_replay_stop.setStatusTip(_translate("MainWindow", "Display last meas. frame (End)"))
         self.pB_replay_stop.setShortcut(_translate("MainWindow", "End"))
         self.lab_current_frame_indx.setText(_translate("MainWindow", "Current frame #"))
         self.lab_replay_time_2.setText(_translate("MainWindow", "Refresh time"))
         self.sB_replay_time.setSuffix(_translate("MainWindow", " s"))
-        self.pB_export_meas_csv.setStatusTip(
-            _translate("MainWindow", "Load measurements from a selected directory")
-        )
-        self.pB_export_meas_csv.setText(
-            _translate("MainWindow", "Export measurements to CSV")
-        )
-        self.pB_load_ref_dataset.setStatusTip(
-            _translate("MainWindow", "Load measurements from a selected directory")
-        )
-        self.pB_load_ref_dataset.setText(
-            _translate("MainWindow", "Load reference dataset")
-        )
-        self.toolBox.setItemText(
-            self.toolBox.indexOf(self.Replay), _translate("MainWindow", "Replay")
-        )
+        self.pB_export_meas_csv.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
+        self.pB_export_meas_csv.setText(_translate("MainWindow", "Export measurements to CSV"))
+        self.pB_load_ref_dataset.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
+        self.pB_load_ref_dataset.setText(_translate("MainWindow", "Load reference dataset"))
+        self.toolBox.setItemText(self.toolBox.indexOf(self.Replay), _translate("MainWindow", "Replay"))
         self.groupBox_2.setTitle(_translate("MainWindow", "Frame infos"))
-        self.pB_export_data_meas_vs_eidors.setStatusTip(
-            _translate("MainWindow", "Load measurements from a selected directory")
-        )
-        self.pB_export_data_meas_vs_eidors.setText(
-            _translate("MainWindow", "Export measurements vs EIDORS to CSV")
-        )
-        self.pB_load_eidors_fwd_solution.setStatusTip(
-            _translate("MainWindow", "Load measurements from a selected directory")
-        )
-        self.pB_load_eidors_fwd_solution.setText(
-            _translate("MainWindow", "Load EIDORS fwd solution")
-        )
-        self.tabW_settings.setTabText(
-            self.tabW_settings.indexOf(self.tab_measurements),
-            _translate("MainWindow", "Measurements"),
-        )
+        self.pB_export_data_meas_vs_eidors.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
+        self.pB_export_data_meas_vs_eidors.setText(_translate("MainWindow", "Export measurements vs EIDORS to CSV"))
+        self.pB_load_eidors_fwd_solution.setStatusTip(_translate("MainWindow", "Load measurements from a selected directory"))
+        self.pB_load_eidors_fwd_solution.setText(_translate("MainWindow", "Load EIDORS fwd solution"))
+        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_measurements), _translate("MainWindow", "Measurements"))
         self.pB_compute.setStatusTip(_translate("MainWindow", "Stop measurement (Esc)"))
         self.pB_compute.setText(_translate("MainWindow", "Compute"))
         self.pB_compute.setShortcut(_translate("MainWindow", "Esc"))
         self.groupBox_9.setTitle(_translate("MainWindow", "EIT Model"))
         self.lab_eit_mdl_ctlg.setText(_translate("MainWindow", "Catalogue"))
-        self.pB_eit_mdl_refresh_ctlg.setStatusTip(
-            _translate("MainWindow", "reload the catalog ")
-        )
+        self.pB_eit_mdl_refresh_ctlg.setStatusTip(_translate("MainWindow", "reload the catalog "))
         self.pB_eit_mdl_refresh_ctlg.setText(_translate("MainWindow", "Update"))
         self.label_FEMRefinement.setText(_translate("MainWindow", "FEM Refinement"))
-        self.lE_eit_model_name.setText(
-            _translate("MainWindow", "default_loading_dirpath")
-        )
+        self.lE_eit_model_name.setText(_translate("MainWindow", "default_loading_dirpath"))
         self.label_eit_model_name.setText(_translate("MainWindow", "EIT model name"))
-        self.chB_eit_mdl_normalize.setText(_translate("MainWindow", "Normalize"))
         self.groupBox_8.setTitle(_translate("MainWindow", "Recontruction Solver"))
-        self.pB_set_reconstruction.setStatusTip(
-            _translate("MainWindow", "Set the reconstruction")
-        )
-        self.pB_set_reconstruction.setText(
-            _translate("MainWindow", "Set reconstruction")
-        )
+        self.pB_set_reconstruction.setStatusTip(_translate("MainWindow", "Set the reconstruction"))
+        self.pB_set_reconstruction.setText(_translate("MainWindow", "Set reconstruction"))
         self.groupBox_6.setTitle(_translate("MainWindow", "Reconstruction parameters"))
+        self.chB_eit_mdl_normalize.setText(_translate("MainWindow", "Normalize"))
         self.lab_solver.setText(_translate("MainWindow", "Solver"))
         self.label_vmax_7.setText(_translate("MainWindow", "p"))
         self.label_vmax_8.setText(_translate("MainWindow", "lamda"))
         self.label_vmax_9.setText(_translate("MainWindow", "n"))
-        self.label_FEMRefinement_2.setText(_translate("MainWindow", "BackGround"))
-        self.tabW_reconstruction.setTabText(
-            self.tabW_reconstruction.indexOf(self.tab_pyeit),
-            _translate("MainWindow", "PyEIT"),
-        )
-        self.lE_ai_model_dir.setText(
-            _translate("MainWindow", "default_loading_dirpath")
-        )
-        self.tabW_reconstruction.setTabText(
-            self.tabW_reconstruction.indexOf(self.tab_nn),
-            _translate("MainWindow", "NN"),
-        )
+        self.label_FEMRefinement_2.setText(_translate("MainWindow", "Background"))
+        self.label_2.setText(_translate("MainWindow", "Regularization method"))
+        self.label_3.setText(_translate("MainWindow", "BP weight method"))
+        self.tabW_reconstruction.setTabText(self.tabW_reconstruction.indexOf(self.tab_pyeit), _translate("MainWindow", "PyEIT"))
+        self.lE_ai_model_dir.setText(_translate("MainWindow", "default_loading_dirpath"))
+        self.tabW_reconstruction.setTabText(self.tabW_reconstruction.indexOf(self.tab_nn), _translate("MainWindow", "NN"))
         self.groupBox_5.setTitle(_translate("MainWindow", "Imaging type"))
         self.lab_ref_frame_idx.setText(_translate("MainWindow", "Reference frame#"))
         self.lab_freq_meas_0.setText(_translate("MainWindow", "Frequence"))
         self.lab_freq_meas_1.setText(_translate("MainWindow", "Frequence "))
-        self.chB_eit_imaging_trans_abs.setText(
-            _translate("MainWindow", "Show absolute values")
-        )
-        self.tabW_settings.setTabText(
-            self.tabW_settings.indexOf(self.tab_eit), _translate("MainWindow", "EIT")
-        )
+        self.chB_eit_imaging_trans_abs.setText(_translate("MainWindow", "Show absolute values"))
+        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_eit), _translate("MainWindow", "EIT"))
         self.pB_pyvista.setStatusTip(_translate("MainWindow", "Stop measurement (Esc)"))
         self.pB_pyvista.setText(_translate("MainWindow", "Open Pyvista Viewer"))
         self.pB_pyvista.setShortcut(_translate("MainWindow", "Esc"))
@@ -1755,82 +1383,48 @@ class Ui_MainWindow(object):
         self.lab_dpi_rec.setText(_translate("MainWindow", "dpi"))
         self.pB_set_dpi.setText(_translate("MainWindow", "Set DPI"))
         self.groupBox_7.setTitle(_translate("MainWindow", "Channel voltages settings"))
-        self.chB_monitoring_trans_abs.setText(
-            _translate("MainWindow", "Show absolute values")
-        )
-        self.tabW_settings.setTabText(
-            self.tabW_settings.indexOf(self.tab_3),
-            _translate("MainWindow", "Plot settings"),
-        )
+        self.chB_monitoring_trans_abs.setText(_translate("MainWindow", "Show absolute values"))
+        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_3), _translate("MainWindow", "Plot settings"))
         self.groupBox_10.setTitle(_translate("MainWindow", "Global directories"))
         self.lab_measdataset_gdir.setText(_translate("MainWindow", "Measurement Sets"))
         self.lab_snapshot_gdir.setText(_translate("MainWindow", "Snapshot"))
         self.lab_export_gdir.setText(_translate("MainWindow", "Export"))
         self.lab_eit_mdl_ctlg_gdir.setText(_translate("MainWindow", "EIT Model"))
         self.lab_chip_ctlg_gdir.setText(_translate("MainWindow", "Chips"))
-        self.tabW_settings.setTabText(
-            self.tabW_settings.indexOf(self.tab_6),
-            _translate("MainWindow", "Gui setttings"),
-        )
+        self.tabW_settings.setTabText(self.tabW_settings.indexOf(self.tab_6), _translate("MainWindow", "Gui setttings"))
         self.label.setText(_translate("MainWindow", "Show:"))
         self.chB_eit_image_plot.setText(_translate("MainWindow", "EIT image"))
         self.chB_eit_data_monitoring.setText(_translate("MainWindow", "EIT data"))
-        self.tabW_rec.setTabText(
-            self.tabW_rec.indexOf(self.tab_5),
-            _translate("MainWindow", "Reconstruction"),
-        )
-        self.tabW_monitoring.setTabText(
-            self.tabW_monitoring.indexOf(self.tab), _translate("MainWindow", "EIT data")
-        )
-        self.tabW_monitoring.setTabText(
-            self.tabW_monitoring.indexOf(self.tab_2),
-            _translate("MainWindow", "Channel voltages"),
-        )
-        self.tabW_monitoring.setTabText(
-            self.tabW_monitoring.indexOf(self.tab_4),
-            _translate("MainWindow", "Error ch voltage"),
-        )
+        self.tabW_rec.setTabText(self.tabW_rec.indexOf(self.tab_5), _translate("MainWindow", "Reconstruction"))
+        self.tabW_monitoring.setTabText(self.tabW_monitoring.indexOf(self.tab), _translate("MainWindow", "EIT data"))
+        self.tabW_monitoring.setTabText(self.tabW_monitoring.indexOf(self.tab_2), _translate("MainWindow", "Channel voltages"))
+        self.tabW_monitoring.setTabText(self.tabW_monitoring.indexOf(self.tab_4), _translate("MainWindow", "Error ch voltage"))
         self.groupBox_video.setTitle(_translate("MainWindow", "Video"))
-        self.cB_capture_devices.setStatusTip(
-            _translate("MainWindow", "Available serial port list")
-        )
+        self.cB_capture_devices.setStatusTip(_translate("MainWindow", "Available serial port list"))
         self.lab_capture_status.setText(_translate("MainWindow", "Meas status"))
         self.pB_capture_connect.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_connect.setStatusTip(
-            _translate("MainWindow", "Refresh the available serial port list")
-        )
+        self.pB_capture_connect.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
         self.pB_capture_connect.setText(_translate("MainWindow", "Connect"))
         self.pB_capture_start_stop.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_start_stop.setStatusTip(
-            _translate("MainWindow", "Refresh the available serial port list")
-        )
+        self.pB_capture_start_stop.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
         self.pB_capture_start_stop.setText(_translate("MainWindow", "Start capture"))
         self.pB_capture_refresh.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_refresh.setStatusTip(
-            _translate("MainWindow", "Refresh the available serial port list")
-        )
+        self.pB_capture_refresh.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
         self.pB_capture_refresh.setText(_translate("MainWindow", "Refresh"))
         self.pB_capture_snapshot.setToolTip(_translate("MainWindow", "test"))
-        self.pB_capture_snapshot.setStatusTip(
-            _translate("MainWindow", "Refresh the available serial port list")
-        )
+        self.pB_capture_snapshot.setStatusTip(_translate("MainWindow", "Refresh the available serial port list"))
         self.pB_capture_snapshot.setText(_translate("MainWindow", "Snapshot"))
         self.video_frame.setText(_translate("MainWindow", "Live Video"))
-        self.cB_log_level.setStatusTip(
-            _translate("MainWindow", "Available serial port list")
-        )
+        self.cB_log_level.setStatusTip(_translate("MainWindow", "Available serial port list"))
         self.lab_log_level.setText(_translate("MainWindow", "log level"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.action_exit.setText(_translate("MainWindow", "Exit"))
         self.action_exit.setShortcut(_translate("MainWindow", "Ctrl+Q"))
-
-
 import resource_rc
 
 
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
