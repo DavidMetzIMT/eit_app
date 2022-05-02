@@ -14,7 +14,7 @@ from abc import ABC
 from dataclasses import dataclass, is_dataclass
 import logging
 import threading
-from typing import Any, Callable, List
+from typing import Any, Callable
 from PyQt5 import QtGui, QtWidgets
 from eit_app.default.set_default_dir import AppStdDir, get_dir
 
@@ -37,6 +37,7 @@ from eit_model.imaging import (
 from eit_model.solver_pyeit import PyEitRecParams
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.flags.status import BaseStatus
+from glob_utils.unit.unit import eng
 
 
 logger = logging.getLogger(__name__)
@@ -309,7 +310,9 @@ class EvtDataSciospecDevSetup(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_freqs_list(ui: Ui_MainWindow, freqs: List[Any]) -> None:
+def update_freqs_list(ui: Ui_MainWindow, freqs: list[Any]) -> None:
+
+    freqs=[eng(f, "Hz") for f in freqs]
     set_comboBox_items(ui.cB_eit_imaging_ref_freq, list(freqs))
     set_comboBox_items(ui.cB_eit_imaging_meas_freq, list(freqs))
 
@@ -765,14 +768,12 @@ class EvtGlobalDirectoriesSet(EventDataClass):
     func: str = update_global_directories.__name__
 
 
-
 # -------------------------------------------------------------------------------
-## Update reconstruction parameters 
+## Update reconstruction parameters
 # -------------------------------------------------------------------------------
 
 
 def update_reconstruction_parameters(ui: Ui_MainWindow, preset: PyEitRecParams) -> None:
-
 
     _set_cB_rec_params(ui.cB_pyeit_reg_method, preset.method)
     _set_sBd_rec_params(ui.sBd_pyeit_p, preset.p)
@@ -781,20 +782,21 @@ def update_reconstruction_parameters(ui: Ui_MainWindow, preset: PyEitRecParams) 
     _set_sBd_rec_params(ui.sBd_pyeit_bckgrnd, preset.background)
     _set_cB_rec_params(ui.cB_pyeit_bp_weight_method, preset.weight)
 
-    
-def _set_cB_rec_params(cB:QtWidgets.QComboBox, val:Any):
+
+def _set_cB_rec_params(cB: QtWidgets.QComboBox, val: Any):
 
     if val is not None and isinstance(val, list):
         set_comboBox_items(cB, val)
-        cB.setEnabled(len(val)!=1)
+        cB.setEnabled(len(val) != 1)
     else:
         set_comboBox_items(cB, [""])
         cB.setEnabled(False)
 
-def _set_sBd_rec_params(sBd:QtWidgets.QDoubleSpinBox, val:Any):
-    
+
+def _set_sBd_rec_params(sBd: QtWidgets.QDoubleSpinBox, val: Any):
+
     if isinstance(val, int):
-        val=float(val)
+        val = float(val)
 
     if val is not None and isinstance(val, float):
         sBd.setValue(val)
