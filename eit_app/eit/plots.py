@@ -1,31 +1,33 @@
-from abc import ABC, abstractmethod
 import logging
+from abc import ABC, abstractmethod
 from queue import Queue
 from typing import Any
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+
 import matplotlib.pyplot
-from PyQt5.QtWidgets import QVBoxLayout
-from glob_utils.thread_process.threads_worker import Poller
-from matplotlib.figure import Figure
+from eit_app.com_channels import Data2Plot, SignalReciever
 from eit_model.data import EITData, EITImage, EITMeasMonitoring
 from eit_model.plot import (
     EITCustomPlots,
+    EITElemsDataPlot,
     EITImage2DPlot,
     EITUPlot,
     EITUPlotDiff,
     MeasErrorPlot,
-    EITElemsDataPlot,
 )
-from eit_app.com_channels import Data2Plot, SignalReciever
-from glob_utils.file.utils import FileExt,append_extension
+from glob_utils.file.utils import FileExt, append_extension
+from glob_utils.thread_process.threads_worker import Poller
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.figure import Figure
+from PyQt5.QtWidgets import QVBoxLayout
+
 logger = logging.getLogger(__name__)
 
 
 class Plotter(ABC):
 
-    _allowed_data_type: tuple= None
+    _allowed_data_type: tuple = None
     _plotting_func: EITCustomPlots = None
-    _tag:str= ""
+    _tag: str = ""
 
     def __init__(self) -> None:
         """Create a plotter which plot defined type of data using predefined
@@ -62,9 +64,10 @@ class Plotter(ABC):
     def _build(self, fig: Figure, data: Any, labels: dict):
         """Custom layout build of each custom Plotter"""
 
-    def get_saving_path(self, path:str, ext:FileExt=FileExt.png)->str:
-        """ return a fromated path"""
+    def get_saving_path(self, path: str, ext: FileExt = FileExt.png) -> str:
+        """return a fromated path"""
         return append_extension(f"{path}_{self._tag}", ext)
+
 
 class PlotterEITImage2D(Plotter):
     """Plot a 2D EIT image"""
@@ -79,6 +82,24 @@ class PlotterEITImage2D(Plotter):
         lab = labels.get(self._plotting_func.type)
         fig, ax = self._plotting_func.plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
+
+
+class PlotterEITImage2Greit(Plotter):
+    """Plot a 2D EIT image"""
+
+    def _post_init_(self):
+        self._allowed_data_type = EITImage
+        self._plotting_func: EITImage2DPlot = EITImage2DPlot()
+        self._tag = "EITImage2Greit"
+
+    def _build(self, fig: Figure, data: Any, labels: dict):
+        ax = fig.add_subplot(1, 1, 1)
+        lab = labels.get(self._plotting_func.type)
+        fig, ax = self._plotting_func.plot(
+            fig, ax, data, lab, colorbar_range=[-1, 1], cmap="turbo"
+        )
+        fig.set_tight_layout(True)
+
 
 class PlotterEITImageElemData(Plotter):
     """Plot a 2D EIT image"""
@@ -182,7 +203,7 @@ class CanvasLayout(object):
         self._layout = layout
         self._plotter = plotter()
         self._init_layout()
-        self._export_path=[]
+        self._export_path = []
 
     def _init_layout(self, **kwargs):
         """"""
@@ -217,12 +238,12 @@ class CanvasLayout(object):
         self._figure.clear()
         self._canvas.draw()
 
-    def add_export_path(self, path:str):
+    def add_export_path(self, path: str):
         logger.debug(f"{path}")
         self._export_path.append(path)
-    
-    def all_exported(self)->bool:
-        return len(self._export_path)==0
+
+    def all_exported(self) -> bool:
+        return len(self._export_path) == 0
 
     def auto_export(self):
         if self._export_path:
@@ -230,7 +251,7 @@ class CanvasLayout(object):
 
     def export_plot(self, path: str = "test") -> None:
         """"""
-        path= self._plotter.get_saving_path(path)
+        path = self._plotter.get_saving_path(path)
         logger.info(f"figure saved: {path}")
         self._figure.savefig(path)
 
@@ -243,7 +264,6 @@ class CanvasLayout(object):
         self._last_data = data
         self._canvas.draw()
         self.auto_export()
-
 
 
 class PlottingAgent(SignalReciever):
@@ -303,7 +323,6 @@ class PlottingAgent(SignalReciever):
         for cl in self._canvaslayout:
             if isinstance(cl._plotter, data.destination):
                 cl.plot(data)
-
 
 
 if __name__ == "__main__":

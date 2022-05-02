@@ -1,30 +1,23 @@
-from queue import Queue
 import logging
+from queue import Queue
 from typing import Any, Tuple, Union
-from eit_model.imaging import Imaging, IMAGING_TYPE, ChannelVoltageImaging
 
 import numpy as np
-from eit_app.eit.plots import (
-    PlotterChannelVoltageMonitoring,
-    PlotterEITChannelVoltage,
-    PlotterEITImage2D,
-    PlotterEITData,
-    PlotterEITImageElemData,
-)
-from glob_utils.thread_process.threads_worker import Poller
-from glob_utils.decorator.decorator import catch_error
-from eit_model.solver_abc import Solver, RecParams
-from eit_model.model import EITModel
-from eit_model.data import EITData, EITMeasMonitoring
-from eit_model.plot import EITPlotsType, CustomLabels
-from eit_app.com_channels import (
-    AddToGuiSignal,
-    AddToPlotSignal,
-    Data2Compute,
-    SignalReciever,
-    Data2Plot,
-)
+from eit_app.com_channels import (AddToGuiSignal, AddToPlotSignal,
+                                  Data2Compute, Data2Plot, SignalReciever)
+from eit_app.eit.plots import (PlotterChannelVoltageMonitoring,
+                               PlotterEITChannelVoltage, PlotterEITData,
+                               PlotterEITImage2D, PlotterEITImage2Greit,
+                               PlotterEITImageElemData)
 from eit_app.update_gui import EvtDataImagingInputsChanged
+from eit_model.data import EITData, EITMeasMonitoring
+from eit_model.greit import greit_filter
+from eit_model.imaging import IMAGING_TYPE, ChannelVoltageImaging, Imaging
+from eit_model.model import EITModel
+from eit_model.plot import CustomLabels, EITPlotsType
+from eit_model.solver_abc import RecParams, Solver
+from glob_utils.decorator.decorator import catch_error
+from glob_utils.thread_process.threads_worker import Poller
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +150,8 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         img_rec = self.solver.rec(eit_data)
         self.to_plot.emit(Data2Plot(img_rec, labels, PlotterEITImage2D))
         self.to_plot.emit(Data2Plot(img_rec, labels, PlotterEITImageElemData))
+        
+        self.to_plot.emit(Data2Plot(greit_filter(img_rec), labels, PlotterEITImage2Greit))
         logger.info(f"{self._actual_frame_name} - Image rec")
 
     def enable_rec(self, enable: bool = True):

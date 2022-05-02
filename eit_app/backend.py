@@ -6,6 +6,7 @@ import os
 import eit_model.imaging
 import eit_model.model
 import eit_model.pyvista_plot
+import eit_model.solver_ai
 import eit_model.solver_pyeit
 import glob_utils.dialog.Qt_dialogs
 import glob_utils.directory.utils
@@ -32,7 +33,6 @@ import eit_app.sciospec.measurement
 import eit_app.sciospec.replay
 import eit_app.video.capture
 import eit_app.video.microcam
-import eit_model.solver_ai
 from eit_app.default.set_default_dir import AppStdDir, get_dir
 from eit_app.export import ExportAgent, ExportFunc, ParamsToLoopOn
 from eit_app.gui_utils import set_comboBox_items
@@ -74,13 +74,22 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self._init_values()
 
         self.update_gui(EvtInitFormatUI())
+        self._debug_load()
+
+    def _debug_load(self):
+        try:
+            self.dataset.load(dir_path="E:\\Software_dev\\Python\\eit_app\\measurements\\reffish_0.1uA_1k_d100_20220301_152132 - Kopie")
+            self._init_rec()
+        except BaseException as e:
+            logger.error(f"{e}")
+
 
     def init_logging(self):
         glob_utils.log.log.change_level_logging(logging.DEBUG)
         start_msg = f"                          Start of EIT app : v{__version__}\n\
                           {__copyright__}"
         logger.info(glob_utils.log.msg_trans.highlight_msg(start_msg))
-
+    
     def eventFilter(self, source: QtCore.QObject, event: QtCore.QEvent) -> bool:
 
         # disable MouseWheel event on slider_replay
@@ -108,6 +117,11 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         )
         self.plot_agent.add_canvas(self.canvas_eit_elem_data)
 
+        self.canvas_greit = eit_app.eit.plots.CanvasLayout(
+            self, self.ui.layout_greit, eit_app.eit.plots.PlotterEITImage2Greit
+        )
+        self.plot_agent.add_canvas(self.canvas_greit)
+
         self.canvas_eit_data = eit_app.eit.plots.CanvasLayout(
             self, self.ui.layout_Uplot, eit_app.eit.plots.PlotterEITData
         )
@@ -134,7 +148,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             capture_dev=eit_app.video.microcam.MicroUSBCamera(),
             snapshot_dir=get_dir(AppStdDir.snapshot),
         )
-        self.export_agent= ExportAgent(self.replay_agent, self.dataset, self.ui)
+        self.export_agent = ExportAgent(self.replay_agent, self.dataset, self.ui)
 
     def _connect_menu(self):
         self.ui.action_exit.triggered.connect(self.close)
@@ -283,7 +297,6 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         )
         self.ui.pB_meas_dataset_load.clicked.connect(self.dataset.load)
         self.ui.pB_load_ref_dataset.clicked.connect(self._loadRef4TD)
-        
 
     def _signals_to_replay(self):
         self.ui.pB_replay_begin.clicked.connect(self.replay_agent.begin)
@@ -302,7 +315,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             self.replay_agent.set_actual_frame
         )
         self.ui.slider_replay.installEventFilter(self)
-    
+
     def _set_actual_frame(self):
         self.replay_agent.set_actual_frame(self.ui.cB_replay_frame_idx.currentIndex())
 
@@ -438,9 +451,9 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 enable_func=self.ui.chB_export_loop_on_frame.isChecked,
                 export_val_in_filename=True,
                 combobox=self.ui.cB_replay_frame_idx,
-                func_set= self._set_actual_frame,
+                func_set=self._set_actual_frame,
                 tag="frm",
-                block=True
+                block=True,
             )
         )
 
@@ -449,7 +462,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 enable_func=self.ui.chB_export_loop_on_meas_frequency.isChecked,
                 export_val_in_filename=True,
                 combobox=self.ui.cB_eit_imaging_meas_freq,
-                func_set= self._imaging_changed,
+                func_set=self._imaging_changed,
                 tag="",
             )
         )
@@ -459,7 +472,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 enable_func=self.ui.chB_export_loop_on_imaging_trans.isChecked,
                 export_val_in_filename=True,
                 combobox=self.ui.cB_eit_imaging_trans,
-                func_set= self._imaging_changed,
+                func_set=self._imaging_changed,
                 tag="",
             )
         )
@@ -565,9 +578,9 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 weight=self.ui.cB_pyeit_bp_weight_method.currentText(),
             ),
             1: eit_model.solver_ai.AiRecParams(
-                model_dirpath='',
+                model_dirpath="",
                 normalize=self.ui.chB_eit_mdl_normalize.isChecked(),
-            )
+            ),
         }
         self.eit_mdl.set_refinement(self.ui.sBd_eit_model_fem_refinement.value())
         return params[rec_type]
