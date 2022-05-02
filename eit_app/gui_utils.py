@@ -95,6 +95,99 @@ def set_QTableWidget(
         table.clearContents()
 
 
+def set_comboBox_items(
+    comboBox: QComboBox,
+    items: list[Any] = None,
+    reset_box: bool = True,
+    init_index: int = 0,
+    block: bool = True,
+) -> None:
+    """Set items of a comboBox
+
+    Args:
+        comboBox (QComboBox):comboBox to set
+        items (list[Any], optional): new items list to set if reste_box is
+        `True`, otherwsie the list will be append to the existing one.
+        Defaults to None.
+        reset_box (bool, optional): clear the list of items before adding new items. Defaults to True.
+        init_index (int, optional): set default item index . Defaults to 0.
+        block (bool, optional): block signal emitted (e.g. activated, ...)
+        from the comboBox during new setting. Defaults to `True`.
+    """
+
+    comboBox.blockSignals(block)
+
+    if reset_box:
+        comboBox.clear()
+
+    if items is not None:
+        if not items:
+            logger.error("could not set combobox: ", comboBox.objectName)
+        elif len(items) == 1:
+            comboBox.addItem(str(items[0]))
+        else:
+            comboBox.addItems([str(item) for item in items])
+
+    set_comboBox_index(comboBox, init_index)
+
+    comboBox.blockSignals(False)
+
+
+def get_comboBox_allItemsText(comboBox: QComboBox) -> list[str]:
+    """Set the actual item index of a comboBox/DropdownMenu
+
+    Args:
+        comboBox (QComboBox): comboBox to set
+        index (int, optional): item index val to set. Defaults to 0.
+        block (bool, optional): block signal emitted (e.g. activated, ...)
+        from the comboBox during new setting. Defaults to `True`.
+    """
+
+    return [comboBox.itemText(i) for i in range(comboBox.count())]
+
+
+def get_comboBox_allItemsIndex(comboBox: QComboBox) -> list[str]:
+    """Set the actual item index of a comboBox/DropdownMenu
+
+    Args:
+        comboBox (QComboBox): comboBox to set
+        index (int, optional): item index val to set. Defaults to 0.
+        block (bool, optional): block signal emitted (e.g. activated, ...)
+        from the comboBox during new setting. Defaults to `True`.
+    """
+
+    return [i for i in range(comboBox.count())]
+
+
+def set_QTableWidget(
+    table: QTableWidget, mat: list[list[float]], decimal: int = 4
+) -> None:
+    """Set a table with float values
+
+    Args:
+        tableWidget (QTableWidget): table to set
+        val (list[list[float]]): values / matrix
+        decimal (int, optional): number of decimal digit to display.
+        Defaults to 4.
+    """
+
+    mat = np.array(mat)
+    if np.prod(mat.shape) > 1:
+        numrows = len(mat)  # 6 rows in your example
+        numcols = len(mat[0])  # 3 columns in your example
+        table.setColumnCount(numcols)  # Set colums and rows in QTableWidget
+        table.setRowCount(numrows)
+        for row, column in itertools.product(range(numrows), range(numcols)):
+            val = f"{mat[row][column]:.{decimal}f}"
+            table.setItem(
+                row,
+                column,
+                QTableWidgetItem(val),
+            )
+    else:
+        table.clearContents()
+
+
 def set_QSlider_scale(slider: QSlider, nb_pos: int = 10) -> None:
     """Set scale of Qslider
 
