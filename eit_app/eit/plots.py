@@ -16,14 +16,15 @@ from eit_model.plot import (
     MeasErrorPlot,
 )
 from eit_app.com_channels import Data2Plot, SignalReciever
-
+from glob_utils.file.utils import FileExt,append_extension
 logger = logging.getLogger(__name__)
 
 
 class Plotter(ABC):
 
-    _allowed_data_type: tuple = ()
+    _allowed_data_type: tuple= None
     _plotting_func: EITCustomPlots = None
+    _tag:str= ""
 
     def __init__(self) -> None:
         """Create a plotter which plot defined type of data using predefined
@@ -60,6 +61,9 @@ class Plotter(ABC):
     def _build(self, fig: Figure, data: Any, labels: dict):
         """Custom layout build of each custom Plotter"""
 
+    def get_saving_path(self, path:str, ext:FileExt=FileExt.png)->str:
+        """ return a fromated path"""
+        return append_extension(f"{path}_{self._tag}", ext)
 
 class PlotterEITImage2D(Plotter):
     """Plot a 2D EIT image"""
@@ -67,6 +71,7 @@ class PlotterEITImage2D(Plotter):
     def _post_init_(self):
         self._allowed_data_type = EITImage
         self._plotting_func = EITImage2DPlot()
+        self._tag = "EITImage2D"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
@@ -84,6 +89,7 @@ class PlotterEITData(Plotter):
     def _post_init_(self):
         self._allowed_data_type = EITData
         self._plotting_func = [EITUPlot(), EITUPlotDiff()]
+        self._tag = "EITData"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = [fig.add_subplot(2, 1, 1), fig.add_subplot(2, 1, 2)]
@@ -102,6 +108,7 @@ class PlotterEITChannelVoltage(Plotter):
     def _post_init_(self):
         self._allowed_data_type = EITData
         self._plotting_func = [EITUPlot()]
+        self._tag = "EITChannelVoltage"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
@@ -116,6 +123,7 @@ class PlotterChannelVoltageMonitoring(Plotter):
     def _post_init_(self):
         self._allowed_data_type = EITMeasMonitoring
         self._plotting_func = [MeasErrorPlot()]
+        self._tag = "ChannelVoltageMonitoring"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
@@ -126,7 +134,7 @@ class PlotterChannelVoltageMonitoring(Plotter):
 
 class CanvasLayout(object):
 
-    _figure = None
+    _figure: Figure = None
     _canvas = None
     _toolbar = None
     _plotter: Plotter = None
@@ -159,11 +167,12 @@ class CanvasLayout(object):
         self._layout = layout
         self._plotter = plotter()
         self._init_layout()
+        self._export_path=[]
 
     def _init_layout(self, **kwargs):
         """"""
         dpi = kwargs.pop("dpi", 100)
-        self._figure = matplotlib.pyplot.figure(dpi=dpi)
+        self._figure: Figure = matplotlib.pyplot.figure(dpi=dpi)
         self._canvas = FigureCanvasQTAgg(self._figure)
         self._toolbar = NavigationToolbar2QT(self._canvas, self._gui)
         self._layout.addWidget(self._toolbar)
@@ -193,6 +202,23 @@ class CanvasLayout(object):
         self._figure.clear()
         self._canvas.draw()
 
+    def add_export_path(self, path:str):
+        logger.debug(f"{path}")
+        self._export_path.append(path)
+    
+    def all_exported(self)->bool:
+        return len(self._export_path)==0
+
+    def auto_export(self):
+        if self._export_path:
+            self.export_plot(self._export_path.pop(0))
+
+    def export_plot(self, path: str = "test") -> None:
+        """"""
+        path= self._plotter.get_saving_path(path)
+        logger.info(f"figure saved: {path}")
+        self._figure.savefig(path)
+
     def plot(self, data: Data2Plot):
         """Plot the data in Make the Canvas visible or insisible"""
         if not self._visible:
@@ -201,6 +227,8 @@ class CanvasLayout(object):
         self._plotter.build(self._figure, data)
         self._last_data = data
         self._canvas.draw()
+        self.auto_export()
+
 
 
 class PlottingAgent(SignalReciever):
@@ -260,6 +288,7 @@ class PlottingAgent(SignalReciever):
         for cl in self._canvaslayout:
             if isinstance(cl._plotter, data.destination):
                 cl.plot(data)
+
 
 
 if __name__ == "__main__":
