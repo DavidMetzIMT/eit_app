@@ -875,15 +875,15 @@
         <item>
          <widget class="QToolBox" name="toolBox">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="Acquisition">
            <property name="geometry">
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>406</width>
-             <height>169</height>
+             <width>331</width>
+             <height>123</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1045,8 +1045,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>307</width>
-             <height>242</height>
+             <width>406</width>
+             <height>287</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1626,6 +1626,19 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="chB_eit_mdl_normalize">
+             <property name="layoutDirection">
+              <enum>Qt::LeftToRight</enum>
+             </property>
+             <property name="inputMethodHints">
+              <set>Qt::ImhSensitiveData</set>
+             </property>
+             <property name="text">
+              <string>Normalize</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QTabWidget" name="tabW_reconstruction">
              <property name="currentIndex">
               <number>0</number>
@@ -1641,19 +1654,6 @@ p, li { white-space: pre-wrap; }
                   <string>Reconstruction parameters</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_6">
-                  <item>
-                   <widget class="QCheckBox" name="chB_eit_mdl_normalize">
-                    <property name="layoutDirection">
-                     <enum>Qt::LeftToRight</enum>
-                    </property>
-                    <property name="inputMethodHints">
-                     <set>Qt::ImhSensitiveData</set>
-                    </property>
-                    <property name="text">
-                     <string>Normalize</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item>
                    <layout class="QFormLayout" name="formLayout">
                     <item row="0" column="0">
@@ -1812,8 +1812,8 @@ p, li { white-space: pre-wrap; }
           <property name="title">
            <string>Imaging type</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_10">
+           <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout">
              <property name="verticalSpacing">
               <number>2</number>
@@ -1917,7 +1917,7 @@ p, li { white-space: pre-wrap; }
              </item>
             </layout>
            </item>
-           <item>
+           <item row="1" column="0">
             <layout class="QVBoxLayout" name="verticalLayout_15">
              <item>
               <widget class="QComboBox" name="cB_eit_imaging_trans">
@@ -1953,11 +1953,11 @@ p, li { white-space: pre-wrap; }
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_3">
+      <widget class="QWidget" name="tab_plot_settings">
        <attribute name="title">
         <string>Plot settings</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_23">
+       <layout class="QVBoxLayout" name="verticalLayout_23" stretch="0,0,0,0">
         <item>
          <widget class="QPushButton" name="pB_pyvista">
           <property name="statusTip">
@@ -2082,6 +2082,19 @@ p, li { white-space: pre-wrap; }
            </item>
           </layout>
          </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
@@ -2277,7 +2290,7 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="QTabWidget" name="tabW_rec">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="tab_5">
          <attribute name="title">
@@ -2293,12 +2306,26 @@ p, li { white-space: pre-wrap; }
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="tab_3">
+         <attribute name="title">
+          <string>Elements data</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_24">
+          <item>
+           <layout class="QVBoxLayout" name="layout_elem_data">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetFixedSize</enum>
+            </property>
+           </layout>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </item>
       <item>
        <widget class="QTabWidget" name="tabW_monitoring">
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab">
          <attribute name="title">
@@ -2370,7 +2397,7 @@ p, li { white-space: pre-wrap; }
       <property name="title">
        <string>Video</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_9" stretch="0,0,0,0,0,0,0,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout_9" stretch="0,0,0,0,0,0,0,0,0,0">
        <item>
         <widget class="QComboBox" name="cB_capture_devices">
          <property name="sizePolicy">
@@ -2679,6 +2706,82 @@ p, li { white-space: pre-wrap; }
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_11">
+         <property name="title">
+          <string>Export frame plots</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="0" column="2">
+           <widget class="QPushButton" name="pB_export_frame_plots">
+            <property name="text">
+             <string>Export</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QGroupBox" name="groupBox_13">
+            <property name="title">
+             <string>Export</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
+             <item>
+              <widget class="QCheckBox" name="chB_export_eit_image">
+               <property name="text">
+                <string>EIT image</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chB_export_eit_data">
+               <property name="text">
+                <string>EIT Data</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chB_export_ch_voltages">
+               <property name="text">
+                <string>Channel voltages</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QGroupBox" name="groupBox_12">
+            <property name="title">
+             <string>Loop on</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_17">
+             <item>
+              <widget class="QCheckBox" name="chB_export_loop_on_frame">
+               <property name="text">
+                <string>Frame</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chB_export_loop_on_meas_frequency">
+               <property name="text">
+                <string>Meas. frequency</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chB_export_loop_on_imaging_trans">
+               <property name="text">
+                <string>Imaging trans</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
        <item>
         <layout class="QFormLayout" name="formLayout_3">

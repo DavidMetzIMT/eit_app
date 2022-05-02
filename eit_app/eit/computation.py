@@ -9,6 +9,7 @@ from eit_app.eit.plots import (
     PlotterEITChannelVoltage,
     PlotterEITImage2D,
     PlotterEITData,
+    PlotterEITImageElemData,
 )
 from glob_utils.thread_process.threads_worker import Poller
 from glob_utils.decorator.decorator import catch_error
@@ -138,6 +139,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         self.to_plot.emit(
             Data2Plot(self.monitoring_data, ch_labels, PlotterChannelVoltageMonitoring)
         )
+        logger.info(f"{self._actual_frame_name} - Voltages Monitoring preproccessed")
 
     def _rec_image(self, eit_data: EITData, labels: dict[EITPlotsType, CustomLabels]):
         """Reconstruct EIT image
@@ -154,7 +156,8 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             return
         img_rec = self.solver.rec(eit_data)
         self.to_plot.emit(Data2Plot(img_rec, labels, PlotterEITImage2D))
-        logger.info(f"Frame #{self._actual_frame_name} - Image rec")
+        self.to_plot.emit(Data2Plot(img_rec, labels, PlotterEITImageElemData))
+        logger.info(f"{self._actual_frame_name} - Image rec")
 
     def enable_rec(self, enable: bool = True):
         """Enable the EIT image reconstruction. if set to `False` only

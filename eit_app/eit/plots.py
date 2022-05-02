@@ -14,6 +14,7 @@ from eit_model.plot import (
     EITUPlot,
     EITUPlotDiff,
     MeasErrorPlot,
+    EITElemsDataPlot,
 )
 from eit_app.com_channels import Data2Plot, SignalReciever
 from glob_utils.file.utils import FileExt,append_extension
@@ -79,6 +80,20 @@ class PlotterEITImage2D(Plotter):
         fig, ax = self._plotting_func.plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
+class PlotterEITImageElemData(Plotter):
+    """Plot a 2D EIT image"""
+
+    def _post_init_(self):
+        self._allowed_data_type = EITImage
+        self._plotting_func = EITElemsDataPlot()
+        self._tag = "EITImageElemData"
+
+    def _build(self, fig: Figure, data: Any, labels: dict):
+        ax = fig.add_subplot(1, 1, 1)
+        lab = labels.get(self._plotting_func.type)
+        fig, ax = self._plotting_func.plot(fig, ax, data, lab)
+        fig.set_tight_layout(True)
+
 
 class PlotterEITData(Plotter):
     """Plots the EIT reconstruction data.
@@ -107,13 +122,13 @@ class PlotterEITChannelVoltage(Plotter):
 
     def _post_init_(self):
         self._allowed_data_type = EITData
-        self._plotting_func = [EITUPlot()]
+        self._plotting_func = EITUPlot()
         self._tag = "EITChannelVoltage"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
-        lab = labels.get(self._plotting_func[0].type)
-        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
+        lab = labels.get(self._plotting_func.type)
+        fig, ax = self._plotting_func.plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
 
@@ -122,12 +137,12 @@ class PlotterChannelVoltageMonitoring(Plotter):
 
     def _post_init_(self):
         self._allowed_data_type = EITMeasMonitoring
-        self._plotting_func = [MeasErrorPlot()]
+        self._plotting_func = MeasErrorPlot()
         self._tag = "ChannelVoltageMonitoring"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
-        lab = labels.get(self._plotting_func[0].type)
+        lab = labels.get(self._plotting_func.type)
         # fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
