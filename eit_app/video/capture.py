@@ -74,6 +74,10 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.snapshot_dir = snapshot_dir
         self.image_path = ""
         self._last_frame = EMPTY_FRAME
+        self.mirror={
+            "horizontal":False,
+            "vertical":False,
+        }
 
         self.image_size = IMAGE_SIZES[list(IMAGE_SIZES.keys())[0]]
         self.image_file_ext = IMAGE_FILE_FORMAT[list(IMAGE_FILE_FORMAT.keys())[0]]
@@ -92,6 +96,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             return
         image = self.capture_device.get_Qimage(frame)
         # logger.debug("video image emitted")
+        image = image.mirrored(self.mirror["horizontal"], self.mirror["vertical"])
         self.to_gui.emit(
             EvtDataCaptureImageChanged(
                 image=image.scaled(self.image_size[0], self.image_size[1]),
@@ -109,6 +114,11 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             CaptureStatus.CONNECTED
         ):
             self.emit_new_Qtimage(EMPTY_FRAME)
+    
+    def set_mirror(self, val:bool, h_v:str='h'):
+        if h_v not in list(self.mirror.keys()):
+            raise ValueError(f"{h_v=} schould one of these val: {list(self.mirror.keys())}")
+        self.mirror[h_v]=val 
 
     def set_status_w_meas(self, data: DataSetStatusWMeas):
         """Set internal mode depending on the measuring status of

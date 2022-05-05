@@ -274,8 +274,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>406</width>
-             <height>546</height>
+             <width>400</width>
+             <height>487</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1045,8 +1045,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>406</width>
-             <height>287</height>
+             <width>307</width>
+             <height>242</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2407,7 +2407,7 @@ p, li { white-space: pre-wrap; }
       <property name="title">
        <string>Video</string>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_9" stretch="0,0,0,0,0,0,0,0,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout_9" stretch="0,0,0,0,0,0,0,0,0,0,0">
        <item>
         <widget class="QComboBox" name="cB_capture_devices">
          <property name="sizePolicy">
@@ -2696,6 +2696,24 @@ p, li { white-space: pre-wrap; }
            </property>
            <property name="currentText">
             <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_18">
+         <item>
+          <widget class="QCheckBox" name="chB_capture_img_mirror_h">
+           <property name="text">
+            <string>Mirror horizontal</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="chB_capture_img_mirror_v">
+           <property name="text">
+            <string>Mirror vertical</string>
            </property>
           </widget>
          </item>

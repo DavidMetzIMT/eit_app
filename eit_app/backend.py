@@ -502,6 +502,12 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.cB_capture_img_file_ext.activated[str].connect(
             self.capture_agent.set_image_file_format
         )
+        self.ui.chB_capture_img_mirror_h.toggled[bool].connect(
+            lambda val: self.capture_agent.set_mirror(val, "horizontal")
+        )
+        self.ui.chB_capture_img_mirror_v.toggled[bool].connect(
+            lambda val: self.capture_agent.set_mirror(val, "vertical")
+        )
 
     # def _set_capture_device(self, *args, **kwargs) -> None:
     #     self.capture_agent.set_image_size(self.ui.cB_capture_img_size.currentText())
