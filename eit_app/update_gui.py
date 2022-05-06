@@ -573,11 +573,11 @@ def update_progress_acquired_frame(
     """
     Update the progression bar and the idx of the aquired frame
     """
-    logger.debug("update_progress_acquired_frame-in")
+    # logger.debug("update_progress_acquired_frame-in")
     if idx_frame is not None:
         ui.sB_actual_frame_cnt.setValue(idx_frame)
     ui.meas_progress_bar.setValue(progression)
-    logger.debug("update_progress_acquired_frame-ou")
+    # logger.debug("update_progress_acquired_frame-ou")
 
 
 register_func_in_catalog(update_progress_acquired_frame)

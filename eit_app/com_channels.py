@@ -329,9 +329,9 @@ class AddUpdateAgent(SignalReciever):
         updating the gui"""
         super().__init__()
         self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
-        self._data_buffer = Queue(maxsize=256)  # TODO maybe
+        self._data_buffer = Queue(maxsize=2048)  # TODO maybe
         self._update_agent = UpdateAgent(self, UPDATE_EVENTS)
-        self._worker = CustomWorker(name="update_gui", sleeptime=0.05)
+        self._worker = CustomWorker(name="update_gui", sleeptime=0.01)
         self._worker.progress.connect(self._process_data_for_update)
         self._worker.start()
         self._worker.start_polling()
@@ -369,9 +369,9 @@ class AddUpdateUiAgent(SignalReciever):
         updating the gui"""
         super().__init__()
         self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
-        self._data_buffer = Queue(maxsize=256)  # TODO maybe
+        self._data_buffer = Queue(maxsize=2048)  # TODO maybe
         self._update_agent = None
-        self._worker = CustomWorker(name="update_gui", sleeptime=0.05)
+        self._worker = CustomWorker(name="update_gui", sleeptime=0.01)
         self._worker.progress.connect(self._process_data_for_update)
         self._worker.start()
         self._worker.start_polling()

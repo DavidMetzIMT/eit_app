@@ -94,7 +94,7 @@ class SciospecCommunicator:  # TODO >> AddStatus
 
     def __init__(self) -> None:
         """Constructor"""
-        self.rx_frame = Queue(maxsize=256)
+        self.rx_frame = Queue(maxsize=2048)
         self.processor = Poller(
             name="process_rx_frame",
             pollfunc=self._process_last_rx_frame,
@@ -134,10 +134,10 @@ class SciospecCommunicator:  # TODO >> AddStatus
 
     def processing_meas_enable(self, cmd: SciospecCmd, op: SciospecOption):
         """Activate or deactivate the processing of measuremnet frame"""
-        if is_start_meas(cmd, op):
-            self.process_meas_enabled.set()
-        elif is_stop_meas(cmd, op):
-            self.process_meas_enabled.clear()
+        # if is_start_meas(cmd, op):
+        self.process_meas_enabled.set(not is_stop_meas(cmd, op))
+        # elif is_stop_meas(cmd, op):
+        #     self.process_meas_enabled.clear()
 
     ## =======================================================================
     ##  Sending of command cmd_frame
@@ -227,8 +227,8 @@ class SciospecCommunicator:  # TODO >> AddStatus
     def _process_rx_meas(self, rx_frame: list[bytes]) -> None:
         """Treat the recieved MEASURING frame
         - process of the frame"""
-        logger.debug(f"RX_MEAS: {rx_frame[:10]}")
         if self.process_meas_enabled.is_set():
+            logger.debug(f"RX_MEAS: {rx_frame[:10]}")
             self._emit_rx_frame(rx_frame)
 
     def _process_rx_resp(self, rx_frame: list[bytes]) -> None:
@@ -294,11 +294,11 @@ class SciospecCommunicator:  # TODO >> AddStatus
 
         if cmd_tag == CMD_START_STOP_MEAS.tag:  # a measurement frame
             kwargs = {"rx_meas_stream": rx_frame}
-            logger.debug(f"RX_MEAS: {rx_frame} -  EMITTED")
+            logger.debug(f"RX_MEAS: {rx_frame[:10]} -  EMITTED")
             self.new_rx_meas_stream.emit(**kwargs)
         else:  # a setup frame
             kwargs = {"rx_setup_stream": rx_frame}
-            logger.debug(f"RX_RESPONSE: {rx_frame} -  EMITTED")
+            logger.debug(f"RX_RESPONSE: {rx_frame[:10]} -  EMITTED")
             self.new_rx_setup_stream.emit(**kwargs)
 
     def _update_status(self):
