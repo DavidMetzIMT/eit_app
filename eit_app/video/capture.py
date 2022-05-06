@@ -118,7 +118,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
     def set_mirror(self, val:bool, h_v:str='h'):
         if h_v not in list(self.mirror.keys()):
             raise ValueError(f"{h_v=} schould one of these val: {list(self.mirror.keys())}")
-        self.mirror[h_v]=val 
+        self.mirror[h_v]=val
+        self.emit_new_Qtimage(self._last_frame)
 
     def set_status_w_meas(self, data: DataSetStatusWMeas):
         """Set internal mode depending on the measuring status of
