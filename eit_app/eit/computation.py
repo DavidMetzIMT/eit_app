@@ -54,6 +54,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         self.solver: Solver = None
         self.rec_enable = False
         self.params = None
+        self.last_eit_data: EITData= None
         self.reset_monitoring_data()
 
     def add_data2compute(self, data: Data2Compute = None, **kwargs):
@@ -114,7 +115,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             v_ref=data.v_ref, v_meas=data.v_meas, eit_model=self.eit_model
         )
         self.to_plot.emit(Data2Plot(eit_data, plot_labels, PlotterEITData))
-
+        self.last_eit_data= eit_data
         logger.info(f"{self._actual_frame_name} - Voltages preproccessed")
         return eit_data, plot_labels
 

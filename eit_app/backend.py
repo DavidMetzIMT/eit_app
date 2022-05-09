@@ -11,6 +11,7 @@ import eit_model.solver_pyeit
 import glob_utils.dialog.Qt_dialogs
 import glob_utils.directory.utils
 import glob_utils.file.csv_utils
+import glob_utils.file.mat_utils
 import glob_utils.log.log
 import glob_utils.log.msg_trans
 import matplotlib
@@ -384,7 +385,13 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
 
     def _export_data_meas_vs_eidors(self) -> None:
         """export the actual raw data in csv from"""
-        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
+        # glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
+        # vref = self.dataset._get_vref()
+        # vmeas = self.dataset._get_vmeas()
+        file_path = 'test'
+        data = {'X_h': self.computing.last_eit_data.ref_frame,'X_ih': self.computing.last_eit_data.frame }
+        glob_utils.file.mat_utils.save_as_mat(file_path, data)
+
         # frame, freq = (
         #     self.ui.slider_replay.sliderPosition(),
         #     self.ui.cB_freq_meas_0.currentIndex(),
