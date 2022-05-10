@@ -64,7 +64,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_device">
        <attribute name="title">
@@ -274,8 +274,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>400</width>
-             <height>487</height>
+             <width>406</width>
+             <height>546</height>
             </rect>
            </property>
            <attribute name="label">
@@ -1045,8 +1045,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>307</width>
-             <height>242</height>
+             <width>406</width>
+             <height>287</height>
             </rect>
            </property>
            <attribute name="label">
@@ -2757,21 +2757,28 @@ p, li { white-space: pre-wrap; }
              <item>
               <widget class="QCheckBox" name="chB_export_eit_image">
                <property name="text">
-                <string>EIT image</string>
+                <string>EIT image (img)</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QCheckBox" name="chB_export_eit_data">
                <property name="text">
-                <string>EIT Data</string>
+                <string>EIT Data (img)</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QCheckBox" name="chB_export_ch_voltages">
                <property name="text">
-                <string>Channel voltages</string>
+                <string>Channel voltages (img)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="chB_export_eit_data_mat">
+               <property name="text">
+                <string>EIT Data to *.mat</string>
                </property>
               </widget>
              </item>

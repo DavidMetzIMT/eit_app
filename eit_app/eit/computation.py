@@ -18,6 +18,7 @@ from eit_model.plot import CustomLabels, EITPlotsType
 from eit_model.solver_abc import RecParams, Solver
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.thread_process.threads_worker import Poller
+import glob_utils.file.mat_utils
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         self.rec_enable = False
         self.params = None
         self.last_eit_data: EITData= None
+        self._data_exported=False
         self.reset_monitoring_data()
 
     def add_data2compute(self, data: Data2Compute = None, **kwargs):
@@ -186,7 +188,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             raise TypeError("eit_model should be EITModel")
         self.eit_model = eit_model
 
-    def set_solver(self, solver: Solver, eit_model: EITModel):
+    def set_solver(self, solver: Solver, eit_model: EITModel)->None:
         """Create reconstruction solver"""
         self.set_eit_model(eit_model)
         if not issubclass(solver, Solver):
@@ -207,6 +209,16 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
     def reset_monitoring_data(self):
         """Clear the Eit monitoring data for visualization"""
         self.monitoring_data = EITMeasMonitoring()
+    
+    def export_eit_data(self, path):
+        self._data_exported=False
+        data = {'X_h': self.last_eit_data.ref_frame,'X_ih': self.last_eit_data.frame }
+        path= f"{path}"
+        glob_utils.file.mat_utils.save_as_mat(path, data)
+        self._data_exported=True
+        
+    def exported(self)->bool:
+        return self._data_exported
 
 
 if __name__ == "__main__":

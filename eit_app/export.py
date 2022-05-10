@@ -30,7 +30,7 @@ class RepeatTimer(Timer):
 class ExportFunc:
     enable_func:Callable
     func:Callable # should acccept only a path to export data
-    is_exported:Callable
+    is_exported:Callable # should return a bool about the status of the export
     before_compute:bool= True # determine if the func is called after the computation
 
     def run(self, *args, **kwargs):

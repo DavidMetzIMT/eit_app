@@ -75,7 +75,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self._init_values()
 
         self.update_gui(EvtInitFormatUI())
-        self._debug_load()
+        # self._debug_load()
 
     def _debug_load(self):
         try:
@@ -385,12 +385,12 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
 
     def _export_data_meas_vs_eidors(self) -> None:
         """export the actual raw data in csv from"""
-        # glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
+        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
         # vref = self.dataset._get_vref()
         # vmeas = self.dataset._get_vmeas()
-        file_path = 'test'
-        data = {'X_h': self.computing.last_eit_data.ref_frame,'X_ih': self.computing.last_eit_data.frame }
-        glob_utils.file.mat_utils.save_as_mat(file_path, data)
+        # file_path = 'test'
+        # data = {'X_h': self.computing.last_eit_data.ref_frame,'X_ih': self.computing.last_eit_data.frame }
+        # glob_utils.file.mat_utils.save_as_mat(file_path, data)
 
         # frame, freq = (
         #     self.ui.slider_replay.sliderPosition(),
@@ -449,6 +449,15 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 enable_func=self.ui.chB_export_ch_voltages.isChecked,
                 func=self.canvas_Uch.add_export_path,
                 is_exported=self.canvas_Uch.all_exported,
+                before_compute=True,
+            )
+        )
+
+        self.export_agent.add_export(
+            ExportFunc(
+                enable_func=self.ui.chB_export_eit_data_mat.isChecked,
+                func=self.computing.export_eit_data,
+                is_exported=self.computing.exported,
                 before_compute=True,
             )
         )
