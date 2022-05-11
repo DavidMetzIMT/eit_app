@@ -157,8 +157,9 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             self.reset_to_last_status()
 
     def add_path(self, data: DataSaveLoadImage, **kwargs) -> None:
-        self._buffer_in.put(data.frame_path)
-        logger.info(f"Capture frame path added: {data.frame_path}")
+        if (path := self._check_frame_path_exist(data.frame_path)) is not None:
+            self._buffer_in.put(path)
+            logger.info(f"Image to load: {path} - ADDED")
 
     def get_devices(self) -> None:
         """Return a list of the name of the availbale devices
@@ -265,7 +266,6 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         if self._buffer_in.empty():
             return
         path = self._buffer_in.get()
-        logger.info("replay loading image")
         frame = self.load_image(path)
         if not self.is_status(CaptureStatus.REPLAY_AUTO):
             self.set_status(CaptureStatus.REPLAY_MAN)
@@ -326,21 +326,17 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
             np.ndarray: loaded image frame
         """
         if path is None:
-            return None, None
+            return None
+        #avoid loading of same image frame
+        if append_extension(path, None) in self.image_path:
+            return self._last_frame # or None
 
-        filepath = None
-        for ext in list(IMAGE_FILE_FORMAT.values()):
-            filepath = append_extension(path, ext)
-            if is_file(filepath):
-                break
-        if filepath is None:
-            return None, None
-        frame = self.capture_device.load_frame(filepath)
-        self.image_path = filepath
-        logger.debug(f'\nImage "{path}" - Loaded')
+        frame = self.capture_device.load_frame(path)
+        self.image_path = path
+        logger.info(f'Image "{self.image_path}" - LOADED')
         return frame
 
-    def save_image(self, frame: np.ndarray, filepath: str):
+    def save_image(self, frame: np.ndarray, filepath: str)->None:
         """Save an image frame
 
         Args:
@@ -349,7 +345,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         """
         if filepath is None or frame is None:
             return
-        logger.debug(f"Image saved in {filepath}")
+        logger.info(f'Image "{filepath}" - SAVED')
         filepath = append_extension(filepath, self.image_file_ext)
         self.capture_device.save_frame(frame, filepath)
         self.image_path = filepath
@@ -359,6 +355,22 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
 
     def used_img_sizes(self) -> list[str]:
         return list(IMAGE_SIZES.keys())
+
+    def _check_frame_path_exist(self, path:str=None)->str:
+
+        if path is None:
+            return None
+
+        filepath = None
+        for ext in list(IMAGE_FILE_FORMAT.values()):
+            filepath = append_extension(path, ext)
+            if is_file(filepath):
+                break
+        
+        if filepath is None:
+            return None
+
+        return filepath
 
 
 def convert_frame_to_Qt_format(frame: np.ndarray) -> QImage:
