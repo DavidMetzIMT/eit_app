@@ -567,6 +567,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.pB_set_reconstruction.clicked.connect(self._init_rec)
         self.ui.pB_compute.clicked.connect(self.replay_agent.compute_actual_frame)
         self.ui.cB_pyeit_solver.activated[str].connect(self._update_rec_params)
+        self.ui.pB_activate_calibration.clicked[bool].connect(self.computing.enable_calibration)
 
         # self.ui.chB_eit_mdl_normalize.toggled.connect(self._get_solvers_params)
         # self.ui.sBd_eit_model_fem_refinement.valueChanged.connect(self._get_solvers_params)

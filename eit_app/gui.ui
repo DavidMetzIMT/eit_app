@@ -64,7 +64,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_device">
        <attribute name="title">
@@ -1066,6 +1066,9 @@
                 <property name="text">
                  <string>Load measurements</string>
                 </property>
+                <property name="default">
+                 <bool>false</bool>
+                </property>
                </widget>
               </item>
               <item>
@@ -1510,6 +1513,22 @@ p, li { white-space: pre-wrap; }
           </property>
           <property name="shortcut">
            <string>Esc</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pB_activate_calibration">
+          <property name="text">
+           <string>Activate calibration</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoDefault">
+           <bool>false</bool>
+          </property>
+          <property name="default">
+           <bool>false</bool>
           </property>
          </widget>
         </item>

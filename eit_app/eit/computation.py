@@ -58,6 +58,8 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         self.last_eit_data: EITData= None
         self._data_exported=False
         self.reset_monitoring_data()
+        self.calibration:np.ndarray= None # diag matrix shape (n_exc,n_exc) with calibration coef
+        self._enable_calibration= False
 
     def add_data2compute(self, data: Data2Compute = None, **kwargs):
         """Put the data in the input buffer
@@ -84,6 +86,33 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             data = self.input_buf.get()
         self.process(data)
 
+    def enable_calibration(self, val:bool=True):
+        self._enable_calibration= val
+        self.calibration= None
+
+    def compute_calibration(self, data: Data2Compute):
+        if not self._enable_calibration: 
+            return
+
+
+        v=self.eit_imaging.transformer.run(data.v_ref.volt, False)
+        v_exc_max= np.max(v, axis=1)
+        v_max= max(v_exc_max)
+        coef=np.reciprocal(v_exc_max.astype(float))*v_max
+        self.calibration=np.diag(coef)
+
+        title= 'Calibration result'
+        msg=f'\
+Calibration done\n\
+method : coef(exc)= max(v)/max(v(exc,:))\n\r\
+v from {data.v_ref.labels.lab_frame_idx},{data.v_ref.labels.lab_frame_freq}\n\
+and transformed {self.eit_imaging.transformer.transform}, {self.eit_imaging.transformer.show_abs}\n\r\
+Corrections coeffs: {coef}'
+        logger.debug(msg)
+
+
+        self._enable_calibration= False
+
     @catch_error
     def process(self, data: Data2Compute) -> None:
         """Compute the eit image
@@ -93,12 +122,26 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         Args:
             data (Data2Compute): data for reconstruction
         """
+
         self._actual_frame_name = data.v_meas.get_frame_name()
+        data= self._preprocess_calibration(data)
         self._preprocess_monitoring(data)
-        eit_data, plot_labels = self._prepocess(data)
+        eit_data, plot_labels = self._prepocess_eitdata(data)
         self._rec_image(eit_data, plot_labels)
 
-    def _prepocess(
+    def _preprocess_calibration(self, data: Data2Compute) -> Data2Compute:
+        """"""
+        self.compute_calibration(data)
+
+        if self.calibration is None:
+            return data
+
+        data.v_ref.volt= np.matmul(self.calibration, data.v_ref.volt)
+        data.v_meas.volt= np.matmul(self.calibration, data.v_meas.volt)
+
+        return data
+
+    def _prepocess_eitdata(
         self, data: Data2Compute
     ) -> Tuple[EITData, dict[EITPlotsType, CustomLabels], str]:
         """Returns the eit_data for reconstruction. During this method
@@ -223,5 +266,3 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
 
 if __name__ == "__main__":
     """"""
-    a = ComputingAgent()
-    a.to_plot
