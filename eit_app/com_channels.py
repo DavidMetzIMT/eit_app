@@ -104,9 +104,12 @@ class AddToReplaySignal(object):
 
 @dataclass
 class Data2Compute:
-    v_ref: EITVoltage  # np.ndarray = None
-    v_meas: EITVoltage  # np.ndarray = None
-    # labels: list = None
+    """
+    v_ref: EITVoltage  
+    v_meas: EITVoltage  
+    """    
+    v_ref: EITVoltage  
+    v_meas: EITVoltage  
 
 
 class AddToComputationSignal(object):
@@ -325,44 +328,44 @@ class SignalReciever(object):
 ################################################################################
 
 
-class AddUpdateAgent(SignalReciever):
-    def __init__(self) -> None:
-        """Special SignalReciever for QT-based GUI update purpose.
+# class AddUpdateAgent(SignalReciever):
+#     def __init__(self) -> None:
+#         """Special SignalReciever for QT-based GUI update purpose.
 
-        It accepts only data of type "EventDataClass" used for the
-        update of a the gui.
+#         It accepts only data of type "EventDataClass" used for the
+#         update of a the gui.
 
-        The data are first safe in a buffer. An internal QThread retrieve the
-        data out of the buffer and post them in un update agent responsible of
-        updating the gui"""
-        super().__init__()
-        self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
-        self._data_buffer = Queue(maxsize=2048)  # TODO maybe
-        self._update_agent = UpdateAgent(self, UPDATE_EVENTS)
-        self._worker = CustomWorker(name="update_gui", sleeptime=0.01)
-        self._worker.progress.connect(self._process_data_for_update)
-        self._worker.start()
-        self._worker.start_polling()
+#         The data are first safe in a buffer. An internal QThread retrieve the
+#         data out of the buffer and post them in un update agent responsible of
+#         updating the gui"""
+#         super().__init__()
+#         self.init_reciever(data_callbacks={EventDataClass: self.update_gui})
+#         self._data_buffer = Queue(maxsize=2048)  # TODO maybe
+#         self._update_agent = UpdateAgent(self, UPDATE_EVENTS)
+#         self._worker = CustomWorker(name="update_gui", sleeptime=0.01)
+#         self._worker.progress.connect(self._process_data_for_update)
+#         self._worker.start()
+#         self._worker.start_polling()
 
-    def update_gui(self, data: EventDataClass = None, **kwargs):
-        """Add data in input buffer
+#     def update_gui(self, data: EventDataClass = None, **kwargs):
+#         """Add data in input buffer
 
-        Args:
-            data (EventDataClass, optional): data to update gui . Defaults to None.
-        """
-        if data is not None:
-            self._data_buffer.put(data)
+#         Args:
+#             data (EventDataClass, optional): data to update gui . Defaults to None.
+#         """
+#         if data is not None:
+#             self._data_buffer.put(data)
 
-    def _process_data_for_update(self) -> None:
-        """Retrieve EventDataClass out of the input buffer and post them via
-        UpdateAgent.
-        """
-        # self.handle_meas_status_change() # here for the momenet but optimal
-        if self._data_buffer.empty():
-            return
-        data = self._data_buffer.get(block=True)
-        # logger.debug(f'_process_data_for_update Update {data}')
-        self._update_agent.post(data)
+#     def _process_data_for_update(self) -> None:
+#         """Retrieve EventDataClass out of the input buffer and post them via
+#         UpdateAgent.
+#         """
+#         # self.handle_meas_status_change() # here for the momenet but optimal
+#         if self._data_buffer.empty():
+#             return
+#         data = self._data_buffer.get(block=True)
+#         # logger.debug(f'_process_data_for_update Update {data}')
+#         self._update_agent.post(data)
 
 
 class AddUpdateUiAgent(SignalReciever):
