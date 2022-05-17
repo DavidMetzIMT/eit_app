@@ -38,6 +38,7 @@ from eit_model.solver_pyeit import PyEitRecParams
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.flags.status import BaseStatus
 from glob_utils.unit.unit import eng
+import glob_utils.dialog.Qt_dialogs
 
 
 logger = logging.getLogger(__name__)
@@ -813,6 +814,39 @@ class EvtRecSolverChanged(EventDataClass):
     preset: PyEitRecParams
     func: str = update_reconstruction_parameters.__name__
 
+# -------------------------------------------------------------------------------
+## Pop msg box
+# -------------------------------------------------------------------------------
+
+
+def update_pop_msg(ui: Ui_MainWindow,title:str, msg:str,msgbox_type:str) -> None:
+    msgbox_type=msgbox_type.lower()
+    
+    if 'info' in msgbox_type:
+        glob_utils.dialog.Qt_dialogs.infoMsgBox(title=title, message=msg)
+    elif 'warn' in msgbox_type:
+        glob_utils.dialog.Qt_dialogs.warningMsgBox(title=title, message=msg)
+    elif 'err' in msgbox_type:
+        glob_utils.dialog.Qt_dialogs.errorMsgBox(title=title, message=msg)
+    
+    else:
+        return
+
+register_func_in_catalog(update_pop_msg)
+
+
+@dataclass
+class EvtPopMsgBox(EventDataClass):
+    """
+    _summary_
+
+    Args:
+        msgbox_type:str='info', 'warn', 'error'
+    """
+    title:str
+    msg:str
+    msgbox_type:str='info'
+    func: str = update_pop_msg.__name__
 
 if __name__ == "__main__":
     """"""

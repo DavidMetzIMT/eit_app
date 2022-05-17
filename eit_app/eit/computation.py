@@ -9,7 +9,7 @@ from eit_app.eit.plots import (PlotterChannelVoltageMonitoring,
                                PlotterEITChannelVoltage, PlotterEITData,
                                PlotterEITImage2D, PlotterEITImage2Greit,
                                PlotterEITImageElemData)
-from eit_app.update_gui import EvtDataImagingInputsChanged
+from eit_app.update_gui import EvtDataImagingInputsChanged, EvtPopMsgBox
 from eit_model.data import EITData, EITMeasMonitoring
 from eit_model.greit import greit_filter
 from eit_model.imaging import IMAGING_TYPE, ChannelVoltageImaging, Imaging
@@ -109,6 +109,7 @@ v from {data.v_ref.labels.lab_frame_idx},{data.v_ref.labels.lab_frame_freq}\n\
 and transformed {self.eit_imaging.transformer.transform}, {self.eit_imaging.transformer.show_abs}\n\r\
 Corrections coeffs: {coef}'
         logger.debug(msg)
+        self.to_gui.emit(EvtPopMsgBox(title, msg, 'info'))
 
 
         self._enable_calibration= False

@@ -57,6 +57,7 @@ from eit_app.update_gui import (
     EvtDataSciospecDevices,
     EvtDataSciospecDevMeasuringStatusChanged,
     EvtDataSciospecDevSetup,
+    EvtPopMsgBox,
     MeasuringStatus,
 )
 from glob_utils.flags.status import AddStatus
@@ -174,18 +175,13 @@ class SciospecEITDevice(
     ##  methods for interface
     ## =========================================================================
     def _handle_interface_error(self, error, **kwargs):
-        """Manage the error from the interface"""
+        """Manage the error from the interface, """
         if isinstance(error, PortNotOpenError):
             logger.warning(f"None devices available\n{error.__str__()}")
-            glob_utils.dialog.Qt_dialogs.warningMsgBox(
-                "None devices available", f"{error.__str__()}"
-            )
-
+            self.to_gui.emit(EvtPopMsgBox("None devices available", f"{error.__str__()}", 'warn'))
         elif isinstance(error, SerialException):
             logger.warning(f"Device not detected\n{error.__str__()}")
-            glob_utils.dialog.Qt_dialogs.warningMsgBox(
-                "Device not detected", f"{error.__str__()}"
-            )
+            self.to_gui.emit(EvtPopMsgBox("Device not detected", f"{error.__str__()}", 'warn'))
             self.disconnect_device()
             self.get_devices()
 
