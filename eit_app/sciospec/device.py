@@ -40,7 +40,7 @@ from eit_app.sciospec.measurement import (
     DataReInit4Pause,
 )
 from eit_app.sciospec.setup import SciospecSetup
-from eit_app.video.capture import DataSetStatusWMeas
+from eit_app.video.capture import SetStatusWMeasStatus
 from eit_app.com_channels import (
     AddToCaptureSignal,
     AddToDatasetSignal,
@@ -139,7 +139,7 @@ class SciospecEITDevice(
     def status_has_changed(self, status: Enum, was_status: Enum) -> None:
         self.to_gui.emit(EvtDataSciospecDevMeasuringStatusChanged(status))
         meas_status_dev = self.is_measuring or self.is_paused
-        self.to_capture.emit(DataSetStatusWMeas(meas_status_dev))
+        self.to_capture.emit(SetStatusWMeasStatus(meas_status_dev))
 
     @property
     def is_measuring(self) -> bool:

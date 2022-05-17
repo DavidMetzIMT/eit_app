@@ -166,13 +166,21 @@ class DataSaveLoadImage:
 
 
 @dataclass
-class DataSetStatusWMeas:
+class SetStatusWMeasStatus:
     meas_status_dev: bool
+
+    def __post_init__(self):
+        self.meas_status_dev= bool(self.meas_status_dev)
 
 
 @dataclass
-class DataSetStatusWReplay:
-    replay_status: bool
+class SetStatusWReplayStatus:
+    replay_playing_status: bool
+    replay_loaded_status: bool
+
+    def __post_init__(self):
+        self.replay_playing_status= bool(self.replay_playing_status)
+        self.replay_loaded_status= bool(self.replay_loaded_status)
 
 
 class AddToCaptureSignal(object):

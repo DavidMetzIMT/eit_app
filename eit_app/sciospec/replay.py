@@ -4,7 +4,7 @@ from threading import Timer
 from typing import Any, Callable, Iterable, Mapping, Union
 
 from eit_app.sciospec.measurement import DataEmitFrame4Computation
-from eit_app.video.capture import DataSetStatusWReplay
+from eit_app.video.capture import SetStatusWReplayStatus
 from eit_app.com_channels import (
     AddToCaptureSignal,
     AddToDatasetSignal,
@@ -119,8 +119,7 @@ class ReplayMeasurementsAgent(
         """Update the was life flag, called by status changed signal"""
         self.activate_deactivate_timer()
         self.to_gui.emit(EvtDataReplayStatusChanged(status))
-        replay_status = self.is_playing  # or self.is_idle
-        self.to_capture.emit(DataSetStatusWReplay(replay_status))
+        self.to_capture.emit(SetStatusWReplayStatus(self.is_playing, self.is_idle))
         logger.debug(f"ReplayMeasurements Status set to : {status.value}")
 
     @property

@@ -7,8 +7,8 @@ import numpy as np
 from eit_app.com_channels import (
     AddToGuiSignal,
     DataSaveLoadImage,
-    DataSetStatusWMeas,
-    DataSetStatusWReplay,
+    SetStatusWMeasStatus,
+    SetStatusWReplayStatus,
     SignalReciever,
 )
 from eit_app.video.device_abs import CaptureDevices, handle_capture_device_error
@@ -59,8 +59,8 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.init_reciever(
             data_callbacks={
                 DataSaveLoadImage: self.add_path,
-                DataSetStatusWMeas: self.set_status_w_meas,
-                DataSetStatusWReplay: self.set_status_w_replay,
+                SetStatusWMeasStatus: self.set_status_w_meas,
+                SetStatusWReplayStatus: self.set_status_w_replay,
             }
         )
         self.init_status(status_values=CaptureStatus)
@@ -121,7 +121,7 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
         self.mirror[h_v]=val
         self.emit_new_Qtimage(self._last_frame)
 
-    def set_status_w_meas(self, data: DataSetStatusWMeas):
+    def set_status_w_meas(self, data: SetStatusWMeasStatus):
         """Set internal mode depending on the measuring status of
         the acquisition device
 
@@ -129,30 +129,25 @@ class VideoCaptureAgent(SignalReciever, AddStatus, AddToGuiSignal):
 
         if meas_status_dev is `True` the capture_module is set to meas mode
         otherwise the capture_module is set back to live or to idle mode"""
-        meas_status_dev = data.meas_status_dev
-        if not isinstance(meas_status_dev, bool):
-            return
-
         if self.is_status(CaptureStatus.NOT_CONNECTED):
             return
 
-        if meas_status_dev:
+        if data.meas_status_dev:
             self.set_status(CaptureStatus.MEASURING)
         else:
             self.reset_to_last_status()
 
-    def set_status_w_replay(self, data: DataSetStatusWReplay) -> None:
+    def set_status_w_replay(self, data: SetStatusWReplayStatus) -> None:
         """Set internal mode depending on the replay status
 
         this method is called by a signal from the replay at each status changes
 
         if replay_status is `True` the capture_module is set to idle mode"""
-        replay_status = data.replay_status
-        if not isinstance(replay_status, bool):
-            return
 
-        if replay_status:
+        if data.replay_playing_status:
             self.set_status(CaptureStatus.REPLAY_AUTO)
+        elif data.replay_loaded_status:
+            self.set_status(CaptureStatus.REPLAY_MAN)
         else:
             self.reset_to_last_status()
 
