@@ -593,7 +593,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 solver_type=self.ui.cB_pyeit_solver.currentText(),
                 p=self.ui.sBd_pyeit_p.value(),
                 lamb=self.ui.sBd_pyeit_lamda.value(),
-                n=self.ui.sBd_pyeit_greit_n.value(),
+                n=int(self.ui.sBd_pyeit_greit_n.value()),
                 normalize=self.ui.chB_eit_mdl_normalize.isChecked(),
                 background=self.ui.sBd_pyeit_bckgrnd.value(),
                 method=self.ui.cB_pyeit_reg_method.currentText(),
