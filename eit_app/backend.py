@@ -352,7 +352,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         )
         self.ui.sB_eidors_factor.valueChanged.connect(self._eidors_reload)
         self.ui.pB_export_data_meas_vs_eidors.clicked.connect(
-            self._export_data_meas_vs_eidors
+            self._export_analysis_protocol
         )
         self.ui.pB_export_frame_plots.clicked.connect(self._export_frame)
 
@@ -499,6 +499,42 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.chB_eit_image_plot.setChecked(True)
         self.ui.chB_eit_data_monitoring.setChecked(True)
         self.export_agent.run_export()
+        
+    def _export_analysis_protocol(self) -> None:
+        """export the measurement protocol"""
+        rec_type = self.ui.tabW_reconstruction.currentIndex()
+        params = self._rec_params(rec_type)
+        rec_params = glob_utils.types.dict.dict_nested(params, ignore_private=True)
+        
+        fem = self.ui.sBd_eit_model_fem_refinement.value()
+        eit_model = self.ui.lE_eit_model_name.text()
+        chip = self.ui.cB_chip_ctlg.currentText()
+        ref_idx = self.ui.cB_eit_imaging_ref_frame.currentIndex()
+        meas_idx = self.ui.cB_replay_frame_idx.currentIndex()
+        ref_freq = self.ui.cB_eit_imaging_ref_freq.currentIndex()
+        meas_freq = self.ui.cB_eit_imaging_meas_freq.currentIndex()
+        imaging_tpye = self.ui.cB_eit_imaging_type.currentText()
+        imaging_trans = self.ui.cB_eit_imaging_trans.currentText()
+        frame_info = self.ui.tE_frame_info.toPlainText()
+        d = {
+             'fem':fem,
+             'eit_model':eit_model,
+             'chip':chip,
+             'ref_idx':ref_idx,
+             'meas_idx':meas_idx,
+             'ref_freq':ref_freq,
+             'meas_freq ':meas_freq,
+             'frame_info':frame_info,
+             'imaging_type':imaging_tpye,
+             'imaging_trans':imaging_trans
+        }
+        
+        d.update(rec_params)
+        
+        file_path = os.path.join(
+            self.dataset.output_dir, f'protocol{meas_idx}')
+        glob_utils.file.json_utils.save_to_json(file_path, d)
+        logger.debug("protocol json file saved!")
 
     ############################################################################
     #### Capture
