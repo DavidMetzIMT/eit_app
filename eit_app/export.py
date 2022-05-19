@@ -4,10 +4,9 @@ from dataclasses import dataclass, field
 import itertools
 import logging
 import os
-from time import sleep
 from typing import Callable
-from PyQt5 import QtCore, QtWidgets
-from numpy import block
+from PyQt5 import QtWidgets
+from eit_app.eit.computation import ComputingAgent
 from eit_app.gui_utils import get_comboBox_allItemsIndex, set_comboBox_index
 from eit_app.sciospec.measurement import MeasurementDataset
 from eit_app.sciospec.replay import ReplayMeasurementsAgent
@@ -36,7 +35,6 @@ class ExportFunc:
     def run(self, *args, **kwargs):
         if self.enable_func():
             self.func(*args, **kwargs)
-            logger.debug('run export')
     
 @dataclass
 class ParamsToLoopOn:
@@ -72,13 +70,15 @@ class ParamsToLoopOn:
 class ExportAgent:#
     replay_agent:ReplayMeasurementsAgent
     dataset:MeasurementDataset
+    computing:ComputingAgent
     params_to_loop_on:list[ParamsToLoopOn]
     export_func:list[ExportFunc]
 
-    def __init__(self, replay_agent:ReplayMeasurementsAgent, dataset:MeasurementDataset, ui:eit_app.gui.Ui_MainWindow) -> None:
+    def __init__(self, replay_agent:ReplayMeasurementsAgent, dataset:MeasurementDataset, computing:ComputingAgent, ui:eit_app.gui.Ui_MainWindow) -> None:
         self.ui=ui
         self.replay_agent=replay_agent
         self.dataset= dataset
+        self.computing= computing
         self.params_to_loop_on=[]
         self.export_func=[]
 
@@ -107,7 +107,6 @@ class ExportAgent:#
         c= self.combinations[self._comb_idx]
         t=""
         for val, p in zip(c,self.params_to_loop_on):
-            logger.debug(val)
             p.set_val(val)
             t=f"{t}{p.get_info_text()}"
         par_text= t
@@ -118,13 +117,24 @@ class ExportAgent:#
         glob_utils.directory.utils.mk_dir(dir_path) 
 
         path= os.path.join(dir_path, f"{self._datetime}{par_text}")
-        [export.run(path) for export in self.export_func]
+        [export.run(path) for export in self.export_func if export.before_compute]
 
         self.replay_agent.compute_meas_frame(frame_idx)
+        while not self.computing._is_processing:
+            pass
+        while self.computing._is_processing:
+            pass
+        
+        [export.run(path) for export in self.export_func if not export.before_compute]
         # logger.debug(f"{frame_idx}: {self.replay_agent.actual_frame_idx}")
 
         while not any(export.is_exported() for export in self.export_func):
             pass
+    
+        # [export.run(path) for export in self.export_func if not export.before_compute]
+
+        # while not all(export.is_exported() for export in self.export_func):
+        #     pass
 
         self._comb_idx +=1
         if self._comb_idx>= len(self.combinations):

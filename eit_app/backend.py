@@ -12,6 +12,7 @@ import glob_utils.dialog.Qt_dialogs
 import glob_utils.directory.utils
 import glob_utils.file.csv_utils
 import glob_utils.file.mat_utils
+import glob_utils.file.txt_utils
 import glob_utils.log.log
 import glob_utils.log.msg_trans
 import matplotlib
@@ -149,7 +150,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             capture_dev=eit_app.video.microcam.MicroUSBCamera(),
             snapshot_dir=get_dir(AppStdDir.snapshot),
         )
-        self.export_agent = ExportAgent(self.replay_agent, self.dataset, self.ui)
+        self.export_agent = ExportAgent(self.replay_agent, self.dataset,self.computing, self.ui)
 
     def _connect_menu(self):
         self.ui.action_exit.triggered.connect(self.close)
@@ -405,6 +406,37 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         # )
         #  glob_utils.file.csv_utils.save_as_csv(file_path, data)
         # logger.debug(f"Measurements VS Eidors exported as CSV in : {file_path}")
+    
+            
+    def _export_analysis_protocol(self, path:str) -> None:
+        """export the measurement protocol"""
+        self._export_analysis_protocol_done = False
+        rec_type = self.ui.tabW_reconstruction.currentIndex()
+        params = self._rec_params(rec_type)
+        meas_idx = self.ui.cB_replay_frame_idx.currentIndex()
+
+        def sub(s:str, order:int=1)->str:
+            tab=['\t']*order
+            return f"{''.join(tab)}{s}"
+
+        logger.debug(f'{self.computing.eit_imaging=}')
+        lines= []
+        lines.append('Dataset:')
+        [lines.append(sub(f'{l}')) for l in self.dataset.get_protocol_info()]
+        lines.append('EIT model:')
+        [lines.append(sub(f'{l}')) for l in self.eit_mdl.get_protocol_info()]
+        lines.append('Imaging:')
+        [lines.append(sub(f'{l}')) for l in self.computing.eit_imaging.get_protocol_info()]
+        lines.append('Solver:')
+        [lines.append(sub(f'{k}: {v}'))for k,v in params.__dict__.items()]
+        
+        path= f"{path}_protocol"
+        glob_utils.file.txt_utils.save_as_txt(path, lines)
+        self._export_analysis_protocol_done = True
+    
+    def _analysis_protocol_exported(self):
+        return self._export_analysis_protocol_done
+
 
     def _export_meas_csv(self) -> None:
         """Export the actual measurments frames in csv"""
@@ -459,6 +491,15 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 func=self.computing.export_eit_data,
                 is_exported=self.computing.exported,
                 before_compute=True,
+            )
+        )
+
+        self.export_agent.add_export(
+            ExportFunc(
+                enable_func=self.ui.chB_export_analysis_protocol.isChecked,
+                func=self._export_analysis_protocol,
+                is_exported=self._analysis_protocol_exported,
+                before_compute=False,
             )
         )
 
