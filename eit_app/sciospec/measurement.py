@@ -252,7 +252,7 @@ class MeasurementFrame(object):
     idx: int
     dataset_name: str
     time_stamp: str
-    info: str
+    info: list[str]
     path: str
     meas: list[VoltageMeas]
     freq_list: np.ndarray
@@ -284,7 +284,7 @@ class MeasurementFrame(object):
         self.meas = [VoltageMeas(dev_setup, frequency=val) for val in self.freq_list]
         self._meas_stream_max = len(self.excitation) * 2
         self._meas_stream_cnt = 0
-        self.info = self.build_info()
+        self.info = self.build_info_frame()
         logger.debug(f"Initialisation of Frame:{self.__dict__}")
 
     def set_from_dict(self, **kwargs):
@@ -302,29 +302,42 @@ class MeasurementFrame(object):
                 setattr(self, k, v)
 
         # rebuild the info in case something has been changed (e.g. path)
-        self.info = self.build_info()
+        self.info = self.build_info_frame()
 
     def build_path(self, output_dir: str, idx: int) -> str:
         """Return a formatted frame path"""
         return os.path.join(output_dir, f"Frame{idx:02}")
 
-    def build_info(self):
+    def build_info_frame(self):
+        """Create an information text about the frame."""
+        dir, file = os.path.split(self.path)
+        info= [
+            f"Frame#: {self.idx}",
+            f"Frame filename: {file}",
+            f"Infos dataset:",
+        ]
+        info.extend(self._build_info_dataset())
+
+        return info
+
+    def _build_info_dataset(self):
         """Create an information text about the frame."""
         dir, file = os.path.split(self.path)
         Fmin = eng(self._dev_setup.get_freq_min(), "Hz")
         Fmax = eng(self._dev_setup.get_freq_max(), "Hz")
         Amp = eng(self._dev_setup.get_exc_amp(), "A")
+        FSteps= self.freq_steps
+        FScale = self._dev_setup.get_freq_scale()
+
         return [
-            f"Dataset name:\t{self.dataset_name}",
-            f"Frame filename:\t{file}",
-            f"dirname:\t{dir}",
-            f"Frame#:\t{self.idx}",
-            f"TimeStamps:\t{self.time_stamp}",
-            f"Sweepconfig:\tFmin = {Fmin},\r\n\tFmax = {Fmax}",
-            f"\tFSteps = {self.freq_steps:.0f},\r\n\tFScale = {self._dev_setup.get_freq_scale()}",
-            f"\tFList: {self.freq_list}",
-            f"\tAmp = {Amp},\r\n\tFrameRate = {self._dev_setup.get_frame_rate():.3f} fps",
-            f"Excitation:\t{self.excitation}",
+            f"Name: {self.dataset_name}",
+            f"Time stamps: {self.time_stamp}",
+            f"Directory: {dir}",
+            f"Sweep config: {Fmin=}, {Fmax=}, {FSteps=:.0f}, {FScale=}",
+            f"Frequency list: {self.freq_list}",
+            f"Amp: {Amp}",
+            f"Frame rate: {self._dev_setup.get_frame_rate():.3f} fps",
+            f"Excitation: {self.excitation}",
         ]
 
     def is_complete(self) -> bool:
@@ -848,19 +861,39 @@ class MeasurementDataset(
         """
         return self.meas_frame[idx].path  #
 
-    def get_meas_info(self, idx: int = 0) -> str:
-        """Return the path of the measured frame #idx
+    def get_meas_info(self, idx: int = 0) -> list[str]:
+        """Return info of the measured frame #idx
 
         Args:
             idx (int, optional): index of the measured frame. Defaults to 0.
 
         Returns:
-            str: path of the measured frame #idx
+            list[str]: info of the measured frame #idx
         """
         return self.meas_frame[idx].info
 
     def get_frame_cnt(self) -> int:
         return self.frame_cnt
+
+
+    def get_dataset_info(self) -> list[str]:
+        """Return info of the dataset
+
+        Returns:
+            list[str]: info of the dataset
+        """
+        return self.meas_frame[0]._build_info_dataset()
+    
+    def get_protocol_info(self)->list[str]:
+        """
+        Return a list of string containing informaton saved in 
+        the analysis protocol
+
+        Returns:
+            list[str]: lines of informations
+        """  
+        return self.get_dataset_info()
+
 
     def _update_gui_autosave(self):
         self.to_gui.emit(

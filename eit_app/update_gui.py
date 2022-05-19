@@ -600,7 +600,8 @@ class EvtDataNewFrameProgress(EventDataClass):
 
 def update_frame_info(ui: Ui_MainWindow, info: str = "") -> None:
     if info is not None:
-        ui.tE_frame_info.setText("\r\n".join(info))
+        text= "\r\n".join(info).replace(': ', ':\t')
+        ui.tE_frame_info.setText(text)
 
 
 register_func_in_catalog(update_frame_info)

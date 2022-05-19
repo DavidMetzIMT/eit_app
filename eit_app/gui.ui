@@ -2801,6 +2801,13 @@ p, li { white-space: pre-wrap; }
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QCheckBox" name="chB_export_analysis_protocol">
+               <property name="text">
+                <string>Analysis protocol</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>

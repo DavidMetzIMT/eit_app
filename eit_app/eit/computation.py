@@ -123,12 +123,13 @@ Corrections coeffs: {coef}'
         Args:
             data (Data2Compute): data for reconstruction
         """
-
+        self._is_processing= True
         self._actual_frame_name = data.v_meas.get_frame_name()
         data= self._preprocess_calibration(data)
         self._preprocess_monitoring(data)
         eit_data, plot_labels = self._prepocess_eitdata(data)
         self._rec_image(eit_data, plot_labels)
+        self._is_processing= False
 
     def _preprocess_calibration(self, data: Data2Compute) -> Data2Compute:
         """"""
@@ -157,6 +158,7 @@ Corrections coeffs: {coef}'
         """
 
         # prepocess eitdata for eit_imaging
+        logger.debug(f'{self.eit_imaging=}')
         eit_data, eit_volt, plot_labels = self.eit_imaging.process_data(
             v_ref=data.v_ref, v_meas=data.v_meas, eit_model=self.eit_model
         )
