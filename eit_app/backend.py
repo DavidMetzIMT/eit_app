@@ -26,8 +26,8 @@ from PyQt5 import QtCore, QtWidgets
 
 import eit_app.com_channels
 import eit_app.default.set_default_dir
-import eit_app.eit.computation
-import eit_app.eit.plots
+import eit_app.computation
+import eit_app.plots
 import eit_app.gui
 import eit_app.sciospec.constants
 import eit_app.sciospec.device
@@ -107,42 +107,42 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
     def _create_main_objects(self) -> None:
 
         # set canvas
-        self.plot_agent = eit_app.eit.plots.PlottingAgent()
+        self.plot_agent = eit_app.plots.PlottingAgent()
 
-        self.canvas_eit_image = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_rec, eit_app.eit.plots.PlotterEITImage2D
+        self.canvas_eit_image = eit_app.plots.CanvasLayout(
+            self, self.ui.layout_rec, eit_app.plots.PlotterEITImage2D
         )
         self.plot_agent.add_canvas(self.canvas_eit_image)
 
-        self.canvas_eit_elem_data = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_elem_data, eit_app.eit.plots.PlotterEITImageElemData
+        self.canvas_eit_elem_data = eit_app.plots.CanvasLayout(
+            self, self.ui.layout_elem_data, eit_app.plots.PlotterEITImageElemData
         )
         self.plot_agent.add_canvas(self.canvas_eit_elem_data)
 
-        self.canvas_greit = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_greit, eit_app.eit.plots.PlotterEITImage2Greit
+        self.canvas_greit = eit_app.plots.CanvasLayout(
+            self, self.ui.layout_greit, eit_app.plots.PlotterEITImage2Greit
         )
         self.plot_agent.add_canvas(self.canvas_greit)
 
-        self.canvas_eit_data = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_Uplot, eit_app.eit.plots.PlotterEITData
+        self.canvas_eit_data = eit_app.plots.CanvasLayout(
+            self, self.ui.layout_Uplot, eit_app.plots.PlotterEITData
         )
         self.plot_agent.add_canvas(self.canvas_eit_data)
 
-        self.canvas_Uch = eit_app.eit.plots.CanvasLayout(
-            self, self.ui.layout_Uch, eit_app.eit.plots.PlotterEITChannelVoltage
+        self.canvas_Uch = eit_app.plots.CanvasLayout(
+            self, self.ui.layout_Uch, eit_app.plots.PlotterEITChannelVoltage
         )
         self.plot_agent.add_canvas(self.canvas_Uch)
 
-        self.canvas_error = eit_app.eit.plots.CanvasLayout(
+        self.canvas_error = eit_app.plots.CanvasLayout(
             self,
             self.ui.layout_error,
-            eit_app.eit.plots.PlotterChannelVoltageMonitoring,
+            eit_app.plots.PlotterChannelVoltageMonitoring,
         )
         self.plot_agent.add_canvas(self.canvas_error)
 
         self.eit_mdl = eit_model.model.EITModel()
-        self.computing = eit_app.eit.computation.ComputingAgent()
+        self.computing = eit_app.computation.ComputingAgent()
         self.dataset = eit_app.sciospec.measurement.MeasurementDataset()
         self.device = eit_app.sciospec.device.SciospecEITDevice(32)
         self.replay_agent = eit_app.sciospec.replay.ReplayMeasurementsAgent()

@@ -5,7 +5,7 @@ from typing import Any, Tuple, Union
 import numpy as np
 from eit_app.com_channels import (AddToGuiSignal, AddToPlotSignal,
                                   Data2Compute, Data2Plot, SignalReciever)
-from eit_app.eit.plots import (PlotterChannelVoltageMonitoring,
+from eit_app.plots import (PlotterChannelVoltageMonitoring,
                                PlotterEITChannelVoltage, PlotterEITData,
                                PlotterEITImage2D, PlotterEITImage2Greit,
                                PlotterEITImageElemData)

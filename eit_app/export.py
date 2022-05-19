@@ -6,7 +6,7 @@ import logging
 import os
 from typing import Callable
 from PyQt5 import QtWidgets
-from eit_app.eit.computation import ComputingAgent
+from eit_app.computation import ComputingAgent
 from eit_app.gui_utils import get_comboBox_allItemsIndex, set_comboBox_index
 from eit_app.sciospec.measurement import MeasurementDataset
 from eit_app.sciospec.replay import ReplayMeasurementsAgent
