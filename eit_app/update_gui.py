@@ -13,7 +13,6 @@ trouh the call
 from abc import ABC
 from dataclasses import dataclass, is_dataclass
 import logging
-import threading
 from typing import Any, Callable
 from PyQt5 import QtGui, QtWidgets
 from eit_app.default.set_default_dir import AppStdDir, get_dir
@@ -29,7 +28,7 @@ from eit_app.gui_utils import (
 )
 from eit_app.sciospec.setup import SciospecSetup
 from eit_model.imaging import (
-    Imaging,
+    EITImaging,
     AbsoluteImaging,
     TimeDifferenceImaging,
     FrequenceDifferenceImaging,
@@ -506,7 +505,7 @@ class EvtDataReplayStatusChanged(EventDataClass):
 # -------------------------------------------------------------------------------
 
 
-def update_imaging_inputs_fields(ui: Ui_MainWindow, imaging: Imaging) -> None:
+def update_imaging_inputs_fields(ui: Ui_MainWindow, imaging: EITImaging) -> None:
     """Activate deactive the input fileddepending on the imaging type"""
 
     meas_0 = {"show": False, "lab_text": "Ref. Frequency"}
@@ -538,7 +537,7 @@ register_func_in_catalog(update_imaging_inputs_fields)
 
 @dataclass
 class EvtDataImagingInputsChanged(EventDataClass):
-    imaging: Imaging
+    imaging: EITImaging
     func: str = update_imaging_inputs_fields.__name__
 
 
