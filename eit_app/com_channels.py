@@ -50,10 +50,10 @@ from typing import Any, Callable
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.signal import Signal
 from glob_utils.thread_process.threads_worker import CustomWorker
+import numpy as np
 from eit_app.sciospec.setup import SciospecSetup
 from eit_app.update_gui import UPDATE_EVENTS, EventDataClass, UpdateAgent
-from eit_model.data import EITVoltage
-
+from eit_app.sciospec.voltage import EITChannelVoltage
 
 class SignalDataClass(ABC):
     """Abstract class of the dataclass defined for each update events"""
@@ -102,14 +102,15 @@ class AddToReplaySignal(object):
 ################################################################################
 
 
+
 @dataclass
 class Data2Compute:
     """
-    v_ref: EITVoltage  
-    v_meas: EITVoltage  
+    v_ref: EITChannelVoltage  
+    v_meas: EITChannelVoltage  
     """    
-    v_ref: EITVoltage  
-    v_meas: EITVoltage  
+    v_ref: EITChannelVoltage  
+    v_meas: EITChannelVoltage  
 
 
 class AddToComputationSignal(object):
