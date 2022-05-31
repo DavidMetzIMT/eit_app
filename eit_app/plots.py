@@ -5,7 +5,7 @@ from typing import Any
 
 import matplotlib.pyplot
 from eit_app.com_channels import Data2Plot, SignalReciever
-from eit_model.data import EITData, EITImage, EITMeasMonitoring
+from eit_model.data import EITData, EITImage, EITMeasMonitoringData
 from eit_model.plot import (
     EITCustomPlots,
     EITElemsDataPlot,
@@ -157,7 +157,7 @@ class PlotterChannelVoltageMonitoring(Plotter):
     """_summary_"""
 
     def _post_init_(self):
-        self._allowed_data_type = EITMeasMonitoring
+        self._allowed_data_type = EITMeasMonitoringData
         self._plotting_func = MeasErrorPlot()
         self._tag = "ChannelVoltageMonitoring"
 

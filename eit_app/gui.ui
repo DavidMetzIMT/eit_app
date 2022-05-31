@@ -2757,7 +2757,7 @@ p, li { white-space: pre-wrap; }
        <item>
         <widget class="QGroupBox" name="groupBox_11">
          <property name="title">
-          <string>Export frame plots</string>
+          <string>Export frame data</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_11">
           <item row="0" column="2">

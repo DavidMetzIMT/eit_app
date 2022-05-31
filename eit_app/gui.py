@@ -1497,7 +1497,7 @@ class Ui_MainWindow(object):
         self.video_frame.setText(_translate("MainWindow", "Live Video"))
         self.chB_capture_img_mirror_h.setText(_translate("MainWindow", "Mirror horizontal"))
         self.chB_capture_img_mirror_v.setText(_translate("MainWindow", "Mirror vertical"))
-        self.groupBox_11.setTitle(_translate("MainWindow", "Export frame plots"))
+        self.groupBox_11.setTitle(_translate("MainWindow", "Export frame data"))
         self.pB_export_frame_plots.setText(_translate("MainWindow", "Export"))
         self.groupBox_13.setTitle(_translate("MainWindow", "Export"))
         self.chB_export_eit_image.setText(_translate("MainWindow", "EIT image (img)"))

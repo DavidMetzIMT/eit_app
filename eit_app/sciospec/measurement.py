@@ -34,7 +34,6 @@ from eit_app.update_gui import (
     EvtDataNewFrameProgress,
 )
 from eit_model.imaging import IMAGING_TYPE
-from eit_model.data import EITVoltage, EITVoltageLabels
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.file.utils import FileExt, search_for_file_with_ext
 from glob_utils.file.json_utils import read_json, save_to_json
@@ -48,10 +47,14 @@ from glob_utils.directory.utils import (
 )
 from glob_utils.types.dict import dict_nested, visualise
 from glob_utils.unit.unit import eng
+from eit_app.sciospec.voltage import EITChannelVoltage, EITVoltageLabels
 
 logger = logging.getLogger(__name__)
 
 N_CH_PER_STREAM = 16
+
+
+
 ## =============================================================================
 ##  Class for the DataSet obtained from the EIT Device
 ## =============================================================================
@@ -648,7 +651,7 @@ class MeasurementDataset(
             EvtDataNewFrameProgress(self.get_frame_cnt(), self.get_filling())
         )
 
-    def _get_vref(self) -> EITVoltage:
+    def _get_vref(self) -> EITChannelVoltage:
         ref_idx = self.extract_idx.ref_idx
         ref_freq = self.extract_idx.ref_freq
 
@@ -661,18 +664,18 @@ class MeasurementDataset(
             l_ref = self.get_meas_labels(ref_idx, ref_freq)
             ref_idx = self.get_meas_idx(self.extract_idx.meas_idx)
 
-        return EITVoltage(
+        return EITChannelVoltage(
             volt=v_ref, labels=EITVoltageLabels(ref_idx, ref_freq, *l_ref)
         )
 
-    def _get_vmeas(self) -> EITVoltage:
+    def _get_vmeas(self) -> EITChannelVoltage:
 
         meas_idx = self.extract_idx.meas_idx
         meas_freq = self.extract_idx.meas_freq
         v_meas = self.get_meas_voltage(meas_idx, meas_freq)
         l_meas = self.get_meas_labels(meas_idx, meas_freq)
         meas_idx = self.get_meas_idx(meas_idx)
-        return EITVoltage(
+        return EITChannelVoltage(
             volt=v_meas, labels=EITVoltageLabels(meas_idx, meas_freq, *l_meas)
         )
 

@@ -8,6 +8,7 @@ import eit_model.model
 import eit_model.pyvista_plot
 import eit_model.solver_ai
 import eit_model.solver_pyeit
+import eit_model.reconstruction
 import glob_utils.dialog.Qt_dialogs
 import glob_utils.directory.utils
 import glob_utils.file.csv_utils
@@ -38,7 +39,7 @@ import eit_app.video.microcam
 from eit_app.default.set_default_dir import AppStdDir, get_dir
 from eit_app.export import ExportAgent, ExportFunc, ParamsToLoopOn
 from eit_app.gui_utils import set_comboBox_items
-from eit_app.update_gui import (EvtDataEITDataPlotOptionsChanged,
+from eit_app.update_gui import (EvtDataEITDataPlotOptionsChanged, EvtDataImagingInputsChanged,
                                 EvtDataSciospecDevSetup, EvtEitModelLoaded,
                                 EvtGlobalDirectoriesSet, EvtInitFormatUI,
                                 EvtRecSolverChanged)
@@ -142,7 +143,10 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.plot_agent.add_canvas(self.canvas_error)
 
         self.eit_mdl = eit_model.model.EITModel()
-        self.computing = eit_app.computation.ComputingAgent()
+        self.reconstruction = eit_model.reconstruction.EITReconstruction()
+
+        self.computing = eit_app.computation.ComputingAgent(self.reconstruction)
+
         self.dataset = eit_app.sciospec.measurement.MeasurementDataset()
         self.device = eit_app.sciospec.device.SciospecEITDevice(32)
         self.replay_agent = eit_app.sciospec.replay.ReplayMeasurementsAgent()
@@ -419,14 +423,14 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             tab=['\t']*order
             return f"{''.join(tab)}{s}"
 
-        logger.debug(f'{self.computing.eit_imaging=}')
+        logger.debug(f'{self.reconstruction.imaging=}')
         lines= []
         lines.append('Dataset:')
         [lines.append(sub(f'{l}')) for l in self.dataset.get_protocol_info()]
         lines.append('EIT model:')
         [lines.append(sub(f'{l}')) for l in self.eit_mdl.get_protocol_info()]
         lines.append('Imaging:')
-        [lines.append(sub(f'{l}')) for l in self.computing.eit_imaging.get_protocol_info()]
+        [lines.append(sub(f'{l}')) for l in self.reconstruction.imaging.get_protocol_info()]
         lines.append('Solver:')
         [lines.append(sub(f'{k}: {v}'))for k,v in params.__dict__.items()]
         
@@ -584,7 +588,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
     def _set_plots_options(self) -> None:
 
         self.ui.tabW_rec.setVisible(self.ui.chB_eit_image_plot.isChecked())
-        self.computing.enable_rec(self.ui.chB_eit_image_plot.isChecked())
+        self.reconstruction.enable_rec(self.ui.chB_eit_image_plot.isChecked())
         self.ui.tabW_monitoring.setVisible(self.ui.chB_eit_data_monitoring.isChecked())
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
 
@@ -608,7 +612,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.pB_set_reconstruction.clicked.connect(self._init_rec)
         self.ui.pB_compute.clicked.connect(self.replay_agent.compute_actual_frame)
         self.ui.cB_pyeit_solver.activated[str].connect(self._update_rec_params)
-        self.ui.pB_activate_calibration.clicked[bool].connect(self.computing.enable_calibration)
+        self.ui.pB_activate_calibration.clicked[bool].connect(self.reconstruction.enable_calibration)
 
         # self.ui.chB_eit_mdl_normalize.toggled.connect(self._get_solvers_params)
         # self.ui.sBd_eit_model_fem_refinement.valueChanged.connect(self._get_solvers_params)
@@ -683,8 +687,12 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         imaging_type = self.ui.cB_eit_imaging_type.currentText()
         transform = self.ui.cB_eit_imaging_trans.currentText()
         show_abs = self.ui.chB_eit_imaging_trans_abs.isChecked()
-        self.computing.set_imaging_mode(imaging_type, transform, show_abs)
-        self.computing.set_eit_model(self.eit_mdl)
+
+        imaging=eit_model.imaging.build_EITImaging(imaging_type, transform, show_abs)
+        self.update_gui(EvtDataImagingInputsChanged(imaging))
+
+        self.reconstruction.imaging= imaging
+        # self.reconstruction.set_eit_model(self.eit_mdl)
         self._set_actual_indexesforcomputation(imaging_type)
 
     def _set_actual_indexesforcomputation(self, imaging_type: str):
@@ -708,7 +716,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
     def _monitoring_params(self) -> None:
         transform = self.ui.cB_monitoring_trans.currentText()
         show_abs = self.ui.chB_monitoring_trans_abs.isChecked()
-        self.computing.set_monitoring(transform, show_abs)
+        self.reconstruction.set_monitoring(transform, show_abs)
 
     ############################################################################
     #### Eit model
