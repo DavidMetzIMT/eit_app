@@ -73,11 +73,11 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         self.process(data)
 
     @catch_error
-    def init_solver(self, solver: Solver, eit_model: EITModel, params: Any) -> None:
+    def init_solver(self, solver: Solver, params: Any) -> None:
         """Initialize internal solver, optionaly new solver or reconstruction
         parameters can be set before
         """
-        img_rec, data_sim =self.eit_rec.init_solver(solver, eit_model ,params)
+        img_rec, data_sim =self.eit_rec.init_solver(solver,params)
         self.to_plot.emit(Data2Plot(img_rec, {}, PlotterEITImage2D))
         self.to_plot.emit(Data2Plot(data_sim, {}, PlotterEITData))
 
@@ -106,7 +106,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             ),
         )
         self.eit_rec.rec_process(data_rec)
-
+        
         # monitoring
         monitoring_data, ch_data, ch_labels= self.eit_rec.monitoring_results()
         self.to_plot.emit(Data2Plot(ch_data, ch_labels, PlotterEITChannelVoltage))
@@ -114,11 +114,12 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
              Data2Plot(monitoring_data, ch_labels, PlotterChannelVoltageMonitoring)
         )
         eit_image, eit_data, plot_labels= self.eit_rec.imaging_results()
-        # EIT data EIT image plot
         self.to_plot.emit(Data2Plot(eit_data, plot_labels, PlotterEITData))
-        self.to_plot.emit(Data2Plot(eit_image, plot_labels, PlotterEITImage2D))
-        self.to_plot.emit(Data2Plot(eit_image, plot_labels, PlotterEITImageElemData))
-        self.to_plot.emit(Data2Plot(greit_filter(eit_image), plot_labels, PlotterEITImage2Greit))
+        if eit_image is not None:
+            # EIT data EIT image plot
+            self.to_plot.emit(Data2Plot(eit_image, plot_labels, PlotterEITImage2D))
+            self.to_plot.emit(Data2Plot(eit_image, plot_labels, PlotterEITImageElemData))
+            self.to_plot.emit(Data2Plot(greit_filter(eit_image), plot_labels, PlotterEITImage2Greit))
         self._is_processing= False
 
     def export_eit_data(self, path):

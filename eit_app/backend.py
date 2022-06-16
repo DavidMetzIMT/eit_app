@@ -81,8 +81,8 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
 
     def _debug_load(self):
         try:
-            self.dataset.load(dir_path="E:\\Software_dev\\Python\\eit_app\\measurements\\reffish_0.1uA_1k_d100_20220301_152132 - Kopie")
-            self._init_rec()
+            self.dataset.load(dir_path="E:\\Software_dev\\Python\\eit_app\\measurements\\fish_good_13.05\\dan_fish_1k50k_0.001mA_2_20220513_160256")
+            # self._init_rec()
         except BaseException as e:
             logger.error(f"{e}")
 
@@ -622,7 +622,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         rec_type = self.ui.tabW_reconstruction.currentIndex()
         solver = self._rec_solver(rec_type)
         params = self._rec_params(rec_type)
-        self.computing.init_solver(solver, self.eit_mdl, params)
+        self.computing.init_solver(solver, params)
 
     def _rec_solver(self, rec_type: int = 0) -> None:
         """Return the reconstruction solver"""
@@ -761,6 +761,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.device.setup.set_exc_pattern(exc_mat)
         self.update_gui(EvtDataSciospecDevSetup(self.device.setup))
         self.update_gui(EvtEitModelLoaded(self.eit_mdl.name))
+        self.reconstruction.eit_model=self.eit_mdl
 
     # def kill_workers(self) -> None:
     #     """Kill alls the running threads workers"""
