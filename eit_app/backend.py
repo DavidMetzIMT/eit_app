@@ -5,7 +5,6 @@ import os
 
 import eit_model.imaging
 import eit_model.model
-import eit_model.pyvista_plot
 import eit_model.solver_ai
 import eit_model.solver_pyeit
 import eit_model.reconstruction
@@ -43,6 +42,7 @@ from eit_app.update_gui import (EvtDataEITDataPlotOptionsChanged, EvtDataImaging
                                 EvtDataSciospecDevSetup, EvtEitModelLoaded,
                                 EvtGlobalDirectoriesSet, EvtInitFormatUI,
                                 EvtRecSolverChanged)
+from eit_app.widget_3d import Window3DAgent
 
 # Ensure using PyQt5 backend
 matplotlib.use("QT5Agg")
@@ -155,6 +155,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             snapshot_dir=get_dir(AppStdDir.snapshot),
         )
         self.export_agent = ExportAgent(self.replay_agent, self.dataset,self.computing, self.ui)
+        self.window_3d_agent = Window3DAgent()
 
     def _connect_menu(self):
         self.ui.action_exit.triggered.connect(self.close)
@@ -163,6 +164,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
 
         self.computing.to_gui.connect(self.to_reciever)
         self.computing.to_plot.connect(self.plot_agent.to_reciever)
+        self.computing.to_plot.connect(self.window_3d_agent.to_reciever)
 
         self.dataset.to_gui.connect(self.to_reciever)
         self.dataset.to_computation.connect(self.computing.to_reciever)
@@ -601,8 +603,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.canvas_error.set_options(dpi=dpi)
 
     def open_pyvista(self, checked) -> None:
-        self.w = eit_model.pyvista_plot.PyVistaPlotWidget(self)
-        # self.w.set_eitmodel(self.eit_mdl)
+        self.window_3d_agent.init_window_3d(self.eit_mdl)
 
     ############################################################################
     #### Reconstruction, computation
@@ -644,6 +645,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
                 background=self.ui.sBd_pyeit_bckgrnd.value(),
                 method=self.ui.cB_pyeit_reg_method.currentText(),
                 weight=self.ui.cB_pyeit_bp_weight_method.currentText(),
+                mesh_generation_mode_2D=self.ui.chB_eit_mdl_2D_generation.isChecked(),
             ),
             1: eit_model.solver_ai.AiRecParams(
                 model_dirpath="",
@@ -762,6 +764,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.update_gui(EvtDataSciospecDevSetup(self.device.setup))
         self.update_gui(EvtEitModelLoaded(self.eit_mdl.name))
         self.reconstruction.eit_model=self.eit_mdl
+        self.window_3d_agent.set_eit_model(self.eit_mdl)
 
     # def kill_workers(self) -> None:
     #     """Kill alls the running threads workers"""
@@ -770,3 +773,4 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
 
 if __name__ == "__main__":
     """"""
+ 

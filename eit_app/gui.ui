@@ -1658,6 +1658,16 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item>
+            <widget class="QCheckBox" name="chB_eit_mdl_2D_generation">
+             <property name="text">
+              <string>mode generation 2D</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QTabWidget" name="tabW_reconstruction">
              <property name="currentIndex">
               <number>0</number>
