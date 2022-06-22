@@ -78,6 +78,8 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
         parameters can be set before
         """
         img_rec, data_sim =self.eit_rec.init_solver(solver,params)
+
+        self.to_plot.emit(Data2Plot(self.eit_rec.eit_model, {}, PlotterEITImage2D)) 
         self.to_plot.emit(Data2Plot(img_rec, {}, PlotterEITImage2D))
         self.to_plot.emit(Data2Plot(data_sim, {}, PlotterEITData))
 
