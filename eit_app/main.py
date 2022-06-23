@@ -19,7 +19,8 @@ def main():
     app.setWindowIcon(QtGui.QIcon(":/icons/icons/EIT.png"))
     ui = UiBackEnd()
     ui.show()
-    exit(app.exec_())
+    # exit(app.exec_())
+    sys.exit(app.exec_())
 
 
 if __name__ == "__main__":
