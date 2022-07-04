@@ -55,7 +55,7 @@ The GUI has three columns. The left is measurement configurations. The middle co
 
 The first step is to choose the EIT model, by loading a mat-file. In this file the design of the cahmber with the electrode and the injection and measurmenet patterning is defined. Such file are “infos2py.mat”-file created by [`App_EIDORS_ModelSim`](https://github.com/DavidMetzIMT/App_EIDORS_ModelSim)). 
 
-<img src="./doc/images/app_eit_model.PNG" alt="" width="500"/><br>
+<img src="./doc/images/app_eit_model.png" alt="" width="500"/><br>
 *Selection of EIT-Model*
 
 Notes:
@@ -71,7 +71,7 @@ In “Excitation Pattern”, **Model** shows the injection pattern loaded from *
 
 When any parameter is changed, “Set setup” should be clicked.
 
-<img src="./doc/images/app_device_com.PNG" alt="" width="500"/><br>
+<img src="./doc/images/app_device_com.png" alt="" width="500"/><br>
 *Selection of EIT-Model*
 ![Untitled](eit_app%20readme%20bfdf62226b5847879cca84c6f95ec008/Untitled%201.png)
 
@@ -80,7 +80,7 @@ Notes:
 
 ### 3.4 Data acquisition and replay
 
-<img src="./doc/images/app_aquisition.PNG" alt="" width="500"/><br>
+<img src="./doc/images/app_aquisition.png" alt="" width="500"/><br>
 *Aquisition of measurements*
 
 During the data acquisition, all the information can be found. "Frame infos" shows the current frame information like Frequency, Amplitude, excitation etc. If the camera is connected and starts capture, the snapshot of each frame will be saved.
@@ -88,7 +88,7 @@ During the data acquisition, all the information can be found. "Frame infos" sho
 When replay the measurement, if the camera state is still measuring, the image will be overwritten.  
 The reconstruction image and Voltage plots will be computed every frame. In “Imaging type ” can choose the imaging type and different measurement frequency. Different voltage plot (real, imaginary, magnitude, phase) can be selected as well.
 
-<img src="./doc/images/app_imaging.PNG" alt="" width="500"/><br>
+<img src="./doc/images/app_imaging.png" alt="" width="500"/><br>
 *Seletion of imaging configurations*
 
 “Activate calibration” allows to calibrate the  voltages.
@@ -103,7 +103,7 @@ For showing the 3D image, “mode generation 2D” should be unclicked. Click �
 
  ****
 
-<img src="./doc/images/app_rec_3D.PNG" alt="" width="500"/><br>
+<img src="./doc/images/app_rec_3D.png" alt="" width="500"/><br>
 *Aditional 3D visualisation*
 
 With Ai reconstruction, the model path will be asked. Before loading the model, the EIT model should be selected correctly. "infos2py.mat" file in the training dataset should be used. 
@@ -114,7 +114,7 @@ With different combination of selection, different data or images can be exporte
 
 “Analysis protocol” will export all the necessary information of dataset including measurement information, EIT model, parameters of reconstruction solver. 
 
-<img src="./doc/images/app_export.PNG" alt="" width="500"/><br>
+<img src="./doc/images/app_export.png" alt="" width="500"/><br>
 *Selection of export configurations*
 
 
