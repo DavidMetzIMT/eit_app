@@ -51,7 +51,7 @@ The first step is to choose the EIT model, by loading a mat-file. In this file t
 
 Thanks that file a model of the chamber can be defined with electrodes.
 
-<img src="./doc/images/app_eit_model.png" alt="" width="500"/><br>
+<img src="./doc/images/app_eit_model.png" alt="" width="1000"/><br>
 *Selection of EIT-Model*
 
 Notes:
@@ -87,7 +87,7 @@ The “Excitation/injection Pattern” is displayed fro two point of views: whic
 - **Model view** shows the injection pattern with the #electrode commimg from the loaded **EIT model**
 - and **Chip view** shows the corresponding injection pattern with the #channel as defined in the chip type.
 
-<img src="./doc/images/app_device_com.png" alt="" width="500"/><br>
+<img src="./doc/images/app_device_com.png" alt="" width="1000"/><br>
 *Selection of EIT-Model*
 
 Notes:
@@ -110,13 +110,13 @@ During the acquisition multiple actions are done:
     - compute/plot the eit image if a reconstruction solver has been initilizated. 
     - If the camera has been connected and the capture started, the snapshot is diplayed.
 
-<img src="./doc/images/app_aquisition.png" alt="" width="500"/><br>
+<img src="./doc/images/app_aquisition.png" alt="" width="1000"/><br>
 *Aquisition of measurements*
 
 ### 3.5 Measurement replay
 The replay part allow to reload measurement dataset. This allow you to test/rerun other reconstruction/imaging settings, export data, ...
 
-<img src="./doc/images/app_replay.png" alt="" width="500"/><br>
+<img src="./doc/images/app_replay.png" alt="" width="1000"/><br>
 *Selection of imaging configurations*
 
 By playing the replay or selecting another frame, same data will be computed/plot as during aquisition. 
@@ -166,7 +166,7 @@ Both pyEIT and Ai solver can be selected for EIT reconstruction. Any solver shou
 #### 3.6.5 3D Reconstruction
 For showing the 3D view, “mode generation 2D” should be unclicked. Click “Open pyvista viewer” in **Plot settings** first, then adjust the parameters of pyEIT and set the solver. 
 
-<img src="./doc/images/app_rec_3D.png" alt="" width="10000"/><br>
+<img src="./doc/images/app_rec_3D.png" alt="" width="1000"/><br>
 *Aditional 3D visualisation*
 
 ### 3.7 Export frame data
@@ -180,7 +180,7 @@ In Replay mode (after loading a meas. dataset) it is possible to extract multipl
 
 Those data can be exported automatically loopwise for all frames, all meas. frequencies and all imaging types
 
-<img src="./doc/images/app_export.png" alt="" width="10000"/><br>
+<img src="./doc/images/app_export.png" alt="" width="1000"/><br>
 *Selection of export configurations*
 
 
