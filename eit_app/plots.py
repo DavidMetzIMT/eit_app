@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class Plotter(ABC):
 
     _allowed_data_type: tuple = None
-    _plotting_func: EITCustomPlots = None
+    _plotting_func: list[EITCustomPlots] = None
     _tag: str = ""
 
     def __init__(self) -> None:
@@ -41,6 +41,12 @@ class Plotter(ABC):
     def _post_init_(self):
         """Initialization of each custom Plotter
         here should _allowed_data_type and _plotting_func be defined"""
+    
+    def set_options(self, **kwargs):
+        """Set some plotting options
+        valid kwargs:"""
+        for p in self._plotting_func:
+            p.set_options(**kwargs)
 
     def build(self, fig: Figure, data: Data2Plot):
         """Build the layout of the figure with the data
@@ -74,13 +80,13 @@ class PlotterEITImage2D(Plotter):
 
     def _post_init_(self):
         self._allowed_data_type = EITImage
-        self._plotting_func = EITImage2DPlot()
+        self._plotting_func = [EITImage2DPlot()]
         self._tag = "EITImage2D"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
-        lab = labels.get(self._plotting_func.type)
-        fig, ax = self._plotting_func.plot(fig, ax, data, lab)
+        lab = labels.get(self._plotting_func[0].type)
+        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
 
@@ -89,15 +95,14 @@ class PlotterEITImage2Greit(Plotter):
 
     def _post_init_(self):
         self._allowed_data_type = EITImage
-        self._plotting_func: EITImage2DPlot = EITImage2DPlot()
+        self._plotting_func= [EITImage2DPlot()]
         self._tag = "EITImage2Greit"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
-        lab = labels.get(self._plotting_func.type)
-        fig, ax = self._plotting_func.plot(
-            fig, ax, data, lab, colorbar_range=[-1, 1], cmap="turbo"
-        )
+        lab = labels.get(self._plotting_func[0].type)
+        self._plotting_func[0].set_options(colorbar_range=[-1, 1], cmap="turbo")
+        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab   )
         fig.set_tight_layout(True)
 
 
@@ -106,13 +111,13 @@ class PlotterEITImageElemData(Plotter):
 
     def _post_init_(self):
         self._allowed_data_type = EITImage
-        self._plotting_func = EITElemsDataPlot()
+        self._plotting_func = [EITElemsDataPlot()]
         self._tag = "EITImageElemData"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
-        lab = labels.get(self._plotting_func.type)
-        fig, ax = self._plotting_func.plot(fig, ax, data, lab)
+        lab = labels.get(self._plotting_func[0].type)
+        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
 
@@ -143,13 +148,13 @@ class PlotterEITChannelVoltage(Plotter):
 
     def _post_init_(self):
         self._allowed_data_type = EITData
-        self._plotting_func = EITUPlot()
+        self._plotting_func = [EITUPlot()]
         self._tag = "EITChannelVoltage"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
-        lab = labels.get(self._plotting_func.type)
-        fig, ax = self._plotting_func.plot(fig, ax, data, lab)
+        lab = labels.get(self._plotting_func[0].type)
+        fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
 
@@ -158,12 +163,12 @@ class PlotterChannelVoltageMonitoring(Plotter):
 
     def _post_init_(self):
         self._allowed_data_type = EITMeasMonitoringData
-        self._plotting_func = MeasErrorPlot()
+        self._plotting_func = [MeasErrorPlot()]
         self._tag = "ChannelVoltageMonitoring"
 
     def _build(self, fig: Figure, data: Any, labels: dict):
         ax = fig.add_subplot(1, 1, 1)
-        lab = labels.get(self._plotting_func.type)
+        lab = labels.get(self._plotting_func[0].type)
         # fig, ax = self._plotting_func[0].plot(fig, ax, data, lab)
         fig.set_tight_layout(True)
 
@@ -223,6 +228,8 @@ class CanvasLayout(object):
             self._layout.removeWidget(self._toolbar)
             self._layout.removeWidget(self._canvas)
             self._init_layout(dpi=dpi)
+
+        self._plotter.set_options(**kwargs)
 
         if self._last_data:
             self.plot(self._last_data)

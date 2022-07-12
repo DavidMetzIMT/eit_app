@@ -586,6 +586,12 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.chB_eit_data_monitoring.toggled.connect(self._set_plots_options)
         self.ui.pB_pyvista.clicked.connect(self.open_pyvista)
         self.ui.pB_set_dpi.clicked.connect(self._set_dpi)
+        self.ui.scalePlot_vmin.valueChanged.connect(self._set_plots_options)
+        self.ui.scalePlot_vmax.valueChanged.connect(self._set_plots_options)
+        self.ui.chB_show_electrode.toggled.connect(self._set_plots_options)
+        self.ui.chB_show_colorbar.toggled.connect(self._set_plots_options)
+        self.ui.chB_show_axis.toggled.connect(self._set_plots_options)
+
 
     def _set_plots_options(self) -> None:
 
@@ -593,6 +599,15 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.reconstruction.enable_rec(self.ui.chB_eit_image_plot.isChecked())
         self.ui.tabW_monitoring.setVisible(self.ui.chB_eit_data_monitoring.isChecked())
         self.update_gui(EvtDataEITDataPlotOptionsChanged())
+
+        self.canvas_eit_image.set_options(
+            show_electrode= self.ui.chB_show_electrode.isChecked(), 
+            show_colorbar=self.ui.chB_show_colorbar.isChecked(),
+            show_axis=self.ui.chB_show_axis.isChecked(),
+        )
+
+
+
 
     def _set_dpi(self) -> None:
 
