@@ -12,3 +12,4 @@ snapshots
 *.svg
 *.log
 /runs
+/temp

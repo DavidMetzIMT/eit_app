@@ -43,6 +43,7 @@ from eit_app.update_gui import (EvtDataEITDataPlotOptionsChanged, EvtDataImaging
                                 EvtGlobalDirectoriesSet, EvtInitFormatUI,
                                 EvtRecSolverChanged)
 from eit_app.widget_3d import Window3DAgent
+from eit_app.experimental.fit_circles import show_threshold_overview, evaluate_multi_image, evaluate_single_image
 
 # Ensure using PyQt5 backend
 matplotlib.use("QT5Agg")
@@ -208,6 +209,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.device.emit_status_changed()
         self._init_eit_mdl()
         self._set_exports()
+        self._set_last_fitting_dirpath()
 
     def comboBox_init(self) -> None:
         """ """
@@ -353,67 +355,41 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
 
     def _signals_to_export_import(self):
         self.ui.pB_export_meas_csv.clicked.connect(self._export_meas_csv)
-
-        self.ui.pB_load_eidors_fwd_solution.clicked.connect(
-            self._load_eidors_fwd_solution
-        )
-        self.ui.sB_eidors_factor.valueChanged.connect(self._eidors_reload)
-        self.ui.pB_export_data_meas_vs_eidors.clicked.connect(
-            self._export_data_meas_vs_eidors
-        )
         self.ui.pB_export_frame_plots.clicked.connect(self._export_frame)
+        self.ui.pB_fit_circle_single_image.clicked.connect(self._fit_circle)
+        self.ui.pB_fit_circle_multi_image.clicked.connect(self._fit_multi_circle)
+        self.ui.pB_fit_circle_overview.clicked.connect(self._show_fit_circle_threshold_overview)
 
-    def _load_eidors_fwd_solution(self) -> None:  # for Jiawei master thesis
-        """load eidors foward solution(voltages) out of an mat-file"""
-        # QtWidgets.QMessageBox.information(parent= None, text='hrhuhr', title='hbkotkbokt')
 
-        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
-
-        # sol = matlab.load_mat_var(initialdir=os.getcwd(), var_name="X")
-        # U, _ = sol[0]
-        # volt = np.array(U).reshape((16, 16))
-
-        # self.eidors_sol = volt
-        # self._extracted_from__eidors_reload_9(volt)
-
-    def _eidors_reload(self) -> None:  # for Jiawei master thesis
-        """replot the data witha different scaling factor"""
-        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
-        # volt = self.eidors_sol
-        # self._extracted_from__eidors_reload_9(volt)
-
-    def _extracted_from__eidors_reload_9(self, volt):
+    def _set_last_fitting_dirpath(self, path= None):
+        
+        self._last_fitting_dirpath= os.path.split(path)[0] if path is not None else None
+ 
+    def _fit_circle(self):
         """"""
-        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
-        # volt = volt * self.ui.sB_eidors_factor.value()
-        # self.dataset.set_voltages(volt, 0, 0)
-        # self.dataset.set_ref_frame(0)
-        # self._replay_slider_changed()
+        path, _= evaluate_single_image(
+            initialdir=self._last_fitting_dirpath,
+            threshold_cell=self.ui.sP_fit_circle_threshold_cell.value(),
+            threshold_chamber=self.ui.sP_fit_circle_threshold_chamber.value(),
+            scale=self.eit_mdl.bbox[1,1]
+        )
+        self._set_last_fitting_dirpath(path)
 
-    def _export_data_meas_vs_eidors(self) -> None:
-        """export the actual raw data in csv from"""
-        glob_utils.dialog.Qt_dialogs.warningMsgBox("Not implemented", "Not implemented")
-        # vref = self.dataset._get_vref()
-        # vmeas = self.dataset._get_vmeas()
-        # file_path = 'test'
-        # data = {'X_h': self.computing.last_eit_data.ref_frame,'X_ih': self.computing.last_eit_data.frame }
-        # glob_utils.file.mat_utils.save_as_mat(file_path, data)
+    def _fit_multi_circle(self):
+        """"""
+        path= evaluate_multi_image(
+            initialdir=self._last_fitting_dirpath,
+            threshold_cell=self.ui.sP_fit_circle_threshold_cell.value(),
+            threshold_chamber=self.ui.sP_fit_circle_threshold_chamber.value(),
+            scale=self.eit_mdl.bbox[1,1]
+        )
+        self._set_last_fitting_dirpath(path)
 
-        # frame, freq = (
-        #     self.ui.slider_replay.sliderPosition(),
-        #     self.ui.cB_freq_meas_0.currentIndex(),
-        # )
-        # data = {
-        #     "measurement": np.real(self.dataset.get_meas_voltage(frame, freq)[:, 0:16]),
-        #     "eidors": self.eidors_sol,
-        # }
-        # file_path = os.path.join(
-        #     self.dataset.output_dir, f"eidorsvsmeas#{frame}_freq{freq}"
-        # )
-        #  glob_utils.file.csv_utils.save_as_csv(file_path, data)
-        # logger.debug(f"Measurements VS Eidors exported as CSV in : {file_path}")
-    
-            
+    def _show_fit_circle_threshold_overview(self):
+        """"""
+        path= show_threshold_overview(initialdir=self._last_fitting_dirpath)
+        self._set_last_fitting_dirpath(path)
+
     def _export_analysis_protocol(self, path:str) -> None:
         """export the measurement protocol"""
         self._export_analysis_protocol_done = False
