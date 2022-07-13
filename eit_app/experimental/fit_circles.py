@@ -202,7 +202,17 @@ def evaluate_single_image(
     # save data, img
     filename,_=os.path.splitext(img_name)
     file = os.path.join(out_dir, filename)
-    save_as_txt(f'{file}_eval_results.png', [f'{circle=}', f'{circle_rel=}', f'{scale=}', f'{circle_scaled=}'])
+
+    eval_res= {
+        'img_name':img_name,
+        'threshold_cell':threshold_cell, 
+        'threshold_chamber':threshold_chamber, 
+        'circle':circle,
+        'circle_rel':circle_rel,
+        'scale':scale,
+        'circle_scaled':circle_scaled,
+    }
+    save_to_json(f'{file}_eval_results', eval_res)
     fig.savefig(f'{file}_eval_overview.png')
     return path, circle_scaled
 
