@@ -1954,6 +1954,16 @@ p, li { white-space: pre-wrap; }
            <string>Reconstruction settings</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
+           <item row="4" column="0">
+            <widget class="QCheckBox" name="chB_show_axis">
+             <property name="text">
+              <string>Show axis, labels</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <layout class="QFormLayout" name="formLayout_5">
              <item row="0" column="0">
@@ -2052,9 +2062,9 @@ p, li { white-space: pre-wrap; }
             </widget>
            </item>
            <item row="3" column="0">
-            <widget class="QCheckBox" name="chB_show_axis">
+            <widget class="QCheckBox" name="chB_show_title">
              <property name="text">
-              <string>Show title, axis, labels</string>
+              <string>Show title</string>
              </property>
              <property name="checked">
               <bool>true</bool>

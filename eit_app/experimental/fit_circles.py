@@ -39,7 +39,6 @@ def fit_circle(contours)->np.ndarray:
         c= np.reshape(c, (-1,1))
         circles[i,:]= np.array([c[0], c[1], r])
 
-    # print(f'{circles=}')
     return circles
 
 def plot_img(img, cmap= None, title:str='Title figure', fig:Figure=None, ax:Axes= None):

@@ -567,6 +567,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
         self.ui.chB_show_electrode.toggled.connect(self._set_plots_options)
         self.ui.chB_show_colorbar.toggled.connect(self._set_plots_options)
         self.ui.chB_show_axis.toggled.connect(self._set_plots_options)
+        self.ui.chB_show_title.toggled.connect(self._set_plots_options)
 
 
     def _set_plots_options(self) -> None:
@@ -580,6 +581,7 @@ class UiBackEnd(QtWidgets.QMainWindow, eit_app.com_channels.AddUpdateUiAgent):
             show_electrode= self.ui.chB_show_electrode.isChecked(), 
             show_colorbar=self.ui.chB_show_colorbar.isChecked(),
             show_axis=self.ui.chB_show_axis.isChecked(),
+            show_title=self.ui.chB_show_title.isChecked(),
         )
 
 
