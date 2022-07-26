@@ -1,6 +1,6 @@
 import logging
 from queue import Queue
-from typing import Any, Tuple, Union
+from typing import Any
 
 
 from eit_app.com_channels import (AddToGuiSignal, AddToPlotSignal,
@@ -10,13 +10,14 @@ from eit_app.plots import (PlotterChannelVoltageMonitoring,
                                PlotterEITImage2D, PlotterEITImage2Greit,
                                PlotterEITImageElemData)
 from eit_model.greit import greit_filter
-from eit_model.model import EITModel
 from eit_model.reconstruction import EITReconstruction
 from eit_model.solver_abc import Solver
 from eit_model.data import EITReconstructionData, EITFrameMeasuredChannelVoltage
 from glob_utils.decorator.decorator import catch_error
 from glob_utils.thread_process.threads_worker import Poller
 import glob_utils.file.mat_utils
+
+from eit_app.widget_3d import PyVista3DPlot
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +122,7 @@ class ComputingAgent(SignalReciever, AddToPlotSignal, AddToGuiSignal):
             # EIT data EIT image plot
             self.to_plot.emit(Data2Plot(eit_image, plot_labels, PlotterEITImage2D))
             self.to_plot.emit(Data2Plot(eit_image, plot_labels, PlotterEITImageElemData))
+            self.to_plot.emit(Data2Plot(eit_image, plot_labels, PyVista3DPlot))
             self.to_plot.emit(Data2Plot(greit_filter(eit_image), plot_labels, PlotterEITImage2Greit))
         self._is_processing= False
 

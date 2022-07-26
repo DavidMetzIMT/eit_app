@@ -1,24 +1,18 @@
+
 import logging
 from queue import Queue
 from eit_app.com_channels import (Data2Plot, SignalReciever)
 from eit_model.model import EITModel
 from eit_model.data import EITImage
 from eit_model.pyvista_plot import PyVistaPlotWidget
-
-
-
 from queue import Queue
-
-
-
-
 from glob_utils.thread_process.threads_worker import CustomWorker
-
-from eit_app.update_gui import UPDATE_EVENTS, EventDataClass, UpdateAgent
 
 
 logger = logging.getLogger(__name__)
 
+class PyVista3DPlot:
+    """"""
 
 class Window3DAgent(SignalReciever):
 
@@ -41,6 +35,7 @@ class Window3DAgent(SignalReciever):
         self._worker.progress.connect(self._process_data_for_update)
         self._worker.start()
         self._worker.start_polling()
+        self.type= PyVista3DPlot()
 
     def _process_data_for_update(self) -> None:
         """Retrieve 
@@ -49,8 +44,9 @@ class Window3DAgent(SignalReciever):
             return
             
         while not self._data_buffer.empty():
-            data = self._data_buffer.get()
-
+            data:EITImage = self._data_buffer.get()
+        dat= data.data
+        logger.debug(f'{max(dat)=}\n\r{min(dat)=}\n\r{dat=}')
         self.w.plot_eit_image(data)
 
     def treat_data2plot(self, data2plot: Data2Plot = None, **kwargs):
@@ -64,7 +60,7 @@ class Window3DAgent(SignalReciever):
             return
         if self.w is not None:
             d = data2plot.data
-            if isinstance(d, EITImage) and d.is_3D:
+            if isinstance(d, EITImage) and d.is_3D and isinstance(self.type, data2plot.destination):
                 self._data_buffer.put(d)
             elif isinstance(d, EITModel) and d.is_3D:
                 self.w.set_eit_mdl(d)
