@@ -59,8 +59,10 @@ class Window3DAgent(SignalReciever):
             logger.error(f"wrong type of data, type Data2Plot expected: {data2plot=}")
             return
         if self.w is not None:
+            if not isinstance(self.type, data2plot.destination):
+                return
             d = data2plot.data
-            if isinstance(d, EITImage) and d.is_3D and isinstance(self.type, data2plot.destination):
+            if isinstance(d, EITImage) and d.is_3D:
                 self._data_buffer.put(d)
             elif isinstance(d, EITModel) and d.is_3D:
                 self.w.set_eit_mdl(d)
